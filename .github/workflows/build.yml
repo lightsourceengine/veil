@@ -1,0 +1,44 @@
+name: veil-build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-job:
+    if: github.event_name == 'push' && contains(toJson(github.event.commits), '[ci skip]') == false
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      matrix:
+        include:
+          - os: macos-10.15
+          - tag: x86_64-darwin
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Yarn Cache
+        uses: egordm/gha-yarn-node-cache@v1
+
+      - name: Build
+        run: ./tools/build.py --n-api --no-init-submodule --no-snapshot --jerry-heaplimit=8192 --buildtype=release --js-backtrace=ON
+
+      - name: Test
+        if: contains(matrix.os, 'macos') == true
+        run: ./test/runner.sh
+
+      - name: Upload Runtime
+        uses: actions/upload-artifact@v2
+        with:
+          name: veil-runtime-${{ matrix.artifact }}-artifact
+          if-no-files-found: error
+          retention-days: 3
+          path: |
+            build/${{ matrix.tag }}/release/veil
+            build/${{ matrix.tag }}/release/veil.exe
