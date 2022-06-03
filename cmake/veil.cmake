@@ -168,7 +168,6 @@ message("IoT.js module configuration:")
 getListOfVars("ENABLE_MODULE_" "([A-Za-z0-9_]+)" IOTJS_ENABLED_MODULES)
 foreach(MODULE ${IOTJS_ENABLED_MODULES})
   set(MODULE_DEFINE_VAR "ENABLE_MODULE_${MODULE}")
-  message(STATUS "${MODULE_DEFINE_VAR} = ${${MODULE_DEFINE_VAR}}")
   # Set the defines for build
   if(${MODULE_DEFINE_VAR})
     list(APPEND IOTJS_MODULE_DEFINES "-D${MODULE_DEFINE_VAR}=1")
@@ -190,7 +189,6 @@ foreach(MODULE ${IOTJS_ENABLED_MODULES})
     # Add js source
     set(MODULE_JS_FILE ${${MODULE_PREFIX}js_file})
     if(NOT "${MODULE_JS_FILE}" STREQUAL "")
-      message("from js_file: ${MODULE_JS_FILE}")
       string(FIND "${MODULE_JS_FILE}" "." IOTJS_STARTS_WITH)
       if ("${IOTJS_STARTS_WITH}" EQUAL 0)
         # allow ./ to be relative to the json file. used for user specfied module.json files
@@ -198,12 +196,10 @@ foreach(MODULE ${IOTJS_ENABLED_MODULES})
       else()
         # replace $JS_SRC_DIR variable with the configured source dir
         string(REPLACE "$JS_GEN" "${VEIL_JS_GEN_DIR}" MODULE_JS_FILE "${MODULE_JS_FILE}")
-        message("replace: ${MODULE_JS_FILE}")
       endif()
 
       set(JS_PATH "${MODULE_JS_FILE}")
       if(EXISTS "${JS_PATH}")
-        message("exists")
         list(APPEND IOTJS_JS_MODULES "${module}=${JS_PATH}")
         list(APPEND IOTJS_JS_MODULE_SRC ${JS_PATH})
       else()
@@ -561,7 +557,7 @@ add_dependencies(${TARGET_LIB_IOTJS}
 )
 
 set_target_properties(${TARGET_LIB_IOTJS} PROPERTIES
-  OUTPUT_NAME iotjs
+  OUTPUT_NAME veil
   ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
   PUBLIC_HEADER "${IOTJS_PUBLIC_HEADERS}"
@@ -571,7 +567,10 @@ target_include_directories(${TARGET_LIB_IOTJS}
 target_link_libraries(${TARGET_LIB_IOTJS}
   ${CMAKE_DL_LIBS}
   ${JERRY_LIBS}
+  ${JERRY_NATIVE_LIBS}
+  m
   ${TUV_LIBS}
+  ${TUV_NATIVE_LIBS}
   libhttp-parser
   ${MBEDTLS_LIBS}
   ${EXTERNAL_LIBS}

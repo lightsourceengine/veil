@@ -53,12 +53,14 @@ set_property(DIRECTORY APPEND PROPERTY
   ADDITIONAL_MAKE_CLEAN_FILES ${CMAKE_BINARY_DIR}/lib/${LIBTUV_NAME})
 set(TUV_INCLUDE_DIR ${DEPS_TUV_SRC}/include)
 set(TUV_LIBS tuv)
+set(TUV_NATIVE_LIBS)
 
 if("${TARGET_OS}" STREQUAL "MOCK" OR
-   "${TARGET_OS}" STREQUAL "LINUX")
-  list(APPEND TUV_LIBS pthread)
+   "${TARGET_OS}" STREQUAL "LINUX" OR
+   "${TARGET_OS}" STREQUAL "DARWIN" )
+  set(TUV_NATIVE_LIBS pthread)
 elseif("${TARGET_OS}" STREQUAL "WINDOWS")
-  list(APPEND TUV_LIBS
+  set(TUV_NATIVE_LIBS TUV_LIBS
         ws2_32.lib
         UserEnv.lib
         advapi32.lib
