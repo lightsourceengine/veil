@@ -58,7 +58,7 @@ JS_FUNCTION(js_from_symbols) {
   jerry_length_t length = jerry_array_length(exports);
   jerry_value_t module;
   jerry_value_t* symbols = malloc(length * sizeof(jerry_value_t));
-  bool linked;
+  bool linked = false;
 
   for (jerry_length_t i = 0; i < length; i++) {
     symbols[i] = jerry_object_get_index(exports, i);
@@ -73,7 +73,7 @@ JS_FUNCTION(js_from_symbols) {
   } else if (jerry_module_state(module) == JERRY_MODULE_STATE_UNLINKED) {
     jerry_value_t link_result = jerry_module_link(module, js_resolve, NULL);
 
-    if (jerry_value_is_exception(link_result) || !jerry_value_is_boolean(link_result)) {
+    if (!jerry_value_is_boolean(link_result)) {
       linked = false;
     } else {
       linked = jerry_value_to_boolean(link_result);

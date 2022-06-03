@@ -44,6 +44,8 @@ ExternalProject_Add(libtuv
     -DBUILDAPIEMULTESTER=NO
     -DTARGET_SYSTEMROOT=${TARGET_SYSTEMROOT}
     -DTARGET_BOARD=${TARGET_BOARD}
+    -DTUV_FEATURE_PROCESS=YES
+    -DTUV_FEATURE_PIPE=YES
 )
 add_library(tuv STATIC IMPORTED)
 add_dependencies(tuv libtuv)
@@ -58,7 +60,7 @@ set(TUV_NATIVE_LIBS)
 if("${TARGET_OS}" STREQUAL "MOCK" OR
    "${TARGET_OS}" STREQUAL "LINUX" OR
    "${TARGET_OS}" STREQUAL "DARWIN" )
-  set(TUV_NATIVE_LIBS pthread)
+  set(TUV_NATIVE_LIBS pthread dl)
 elseif("${TARGET_OS}" STREQUAL "WINDOWS")
   set(TUV_NATIVE_LIBS TUV_LIBS
         ws2_32.lib

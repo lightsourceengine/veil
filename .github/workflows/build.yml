@@ -29,16 +29,16 @@ jobs:
       - name: Build
         run: ./tools/build.py --n-api --no-init-submodule --no-snapshot --jerry-heaplimit=8192 --buildtype=release --js-backtrace=ON
 
-#      - name: Test
-#        if: contains(matrix.os, 'macos') == true
-#        run: ./test/runner.sh
+      - name: Test
+        if: contains(matrix.os, 'macos') == true
+        run: ./test/runner.sh
 
-      - name: Upload Runtime
-        uses: actions/upload-artifact@v2
-        with:
-          name: veil-runtime-${{ matrix.artifact }}-artifact
-          if-no-files-found: error
-          retention-days: 3
-          path: |
-            build/${{ matrix.tag }}/release/veil
-            build/${{ matrix.tag }}/release/veil.exe
+#      - name: Upload Runtime
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: veil-runtime-${{ matrix.artifact }}-artifact
+#          if-no-files-found: error
+#          retention-days: 3
+#          path: |
+#            build/${{ matrix.tag }}/release/veil
+#            build/${{ matrix.tag }}/release/veil.exe
