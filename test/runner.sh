@@ -39,3 +39,5 @@ for F in pass/*.mjs ; do run_test_suite "$F" ; done
 echo
 echo "Run Failure Tests"
 for F in fail/*.mjs ; do run_fail_test_suite "$F" ; done
+
+exit 0
