@@ -15,7 +15,7 @@ jobs:
       matrix:
         include:
           - os: macos-10.15
-          - tag: x86_64-darwin
+            tag: x86_64-darwin
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
