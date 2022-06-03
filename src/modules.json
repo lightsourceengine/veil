@@ -1,0 +1,212 @@
+{
+  "modules": {
+    "iotjs_basic_modules": {
+      "import": [
+        "assert",
+        "dns",
+        "http",
+        "https",
+        "http_signature",
+        "napi",
+        "net",
+        "stream",
+        "dgram",
+        "udp",
+        "module"
+      ]
+    },
+    "iotjs_core_modules": {
+      "import": [
+        "buffer",
+        "console",
+        "constants",
+        "events",
+        "fs",
+        "module",
+        "napi",
+        "os",
+        "path",
+        "perf_hooks",
+        "process",
+        "timers",
+        "tls",
+        "util"
+      ]
+    },
+    "assert": {
+      "js_file": "$JS_GEN/assert.mjs",
+      "import": ["util"]
+    },
+    "buffer": {
+      "native_files": ["modules/iotjs_module_buffer.c"],
+      "init": "iotjs_init_buffer",
+      "js_file": "$JS_GEN/buffer.mjs",
+      "import": ["util"]
+    },
+    "console": {
+      "native_files": ["modules/iotjs_module_console.c"],
+      "init": "iotjs_init_console",
+      "js_file": "$JS_GEN/console.mjs",
+      "import": ["util"]
+    },
+    "constants": {
+      "js_file": "$JS_GEN/constants.mjs",
+      "native_files": ["modules/iotjs_module_constants.c"],
+      "init": "iotjs_init_constants"
+    },
+    "crypto": {
+      "js_file": "$JS_GEN/crypto.mjs",
+      "native_files": ["modules/iotjs_module_crypto.c"],
+      "init": "iotjs_init_crypto"
+    },
+    "dgram": {
+      "js_file": "$JS_GEN/dgram.mjs",
+      "import": ["events", "udp", "util"]
+    },
+    "dns": {
+      "native_files": ["modules/iotjs_module_dns.c"],
+      "init": "iotjs_init_dns",
+      "js_file": "$JS_GEN/dns.mjs",
+      "import": ["util"]
+    },
+    "events": {
+      "js_file": "$JS_GEN/events.mjs",
+      "import": ["util"]
+    },
+    "fs": {
+      "native_files": ["modules/iotjs_module_fs.c"],
+      "init": "iotjs_init_fs",
+      "js_file": "$JS_GEN/fs.mjs",
+      "import": ["constants", "util"]
+    },
+    "http": {
+      "js_file": "$JS_GEN/http.mjs",
+      "import": ["http_client", "http_common", "http_incoming", "http_outgoing", "http_server", "http_parser"]
+    },
+    "http_client": {
+      "js_file": "$JS_GEN/http_client.mjs",
+      "import": ["http_common", "http_outgoing", "http_parser", "net", "util"]
+    },
+    "http_common": {
+      "js_file": "$JS_GEN/http_common.mjs",
+      "import": ["http_incoming", "http_parser"]
+    },
+    "http_incoming": {
+      "js_file": "$JS_GEN/http_incoming.mjs",
+      "import": ["stream", "util"]
+    },
+    "http_outgoing": {
+      "js_file": "$JS_GEN/http_outgoing.mjs",
+      "import": ["stream", "util"]
+    },
+    "http_server": {
+      "js_file": "$JS_GEN/http_server.mjs",
+      "import": ["http_common", "http_outgoing", "net", "util"]
+    },
+    "http_signature": {
+      "js_file": "$JS_GEN/http_signature.mjs",
+      "import": ["tls", "crypto"]
+    },
+    "http_parser": {
+      "js_file": "$JS_GEN/http_parser.mjs",
+      "native_files": ["modules/iotjs_module_http_parser.c"],
+      "init": "iotjs_init_http_parser"
+    },
+    "https": {
+      "js_file": "$JS_GEN/https.mjs",
+      "import": ["http_client", "http_parser", "http_server", "net", "tls"]
+    },
+    "module": {
+      "js_file": "$JS_GEN/module.mjs",
+      "import": ["path", "url", "napi"]
+    },
+    "napi": {
+      "js_file": "$JS_GEN/napi.mjs",
+      "native_files": ["modules/iotjs_module_dynamicloader.c",
+                       "napi/node_api.c",
+                       "napi/node_api_async.c",
+                       "napi/node_api_env.c",
+                       "napi/node_api_function.c",
+                       "napi/node_api_lifetime.c",
+                       "napi/node_api_module.c",
+                       "napi/node_api_object_wrap.c",
+                       "napi/node_api_property.c",
+                       "napi/node_api_value.c"],
+      "init": "iotjs_init_dynamicloader"
+    },
+    "net": {
+      "js_file": "$JS_GEN/net.mjs",
+      "import": ["assert", "events", "stream", "tcp", "util"]
+    },
+    "os": {
+      "js_file": "$JS_GEN/os.mjs",
+      "native_files": ["modules/veil_module_os.c"],
+      "init": "veil_init_os"
+    },
+    "path": {
+      "js_file": "$JS_GEN/path.mjs",
+      "import": ["util"]
+    },
+    "perf_hooks": {
+      "js_file": "$JS_GEN/perf_hooks.mjs",
+      "native_files": ["modules/veil_module_perf_hooks.c"],
+      "init": "veil_init_perf_hooks"
+    },
+    "process": {
+      "js_file": "$JS_GEN/process.mjs",
+      "native_files": ["modules/iotjs_module_process.c"],
+      "init": "iotjs_init_process"
+    },
+    "stream": {
+      "js_file": "$JS_GEN/stream.mjs",
+      "import": ["stream_duplex", "stream_internal", "stream_readable",
+                  "stream_writable", "util"]
+    },
+    "stream_duplex": {
+      "js_file": "$JS_GEN/stream_duplex.mjs",
+      "import": ["stream_readable", "stream_writable", "util"]
+    },
+    "stream_internal": {
+      "js_file": "$JS_GEN/stream_internal.mjs",
+      "import": ["events", "util"]
+    },
+    "stream_readable": {
+      "js_file": "$JS_GEN/stream_readable.mjs",
+      "import": ["assert", "util"]
+    },
+    "stream_writable": {
+      "js_file": "$JS_GEN/stream_writable.mjs",
+      "import": ["util"]
+    },
+    "tcp": {
+      "js_file": "$JS_GEN/tcp.mjs",
+      "native_files": ["modules/iotjs_module_tcp.c"],
+      "init": "iotjs_init_tcp"
+    },
+    "timers": {
+      "native_files": ["modules/iotjs_module_timer.c"],
+      "init": "iotjs_init_timer",
+      "js_file": "$JS_GEN/timers.mjs",
+      "import": ["util"]
+    },
+    "tls": {
+      "native_files": ["modules/iotjs_module_tls.c"],
+      "init": "iotjs_init_tls",
+      "js_file": "$JS_GEN/tls.mjs",
+      "cmakefile": "../cmake/mbedtls.cmake",
+      "import": ["net", "util"]
+    },
+    "udp": {
+      "native_files": ["modules/iotjs_module_udp.c"],
+      "init": "iotjs_init_udp",
+      "js_file": "$JS_GEN/udp.mjs"
+    },
+    "url": {
+      "js_file": "$JS_GEN/url.mjs",
+      "import": ["path"]
+    },
+    "util": {
+      "js_file": "$JS_GEN/util.mjs"
+    }
+  }
+}
