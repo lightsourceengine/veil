@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 cd "${SCRIPT_DIR}" || exit 1
 
 # TODO: make the path cross platform
-VEIL="../build/x86_64-*/release/bin/veil"
+VEIL="../build/x86_64-darwin/release/bin/veil"
 
 run_test_suite () {
   $VEIL "$1" >/dev/null

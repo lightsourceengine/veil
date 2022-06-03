@@ -29,9 +29,9 @@ jobs:
       - name: Build
         run: ./tools/build.py --n-api --no-init-submodule --no-snapshot --jerry-heaplimit=8192 --buildtype=release --js-backtrace=ON
 
-      - name: Test
-        if: contains(matrix.os, 'macos') == true
-        run: ./test/runner.sh
+#      - name: Test
+#        if: contains(matrix.os, 'macos') == true
+#        run: ./test/runner.sh
 
       - name: Upload Runtime
         uses: actions/upload-artifact@v2
