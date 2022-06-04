@@ -32,23 +32,25 @@ jobs:
 
       - name: Build
         if: contains(matrix.os, 'windows') == false
-        run: ./tools/build.py --n-api --no-init-submodule --no-snapshot --jerry-heaplimit=8192 --buildtype=release --js-backtrace=ON
-
+        run: |
+          ./tools/build.py --n-api --no-init-submodule --no-snapshot --jerry-heaplimit=8192 --buildtype=release --js-backtrace=ON --jerry-lto --expose-gc
+          mkdir build/veil-v1.0.0-linux-x64
+          cd build
+          tar -czf veil-v1.0.0-linux-x64.tgz veil-v1.0.0-linux-x64
 
       - name: Build (Windows)
         if: contains(matrix.os, 'windows') == true
-        run: ./tools/build.py --experimental --n-api --no-init-submodule --no-snapshot --jerry-heaplimit=8192 --buildtype=release --js-backtrace=ON
+        run: ./tools/build.py --experimental --n-api --no-init-submodule --no-snapshot --jerry-heaplimit=8192 --buildtype=release --js-backtrace=ON --expose-gc
 
 #      - name: Test
 #        if: contains(matrix.os, 'macos') == true
 #        run: ./test/runner.sh
 
-#      - name: Upload Runtime
-#        uses: actions/upload-artifact@v2
-#        with:
-#          name: veil-runtime-${{ matrix.artifact }}-artifact
-#          if-no-files-found: error
-#          retention-days: 3
-#          path: |
-#            build/${{ matrix.tag }}/release/veil
-#            build/${{ matrix.tag }}/release/veil.exe
+      - name: Upload Runtime
+        if: contains(matrix.os, 'windows') == false
+        uses: actions/upload-artifact@v3
+        with:
+          name: veil-runtime-artifact
+          if-no-files-found: error
+          retention-days: 3
+          path: build/veil-*.tgz
