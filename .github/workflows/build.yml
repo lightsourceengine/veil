@@ -38,14 +38,14 @@ jobs:
         run: |
           ./tools/build.py --n-api --no-init-submodule --no-snapshot --jerry-heaplimit=8192 --buildtype=release --js-backtrace=ON --jerry-lto --expose-gc
           cd build
-          tar -czf veil-v1.0.0-${{matrix.os_alias}}-x64.tgz build/${{matrix.tag}}/release/bin
+          tar -czf veil-v1.0.0-${{matrix.os_alias}}-x64.tgz ${{matrix.tag}}/release/bin
 
       - name: Build (Windows)
         if: contains(matrix.os, 'windows') == true
         run: |
           ./tools/build.py --experimental --n-api --no-init-submodule --no-snapshot --jerry-heaplimit=8192 --buildtype=release --js-backtrace=ON --expose-gc
           cd build
-          zip -r veil-v1.0.0-${{matrix.os_alias}}-x64.zip build/${{matrix.tag}}/release/bin
+          zip -r veil-v1.0.0-${{matrix.os_alias}}-x64.zip ${{matrix.tag}}/release/bin
 
       - name: Test
         run: ./test/runner.sh
