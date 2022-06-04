@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 
@@ -16,7 +16,7 @@ esac
 VEIL="../build/${1:-x86_64-$OSNAME}/release/bin/veil"
 
 run_test_suite () {
-  $VEIL "$1" # >/dev/null
+  $VEIL "$1" >/dev/null
 
   if [ $? -eq 0 ]; then
     echo "$1: PASSED"
@@ -27,7 +27,7 @@ run_test_suite () {
 }
 
 run_fail_test_suite () {
-  $VEIL "$1" # > /dev/null 2>&1
+  $VEIL "$1" > /dev/null 2>&1
 
   if [ $? -eq 0 ]; then
     echo "$1: FAIL"

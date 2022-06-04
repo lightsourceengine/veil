@@ -38,23 +38,6 @@ def regroup(l, n):
     return [l[i:i+n] for i in range(0, len(l), n)]
 
 
-def remove_comments(code):
-    pattern = r'(\".*?\"|\'.*?\')|(/\*.*?\*/|//[^\r\n]*$)'
-    regex = re.compile(pattern, re.MULTILINE | re.DOTALL)
-
-    def _replacer(match):
-        if match.group(2) is not None:
-            return ""
-        else:
-            return match.group(1)
-
-    return regex.sub(_replacer, code)
-
-
-def remove_whitespaces(code):
-    return re.sub('\n+', '\n', re.sub('\n +', '\n', code))
-
-
 LICENSE = '''
 /* Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
  *
@@ -223,10 +206,6 @@ def get_js_contents(js_path, is_debug_mode=False):
     with open(js_path, "r") as f:
          code = f.read()
 
-    # minimize code when in release mode
-    if not is_debug_mode:
-        code = remove_comments(code)
-        code = remove_whitespaces(code)
     return code
 
 
