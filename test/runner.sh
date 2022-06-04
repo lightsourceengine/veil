@@ -13,7 +13,15 @@ case "$OSTYPE" in
   *) OSNAME=UNKNOWN
 esac
 
-VEIL="../build/${1:-x86_64-$OSNAME}/release/bin/veil"
+TAG=${1:-x86_64-$OSNAME}
+
+if [[ "${TAG}" == *"windows"* ]]; then
+  EXT=".exe"
+else
+  EXT=
+fi
+
+VEIL="../build/${TAG}/release/bin/veil${EXT}"
 
 run_test_suite () {
   $VEIL "$1" >/dev/null
