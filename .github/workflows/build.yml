@@ -16,6 +16,10 @@ jobs:
         include:
           - os: macos-10.15
             tag: x86_64-darwin
+          - os: ubuntu-18.04
+            tag: x86_64-linux
+          - os: windows-2019
+            tag: x86_64-windows
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -29,9 +33,9 @@ jobs:
       - name: Build
         run: ./tools/build.py --n-api --no-init-submodule --no-snapshot --jerry-heaplimit=8192 --buildtype=release --js-backtrace=ON
 
-      - name: Test
-        if: contains(matrix.os, 'macos') == true
-        run: ./test/runner.sh
+#      - name: Test
+#        if: contains(matrix.os, 'macos') == true
+#        run: ./test/runner.sh
 
 #      - name: Upload Runtime
 #        uses: actions/upload-artifact@v2
