@@ -4,6 +4,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 
 cd "${SCRIPT_DIR}" || exit 1
 
+cd $SCRIPT_DIR
+
 case "$OSTYPE" in
   darwin*)  OSNAME=darwin ;;
   linux*)   OSNAME=linux ;;
@@ -11,7 +13,6 @@ case "$OSTYPE" in
   *) OSNAME=UNKNOWN
 esac
 
-# TODO: make the path cross platform
 VEIL="../build/${1:-x86_64-$OSNAME}/release/bin/veil"
 
 run_test_suite () {
