@@ -441,24 +441,24 @@ if __name__ == '__main__':
 
     build_iotjs(options)
 
-    Terminal.pprint("\nIoT.js Build Succeeded!!\n", Terminal.green)
+    Terminal.pprint("\nveil Build Succeeded!!\n", Terminal.green)
 
-    # Run tests.
-    if options.run_test:
-        print_progress('Run tests')
-        if options.buildlib:
-            print("Skip unit tests - build target is library\n")
-        elif (options.host_tuple == options.target_tuple or
-              (options.host_tuple == 'x86_64-linux' and
-               options.target_tuple == 'i686-linux') or
-              (options.host_tuple == 'x86_64-linux' and
-               options.target_tuple == 'x86_64-mock')):
-             run_checktest(options)
-        else:
-            print("Skip unit tests - target-host pair is not allowed\n")
-    else:
-        Terminal.pprint("\nTo run tests use '--run-test' "
-                        "or one of the following commands:",
-                        Terminal.blue)
-        print("\n    tools/testrunner.py %s/%s/%s/bin/iotjs\n"
-              % (options.builddir, options.target_tuple, options.buildtype))
+    # # Run tests.
+    # if options.run_test:
+    #     print_progress('Run tests')
+    #     if options.buildlib:
+    #         print("Skip unit tests - build target is library\n")
+    #     elif (options.host_tuple == options.target_tuple or
+    #           (options.host_tuple == 'x86_64-linux' and
+    #            options.target_tuple == 'i686-linux') or
+    #           (options.host_tuple == 'x86_64-linux' and
+    #            options.target_tuple == 'x86_64-mock')):
+    #          run_checktest(options)
+    #     else:
+    #         print("Skip unit tests - target-host pair is not allowed\n")
+    # else:
+    #     Terminal.pprint("\nTo run tests use '--run-test' "
+    #                     "or one of the following commands:",
+    #                     Terminal.blue)
+    #     print("\n    tools/testrunner.py %s/%s/%s/bin/veil\n"
+    #           % (options.builddir, options.target_tuple, options.buildtype))
