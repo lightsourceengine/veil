@@ -37,7 +37,7 @@ jobs:
 
       - name: Build (Windows)
         if: contains(matrix.os, 'windows') == true
-        run: ./tools/build.py -G "Visual Studio 16 2019" -A x64 --n-api --no-init-submodule --no-snapshot --jerry-heaplimit=8192 --buildtype=release --js-backtrace=ON
+        run: ./tools/build.py --n-api --no-init-submodule --no-snapshot --jerry-heaplimit=8192 --buildtype=release --js-backtrace=ON
 
 #      - name: Test
 #        if: contains(matrix.os, 'macos') == true

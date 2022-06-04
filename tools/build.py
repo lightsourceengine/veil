@@ -289,7 +289,7 @@ def build_cmake_args(options):
     if options.target_os == 'tizenrt':
         include_dirs.append('%s/../framework/include/iotbus' % options.sysroot)
     elif options.target_os == 'windows':
-        cmake_args.append("-GVisual Studio 15 2017")
+        cmake_args.append("-GVisual Studio 16 2019")
         if options.target_arch == "x86_64":
             cmake_args.append("-Ax64")
 
