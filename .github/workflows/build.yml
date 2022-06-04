@@ -47,7 +47,7 @@ jobs:
         if: contains(matrix.os, 'windows') == true
         run: |
           ./tools/build.py --experimental --n-api --no-init-submodule --no-snapshot --jerry-heaplimit=8192 --buildtype=release --js-backtrace=ON --expose-gc
-          mkdir build/veil-v1.0.0-${{matrix.os_alias}}-x64/bin
+          mkdir -p build/veil-v1.0.0-${{matrix.os_alias}}-x64/bin
           cp -r build/${{matrix.tag}}/release/bin build/veil-v1.0.0-${{matrix.os_alias}}-x64/
           cd build
           zip -r veil-v1.0.0-${{matrix.os_alias}}-x64.zip veil-v1.0.0-${{matrix.os_alias}}-x64
