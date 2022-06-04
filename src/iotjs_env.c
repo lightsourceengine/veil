@@ -25,6 +25,7 @@ typedef enum {
   OPT_MEM_STATS,
   OPT_SHOW_OP,
   OPT_EXPOSE_GC,
+  OPT_NO_ADDON,
 #ifdef JERRY_DEBUGGER
   OPT_DEBUG_SERVER,
   OPT_DEBUGGER_WAIT_SOURCE,
@@ -88,6 +89,7 @@ static void initialize(iotjs_environment_t* env) {
   env->config.memstat = false;
   env->config.show_opcode = false;
   env->config.expose_gc = false;
+  env->config.enable_napi = true;
 #ifdef JERRY_DEBUGGER
   env->config.debugger = NULL;
 #endif
@@ -119,6 +121,11 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
         .id = OPT_EXPOSE_GC,
         .longopt = "expose-gc",
         .help = "expose gc() function in global namespace",
+    },
+    {
+        .id = OPT_NO_ADDON,
+        .longopt = "no-addon",
+        .help = "disable loading native addons",
     },
     {
         .id = OPT_SHOW_OP,
@@ -207,6 +214,9 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
       } break;
       case OPT_EXPOSE_GC: {
         env->config.expose_gc = true;
+      } break;
+      case OPT_NO_ADDON: {
+        env->config.enable_napi = false;
       } break;
 #ifdef JERRY_DEBUGGER
       case OPT_DEBUGGER_WAIT_SOURCE:

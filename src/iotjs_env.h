@@ -33,6 +33,7 @@ typedef struct {
   uint32_t memstat : 1;
   uint32_t show_opcode : 1;
   uint32_t expose_gc : 1;
+  uint32_t enable_napi : 1;
 #ifdef JERRY_DEBUGGER
   DebuggerConfig* debugger;
 #endif

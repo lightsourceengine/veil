@@ -43,8 +43,8 @@ const GLOBAL_POLLUTERS = [ 'buffer', 'console', 'process', 'timers' ]
 
 // id -> Module, where id is the absolute path to the module js file or the builtin id
 const cache = new Map()
-// id -> Module, where id is the absolute path to the .node file
-const addonCache = new Map()
+// id -> Module, where id is the absolute path to the .node or .json file
+const requireCache = new Map()
 
 const asBuiltinId = (specifier, referrer) => {
   const id = specifier.replace(URL_SCHEME_NODE, '')
@@ -185,15 +185,15 @@ const createRequire = (context) => {
       //   lib = container.exports
       //   break
       case '.node':
-        if (!addonCache.has(filename)) {
-          addonCache.set(filename, loadAddon(filename))
+        if (!requireCache.has(filename)) {
+          requireCache.set(filename, loadAddon(filename))
         }
-        return addonCache.get(filename)
+        return requireCache.get(filename)
       case '.json':
-        if (!cache.has(filename)) {
-          cache.set(filename, loadJSON(filename))
+        if (!requireCache.has(filename)) {
+          requireCache.set(filename, loadJSON(filename))
         }
-        return exports(cache.get(filename))
+        return requireCache.get(filename)
       default:
         throw Error(`CommonJS: unsupported extension '${ext}'`)
     }
@@ -249,32 +249,7 @@ const loadAddon = (filename) => {
   }
 }
 
-const loadJSON = (filename) => {
-  let source
-
-  try {
-    source = readFileSync(filename, true /* strip bom, if present */)
-  } catch (e) {
-    throw Error(`while reading '${filename}': ${e.message}`)
-  }
-
-  let value
-
-  try {
-    value = JSON.parse(source)
-  } catch (e) {
-    throw Error(`failed to parse '${filename}: ${e.message}`)
-  }
-
-  const module = fromSymbols(filename, Object.keys(value || {}))
-
-  module.url = url.pathToFileURL(filename)
-  module.format = FORMAT_JSON
-
-  evaluateWith(module, value)
-
-  return module
-}
+const loadJSON = (filename) => JSON.parse(readFileSync(filename, true /* strip bom, if present */))
 
 const runMain = () => {
   let filename = process.argv[1]
@@ -311,7 +286,7 @@ const bootstrap = () => {
 
   on('destroy', () => {
     cache.clear()
-    addonCache.clear()
+    requireCache.clear()
     path = url = null
   })
 
