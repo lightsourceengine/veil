@@ -5,6 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 cd "${SCRIPT_DIR}" || exit 1
 
 cd $SCRIPT_DIR
+echo "pwd: $(_pwd -P)"
 
 case "$OSTYPE" in
   darwin*)  OSNAME=darwin ;;
@@ -14,9 +15,11 @@ case "$OSTYPE" in
 esac
 
 VEIL="../build/${1:-x86_64-$OSNAME}/release/bin/veil"
+echo "veil: $VEIL"
 
 run_test_suite () {
   $VEIL "$1" >/dev/null
+  echo "$1"
 
   if [ $? -eq 0 ]; then
     echo "$1: PASSED"
@@ -28,6 +31,7 @@ run_test_suite () {
 
 run_fail_test_suite () {
   $VEIL "$1" > /dev/null 2>&1
+  echo "$1"
 
   if [ $? -eq 0 ]; then
     echo "$1: FAIL"
