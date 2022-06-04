@@ -26,6 +26,7 @@ typedef enum {
   OPT_SHOW_OP,
   OPT_EXPOSE_GC,
   OPT_NO_ADDON,
+  OPT_VERSION_OP,
 #ifdef JERRY_DEBUGGER
   OPT_DEBUG_SERVER,
   OPT_DEBUGGER_WAIT_SOURCE,
@@ -47,6 +48,8 @@ typedef struct {
 
 #define CLI_DEFAULT_HELP_STRING \
   "Usage: iotjs [options] {FILE | FILE.js} [arguments]\n"
+
+static void print_version();
 
 static iotjs_environment_t current_env;
 static bool initialized = false;
@@ -80,6 +83,9 @@ void iotjs_environment_release(void) {
   initialized = false;
 }
 
+static void print_version() {
+  printf("v%s", VEIL_VERSION_STRING);
+}
 
 static void initialize(iotjs_environment_t* env) {
   env->argc = 0;
@@ -132,6 +138,12 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
         .longopt = "show-opcodes",
         .help = "dump parser byte-code",
     },
+    {
+        .id = OPT_VERSION_OP,
+        .opt = "v",
+        .longopt = "version",
+        .help = "print veil version",
+    },
 #ifdef JERRY_DEBUGGER
     {
         .id = OPT_DEBUG_SERVER,
@@ -177,6 +189,11 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
 
   while (i < argc && argv[i][0] == '-') {
     cur_opt = NULL;
+
+    if (strcmp(argv[i], "--version") == 0) {
+      print_version();
+      exit(0);
+    }
 
     // check if the known option is given.
     for (uint32_t k = 0; k < NUM_OF_OPTIONS; k++) {

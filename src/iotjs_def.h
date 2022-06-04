@@ -76,8 +76,6 @@ extern void force_terminate(void);
 #define TARGET_OS "unknown"
 #endif /* __linux__ */
 
-#define IOTJS_VERSION "1.0.0"
-
 #if !defined(STRINGIFY)
 #define STRINGIFY(x) #x
 #endif /* STRINGIFY */
@@ -86,13 +84,19 @@ extern void force_terminate(void);
 #define TOSTRING(x) STRINGIFY(x)
 #endif /* TOSTRING */
 
+#define VEIL_MAJOR_VERSION 1
+#define VEIL_MINOR_VERSION 0
+#define VEIL_PATCH_VERSION 0
+
+#define VEIL_VERSION_STRING (TOSTRING(VEIL_MAJOR_VERSION) "." TOSTRING(VEIL_MINOR_VERSION) "." TOSTRING(VEIL_PATCH_VERSION))
+
 #if !defined(TARGET_BOARD)
 #define TARGET_BOARD "unknown"
 #endif /* TARGET_BOARD */
 
-#define NODE_MAJOR_VERSION 1
-#define NODE_MINOR_VERSION 0
-#define NODE_PATCH_VERSION 0
+#define NODE_MAJOR_VERSION VEIL_MAJOR_VERSION
+#define NODE_MINOR_VERSION VEIL_MINOR_VERSION
+#define NODE_PATCH_VERSION VEIL_PATCH_VERSION
 
 /* Avoid compiler warnings if needed. */
 #define IOTJS_UNUSED(x) ((void)(x))

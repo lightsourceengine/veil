@@ -264,7 +264,7 @@ jerry_value_t iotjs_init_process(void) {
   // process.argv0
   iotjs_jval_set_property_string_raw(process, IOTJS_MAGIC_STRING_ARGV0, iotjs_environment_get()->argv0);
   // process.version
-  iotjs_jval_set_property_string_raw(process, IOTJS_MAGIC_STRING_VERSION, IOTJS_VERSION);
+  iotjs_jval_set_property_string_raw(process, IOTJS_MAGIC_STRING_VERSION, VEIL_VERSION_STRING);
   // process.version
   set_process_versions(process);
   // process.execPath
