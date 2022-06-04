@@ -48,7 +48,7 @@ jobs:
           zip -r veil-v1.0.0-${{matrix.os_alias}}-x64.zip ${{matrix.tag}}/release/bin
 
       - name: Test
-        run: ./test/runner.sh
+        run: ./test/runner.sh ${{matrix.tag}}
 
       - name: Upload Runtime
         uses: actions/upload-artifact@v3

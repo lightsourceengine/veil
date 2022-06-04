@@ -8,11 +8,11 @@ case "$OSTYPE" in
   darwin*)  OSNAME=darwin ;;
   linux*)   OSNAME=linux ;;
   msys*)    OSNAME=windows ;;
-  *) echo "unknown: $OSTYPE" && exit 1 ;;
+  *) OSNAME=UNKNOWN
 esac
 
 # TODO: make the path cross platform
-VEIL="../build/x86_64-${OSNAME}/release/bin/veil"
+VEIL="../build/${1:-x86_64-$OSNAME}/release/bin/veil"
 
 run_test_suite () {
   $VEIL "$1" >/dev/null
