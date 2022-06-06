@@ -62,7 +62,7 @@ if("${TARGET_OS}" STREQUAL "MOCK" OR
    "${TARGET_OS}" STREQUAL "DARWIN" )
   set(TUV_NATIVE_LIBS pthread dl)
 elseif("${TARGET_OS}" STREQUAL "WINDOWS")
-  set(TUV_NATIVE_LIBS TUV_LIBS
+  set(TUV_NATIVE_LIBS 
         ws2_32.lib
         UserEnv.lib
         advapi32.lib

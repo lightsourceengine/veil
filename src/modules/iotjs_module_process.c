@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "iotjs_compatibility.h"
 #include "iotjs_def.h"
 #include "jerryscript-debugger.h"
 #include <mbedtls/version.h>

@@ -4,8 +4,6 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd -P)"
 
 cd "${SCRIPT_DIR}" || exit 1
 
-cd $SCRIPT_DIR
-
 case "$OSTYPE" in
   darwin*)  OSNAME=darwin ;;
   linux*)   OSNAME=linux ;;
@@ -15,13 +13,14 @@ esac
 
 TAG=${1:-x86_64-$OSNAME}
 
-if [[ "${TAG}" == *"windows"* ]]; then
-  EXT=".exe"
+if [[ -f "../build/${TAG}/release/bin/veil" ]]; then
+  VEIL="../build/${TAG}/release/bin/veil"
+elif [[ -f "../build/${TAG}/release/bin/Release/veil.exe" ]]; then
+  VEIL="../build/${TAG}/release/bin/Release/veil.exe"
 else
-  EXT=
+  echo "veil executable not built"
+  exit 1
 fi
-
-VEIL="../build/${TAG}/release/bin/veil${EXT}"
 
 run_test_suite () {
   $VEIL "$1" >/dev/null

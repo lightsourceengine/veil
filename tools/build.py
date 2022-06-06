@@ -307,6 +307,11 @@ def run_make(options, build_home, *args):
 
     ex.check_run_cmd('make', make_opt)
 
+def run_build(options, build_home, *args):
+    make_opt = ['--build', build_home, '--config', options.buildtype.capitalize()]
+    make_opt.extend(args)
+
+    ex.check_run_cmd('cmake', make_opt)
 
 def get_on_off(boolean_value):
     if boolean_value:
@@ -395,7 +400,7 @@ def build_iotjs(options):
     ex.check_run_cmd('cmake', cmake_opt)
 
     if options.target_os == 'windows':
-        print("\nPlease open the iot.js solution file in Visual Studio!")
+        run_build(options, options.build_root)
     else:
         run_make(options, options.build_root)
 

@@ -568,7 +568,6 @@ target_link_libraries(${TARGET_LIB_IOTJS}
   ${CMAKE_DL_LIBS}
   ${JERRY_LIBS}
   ${JERRY_NATIVE_LIBS}
-  m
   ${TUV_LIBS}
   ${TUV_NATIVE_LIBS}
   libhttp-parser
