@@ -15,14 +15,11 @@ jobs:
       matrix:
         include:
           - os: macos-10.15
-            os_alias: darwin
-            tag: x86_64-darwin
+            os_alias: macos
           - os: ubuntu-18.04
             os_alias: linux
-            tag: x86_64-linux
           - os: windows-2019
             os_alias: windows
-            tag: x86_64-windows
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -35,20 +32,17 @@ jobs:
 
       - name: Build
         if: contains(matrix.os, 'windows') == false
-        run: |
-          ./tools/build.py --n-api --no-init-submodule --no-snapshot --jerry-heaplimit=8192 --buildtype=release --js-backtrace=ON --jerry-lto
-          cd build
-          tar -czf veil-v1.0.0-${{matrix.os_alias}}-x64.tgz ${{matrix.tag}}/release/bin
+        run: ./tools/build.py --n-api --no-init-submodule --no-snapshot --jerry-heaplimit=8192 --buildtype=release --js-backtrace=ON --jerry-lto
 
       - name: Build (Windows)
         if: contains(matrix.os, 'windows') == true
-        run: |
-          ./tools/build.py --n-api --no-init-submodule --no-snapshot --jerry-heaplimit=8192 --buildtype=release --js-backtrace=ON
-          cd build
-          7z a -r -tzip veil-v1.0.0-${{matrix.os_alias}}-x64.zip ${{matrix.tag}}/release/bin/Release/veil.exe
+        run: ./tools/build.py --n-api --no-init-submodule --no-snapshot --jerry-heaplimit=8192 --buildtype=release --js-backtrace=ON
 
       - name: Test
-        run: ./test/runner.sh ${{matrix.tag}}
+        run: ./test/runner.sh
+
+      - name: Package
+        run: ./tools/create-package.sh
 
       - name: Upload Runtime
         uses: actions/upload-artifact@v3
@@ -57,5 +51,5 @@ jobs:
           if-no-files-found: error
           retention-days: 3
           path: |
-            build/veil-*.tgz
-            build/veil-*.zip
+            build/package/veil-*.tgz
+            build/package/veil-*.zip
