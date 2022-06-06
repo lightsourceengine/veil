@@ -297,8 +297,9 @@ foreach(MODULE ${IOTJS_ENABLED_MODULES})
   endif()
 endforeach(MODULE)
 
+# TODO: if CommonJS is supported, re-enable the module lexer
 # lexer does not have a non-minified version
-list(APPEND IOTJS_JS_MODULES "lexer=${ROOT_DIR}/generated/js-min/lexer.mjs")
+# list(APPEND IOTJS_JS_MODULES "lexer=${ROOT_DIR}/generated/js-min/lexer.mjs")
 
 # Generate src/iotjs_module_inl.h
 # Build up init function prototypes
@@ -368,10 +369,6 @@ endif()
 if(ENABLE_SNAPSHOT)
   set(JS2C_SNAPSHOT_ARG --snapshot-tool=${JERRY_HOST_SNAPSHOT})
   iotjs_add_compile_flags(-DENABLE_SNAPSHOT)
-endif()
-
-if (EXPOSE_GC)
-  iotjs_add_compile_flags(-DEXPOSE_GC)
 endif()
 
 # Run js2c
@@ -475,7 +472,6 @@ message(STATUS "CMAKE_C_FLAGS            ${CMAKE_C_FLAGS}")
 message(STATUS "CMAKE_TOOLCHAIN_FILE     ${CMAKE_TOOLCHAIN_FILE}")
 message(STATUS "ENABLE_LTO               ${ENABLE_LTO}")
 message(STATUS "ENABLE_SNAPSHOT          ${ENABLE_SNAPSHOT}")
-message(STATUS "EXPOSE_GC                ${EXPOSE_GC}")
 message(STATUS "EXTERNAL_INCLUDE_DIR     ${EXTERNAL_INCLUDE_DIR}")
 message(STATUS "EXTERNAL_LIBC_INTERFACE  ${EXTERNAL_LIBC_INTERFACE}")
 message(STATUS "EXTERNAL_LIBS            ${EXTERNAL_LIBS}")
@@ -519,9 +515,6 @@ else()
 
   # FIXME: module specific condition should not be in the main cmake
   if(${ENABLE_MODULE_NAPI})
-    # Some tests require the GC to be exposed
-    iotjs_add_compile_flags(-DEXPOSE_GC)
-
     # Force symbols to be entered in the output file as undefined symbols.
     file(READ "${IOTJS_SOURCE_DIR}/napi/node_symbols.txt" NODE_SYMBOLS)
     string(REGEX REPLACE "[\r|\n]" ";" NODE_SYMBOLS "${NODE_SYMBOLS}")

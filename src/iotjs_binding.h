@@ -173,7 +173,7 @@ jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
 #define JS_DECLARE_PTR(JOBJ, TYPE, NAME)                              \
   TYPE* NAME;                                                         \
   do {                                                                \
-    if (!(NAME = jerry_object_get_native_ptr(JOBJ, &this_module_native_info))) { \
+    if (!((NAME) = jerry_object_get_native_ptr(JOBJ, &this_module_native_info))) { \
       return JS_CREATE_ERROR(COMMON, "Internal");                     \
     }                                                                 \
   } while (0)

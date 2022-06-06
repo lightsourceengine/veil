@@ -47,7 +47,7 @@ typedef struct {
 } cli_option_t;
 
 #define CLI_DEFAULT_HELP_STRING \
-  "Usage: iotjs [options] {FILE | FILE.js} [arguments]\n"
+  "Usage: veil [options] {FILE.mjs | FILE.js} [arguments]\n"
 
 static void print_version();
 
@@ -84,7 +84,7 @@ void iotjs_environment_release(void) {
 }
 
 static void print_version() {
-  printf("v%s", VEIL_VERSION_STRING);
+  printf("v%s\n", VEIL_VERSION_STRING);
 }
 
 static void initialize(iotjs_environment_t* env) {

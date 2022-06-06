@@ -20,9 +20,9 @@ jobs:
           - os: ubuntu-18.04
             os_alias: linux
             tag: x86_64-linux
-          - os: windows-2019
-            os_alias: windows
-            tag: x86_64-windows
+#          - os: windows-2019
+#            os_alias: windows
+#            tag: x86_64-windows
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout

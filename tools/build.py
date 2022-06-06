@@ -156,9 +156,6 @@ def init_options():
                  'openwrt', 'windows'],
         default=platform.os(),
         help='Specify the target OS (default: %(default)s).')
-    iotjs_group.add_argument('--expose-gc',
-        action='store_true', default=False,
-        help='Expose the JerryScript\'s GC call to JavaScript')
 
 
 
@@ -335,7 +332,6 @@ def build_iotjs(options):
         '-DENABLE_LTO=%s' % get_on_off(options.jerry_lto), # --jerry-lto
         '-DENABLE_MODULE_NAPI=%s' % get_on_off(options.n_api), # --n-api
         '-DENABLE_SNAPSHOT=%s' % get_on_off(not options.no_snapshot),
-        '-DEXPOSE_GC=%s' % get_on_off(options.expose_gc), # --exposing gc
         '-DBUILD_LIB_ONLY=%s' % get_on_off(options.buildlib), # --buildlib
         '-DCREATE_SHARED_LIB=%s' % get_on_off(options.create_shared_lib),
         # --jerry-memstat
