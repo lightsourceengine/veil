@@ -13,10 +13,20 @@
  * limitations under the License.
  */
 
-#include "iotjs_compatibility.h"
 #include "iotjs_def.h"
 #include "jerryscript-debugger.h"
 #include <mbedtls/version.h>
+
+#if defined(__linux__)
+#include <linux/limits.h>
+#elif defined(__APPLE__)
+#include <sys/syslimits.h>
+#elif defined(WIN32)
+#ifndef PATH_MAX
+#include <windows.h>
+#define PATH_MAX MAX_PATH
+#endif
+#endif
 
 #define NANOS_PER_SEC 1000000000
 

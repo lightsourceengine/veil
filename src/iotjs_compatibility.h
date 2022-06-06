@@ -30,10 +30,6 @@
 /* On windows there is no O_SYNC directly, disable it for now. */
 #define O_SYNC 0x0
 
-#ifndef PATH_MAX
-#define PATH_MAX MAX_PATH
-#endif
-
 #endif
 
 #ifndef S_ISREG
