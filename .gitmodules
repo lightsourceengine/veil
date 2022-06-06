@@ -14,3 +14,6 @@
 	path = deps/mbedtls
 	url = https://github.com/ARMmbed/mbedtls.git
     ignore = untracked
+[submodule "deps/node-api-headers"]
+	path = deps/node-api-headers
+	url = https://github.com/nodejs/node-api-headers.git

@@ -451,7 +451,7 @@ set(IOTJS_INCLUDE_DIRS
   ${HTTPPARSER_INCLUDE_DIR}
   ${MBEDTLS_INCLUDE_DIR}
   ${TUV_INCLUDE_DIR}
-  ${ROOT_DIR}/deps/cjs-module-lexer/local/include-wasm
+  ${ROOT_DIR}/deps/node-api-headers/include
 )
 
 if(NOT BUILD_LIB_ONLY)

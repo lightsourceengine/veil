@@ -157,6 +157,9 @@ const load = (specifier, referrer, resolve) => {
 const loadBuiltin = (id) => exports(load(id, null, resolve))
 
 const createRequire = (context) => {
+  // TODO: handle URL and file: url strings
+  // TODO: assert context is absolute path?
+
   const resolve = (id) => {
     const result = asFileId(id, { filename: context })
 
