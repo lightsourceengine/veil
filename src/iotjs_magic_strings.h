@@ -92,9 +92,7 @@
 #define IOTJS_MAGIC_STRING_FINISHREQUEST "finishRequest"
 #endif
 #define IOTJS_MAGIC_STRING_FSTAT "fstat"
-#if EXPOSE_GC
 #define IOTJS_MAGIC_STRING_GC "gc"
-#endif
 #define IOTJS_MAGIC_STRING_GET_NAMESPACE "getNamespace"
 #define IOTJS_MAGIC_STRING_GET_STATE "getState"
 #define IOTJS_MAGIC_STRING_GETADDRINFO "getaddrinfo"
