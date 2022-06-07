@@ -11,10 +11,8 @@
 * specific language governing permissions and limitations under the License.
 */
 
-// Legal ECMA. The global namespace contains the property process. The import should effectively create
-// a variable named process in the current scope. Jerryscript throws an Error that the export shadows a
-// local variable. This import pattern works fine in NodeJS.
-//
-// Note: "import somethingElse from 'node:process'" works as expected
+// Error in jerryscript that the export name shadows a local variable. process is in the GLOBAL namespace,
+// so the Error is not correct. The error suggests jerryscript is incorrectly putting imported variables into
+// the global namespace, but that is not the case. This needs to be fixed.
 
 import process from 'node:process'

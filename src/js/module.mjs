@@ -156,9 +156,21 @@ const load = (specifier, referrer, resolve) => {
 
 const loadBuiltin = (id) => exports(load(id, null, resolve))
 
-const createRequire = (context) => {
-  // TODO: handle URL and file: url strings
-  // TODO: assert context is absolute path?
+const createRequire = (pathOrUrl) => {
+  let context
+
+  if (typeof pathOrUrl === 'string') {
+    if (pathOrUrl.startsWith('file:')) {
+      url.fileURLToPath(pathOrUrl)
+    } else if (path.isAbsolute(pathOrUrl)) {
+      context = pathOrUrl
+    } else {
+      throw Error(`string must be a file url or absolute path. got '${pathOrUrl}'`)
+    }
+  } else {
+    // if not a string, should be a URL.
+    context = url.fileURLToPath(pathOrUrl)
+  }
 
   const resolve = (id) => {
     const result = asFileId(id, { filename: context })

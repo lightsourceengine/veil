@@ -16,7 +16,7 @@
 #define NANOS_PER_MILLIS 1e6
 
 JS_FUNCTION(os_homedir) {
-  char path[1024];
+  char path[PATH_MAX_BYTES];
   size_t size = sizeof(path) / sizeof(char);
 
   if (uv_os_homedir(path, &size) != 0) {
@@ -27,7 +27,7 @@ JS_FUNCTION(os_homedir) {
 }
 
 JS_FUNCTION(os_tmpdir) {
-  char path[1024];
+  char path[PATH_MAX_BYTES];
   size_t size = sizeof(path) / sizeof(char);
 
   if (uv_os_tmpdir(path, &size) != 0) {

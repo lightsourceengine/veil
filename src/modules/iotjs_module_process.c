@@ -17,17 +17,6 @@
 #include "jerryscript-debugger.h"
 #include <mbedtls/version.h>
 
-#if defined(__linux__)
-#include <linux/limits.h>
-#elif defined(__APPLE__)
-#include <sys/syslimits.h>
-#elif defined(WIN32)
-#ifndef PATH_MAX
-#include <windows.h>
-#define PATH_MAX MAX_PATH
-#endif
-#endif
-
 #define NANOS_PER_SEC 1000000000
 
 #ifdef JERRY_DEBUGGER
@@ -85,7 +74,7 @@ JS_FUNCTION(debugger_get_source) {
 
 
 JS_FUNCTION(proc_cwd) {
-  char path[IOTJS_MAX_PATH_SIZE];
+  char path[PATH_MAX_BYTES];
   size_t size_path = sizeof(path);
   int err = uv_cwd(path, &size_path);
   if (err) {
@@ -196,7 +185,7 @@ static void set_process_argv(jerry_value_t process) {
 }
 
 static void set_process_exec_path(jerry_value_t process) {
-  char exec_path[1024];
+  char exec_path[PATH_MAX_BYTES];
   size_t size = sizeof(exec_path) / sizeof(char);
 
   if (uv_exepath(exec_path, &size) == 0) {

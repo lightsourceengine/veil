@@ -15,7 +15,12 @@ import { assert } from 'node:assert'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 
-// should load json file
-const require = createRequire(fileURLToPath(import.meta.url))
+let require
 
+// should load json file from absolute path
+require = createRequire(fileURLToPath(import.meta.url))
+assert(require('./assets/test.json').key === "test")
+
+// should load json file from url
+require = createRequire(import.meta.url)
 assert(require('./assets/test.json').key === "test")

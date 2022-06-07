@@ -109,7 +109,7 @@ extern void force_terminate(void);
 
 #include <uv.h>
 #include <assert.h>
-#include <limits.h> /* PATH_MAX */
+#include <limits.h>
 #include <stdbool.h>
 #include <string.h>
 
@@ -123,5 +123,15 @@ extern void force_terminate(void);
 #include "iotjs_string.h"
 #include "iotjs_util.h"
 
+#if defined(__linux__)
+#include <linux/limits.h>
+#define PATH_MAX_BYTES PATH_MAX
+#elif defined(__APPLE__)
+#include <sys/syslimits.h>
+#define PATH_MAX_BYTES PATH_MAX
+#elif defined(WIN32)
+/* MAX_PATH is in characters, not bytes. Make sure we have enough headroom. */
+#define PATH_MAX_BYTES (MAX_PATH * 4)
+#endif
 
 #endif /* IOTJS_DEF_H */

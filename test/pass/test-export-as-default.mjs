@@ -13,7 +13,7 @@
 
 const something = {}
 
-// jerryscript mainline does not support as default, but the LSE fork of jerryscript supports the
-// notation. I have doubts whether as default is to spec, but V8 and the ecosystem of tools expect
-// as default to work. If as default is not supported, babel and other tools will not work!
+// Syntax error in jerryscript. Ok on node. Babel, terser and other tools produce exports like this.
+// This has been patched in the LSE fork of jerryscript.
+
 export { something as default }

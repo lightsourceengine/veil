@@ -11,8 +11,6 @@
 * specific language governing permissions and limitations under the License.
 */
 
-// Error in jerryscript that the export name shadows a local variable. process is in the GLOBAL namespace,
-// so the Error is not correct. The error suggests jerryscript is incorrectly putting imported variables into
-// the global namespace, but that is not the case. This needs to be fixed.
+// Syntax error in jerryscript. Ok on node. Babel, terser and other tools produce exports like this.
 
-import { process } from 'node:process'
+export { default as something } from 'node:process'
