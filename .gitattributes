@@ -1,6 +1,9 @@
-generated/** linguist-generated
-tools/** linguist-vendored
-deps/** linguist-vendored
-cmake/** linguist-vendored
-rollup.config.mjs/** linguist-vendored
-docs/** linguist-documentation
+generated/* linguist-generated
+generated/**/* linguist-generated
+tools/* linguist-vendored
+tools/**/* linguist-vendored
+deps/* linguist-vendored
+cmake/* linguist-vendored
+cmake/**/* linguist-vendored
+CMakeLists.txt linguist-vendored
+rollup.config.mjs linguist-vendored

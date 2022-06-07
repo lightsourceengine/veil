@@ -68,7 +68,6 @@ fi
 
 cp "${VEIL_EXE}" "${VEIL_BIN_DIR}"
 cp "${SCRIPT_DIR}/../LICENSE" "${VEIL_PACKAGE_PATH}/LICENSE"
-cp "${SCRIPT_DIR}/../NOTICE" "${VEIL_PACKAGE_PATH}/NOTICE"
 
 if [ "$VEIL_OS" = "windows" ]; then
   (cd "${SRC_PACKAGE}" && 7z a -r -tzip "${VEIL_PACKAGE_NAME}.zip" "${VEIL_PACKAGE_NAME}")
