@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import StreamInternal from 'stream_internal'
-import Readable from 'stream_readable'
-import Writable from 'stream_writable'
-import Duplex from 'stream_duplex'
+import { StreamInternal } from 'stream_internal'
+import { Readable } from 'stream_readable'
+import { Writable } from 'stream_writable'
+import { Duplex } from 'stream_duplex'
 
 class Stream extends StreamInternal {}
 

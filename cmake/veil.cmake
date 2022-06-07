@@ -161,8 +161,8 @@ set(IOTJS_NATIVE_MODULES)
 set(IOTJS_NATIVE_MODULE_SRC)
 set(IOTJS_MODULE_DEFINES)
 # TODO: make a configuration to use bundle minified or non-minified js
-#set(VEIL_JS_GEN_DIR "${ROOT_DIR}/generated/js-min")
-set(VEIL_JS_GEN_DIR "${ROOT_DIR}/src/js")
+set(VEIL_JS_GEN_DIR "${ROOT_DIR}/generated/js-min")
+#set(VEIL_JS_GEN_DIR "${ROOT_DIR}/src/js")
 
 message("IoT.js module configuration:")
 getListOfVars("ENABLE_MODULE_" "([A-Za-z0-9_]+)" IOTJS_ENABLED_MODULES)

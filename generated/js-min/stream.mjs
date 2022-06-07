@@ -1,9 +1,9 @@
-import e from'stream_internal'
-import a from'stream_readable'
-export{default as Readable}from'stream_readable'
-import r from'stream_writable'
-export{default as Writable}from'stream_writable'
-import t from'stream_duplex'
-export{default as Duplex}from'stream_duplex'
-class m extends e{}const l={Stream:m,Readable:a,Writable:r,Duplex:t}
-export{m as Stream,l as default}
+import{StreamInternal as e}from'stream_internal'
+import{Readable as r}from'stream_readable'
+export{Readable}from'stream_readable'
+import{Writable as a}from'stream_writable'
+export{Writable}from'stream_writable'
+import{Duplex as t}from'stream_duplex'
+export{Duplex}from'stream_duplex'
+class m extends e{}const o={Stream:m,Readable:r,Writable:a,Duplex:t}
+export{m as Stream,o as default}

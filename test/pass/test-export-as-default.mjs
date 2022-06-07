@@ -13,6 +13,7 @@
 
 const something = {}
 
-// Legal EMCA syntax of "as default". Jerryscript throws an error of "identifier expected". The
-// keyword default should be expected as well.
+// jerryscript mainline does not support as default, but the LSE fork of jerryscript supports the
+// notation. I have doubts whether as default is to spec, but V8 and the ecosystem of tools expect
+// as default to work. If as default is not supported, babel and other tools will not work!
 export { something as default }

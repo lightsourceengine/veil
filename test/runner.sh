@@ -55,4 +55,7 @@ echo
 echo "Run Failure Tests"
 for F in fail/*.mjs ; do run_fail_test_suite "$F" ; done
 
+echo
+echo "All tests passed."
+
 exit 0

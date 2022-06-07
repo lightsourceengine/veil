@@ -78,7 +78,7 @@ const min = (input, outputFile) => {
         include: veilBuiltins
       }),
       nodeResolve(),
-      // support ?? and ?. for builtin development (jerryscript does not support these yet)
+      // support ?. for builtin development (jerryscript does not support these yet)
       babel({
         // if this is not set, babel complains. if babel has to use helpers for this code, something is wrong.
         babelHelpers: 'inline'
