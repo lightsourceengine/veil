@@ -186,6 +186,7 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
 #endif
   };
 
+  const size_t opts_length = sizeof(opts) / sizeof(cli_option_t);
   const cli_option_t* cur_opt;
   uint32_t i = 1;
 
@@ -198,7 +199,7 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
     }
 
     // check if the known option is given.
-    for (uint32_t k = 0; k < NUM_OF_OPTIONS; k++) {
+    for (uint32_t k = 0; k < opts_length; k++) {
       if ((opts[k].opt && !strcmp(&argv[i][1], opts[k].opt)) ||
           (opts[k].longopt && !strcmp(&argv[i][2], opts[k].longopt))) {
         cur_opt = &opts[k];
@@ -214,7 +215,7 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
     switch (cur_opt->id) {
       case OPT_HELP: {
         fprintf(stderr, "%s\n  Options:\n\n", CLI_DEFAULT_HELP_STRING);
-        for (uint32_t k = 0; k < NUM_OF_OPTIONS; k++) {
+        for (uint32_t k = 0; k < opts_length; k++) {
           if (opts[k].opt) {
             fprintf(stderr, "    -%s, --%-21s %s\n", opts[k].opt,
                     opts[k].longopt, opts[k].help);
