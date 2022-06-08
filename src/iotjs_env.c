@@ -119,11 +119,6 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
         .help = "print this help and exit",
     },
     {
-        .id = OPT_MEM_STATS,
-        .longopt = "mem-stats",
-        .help = "dump memory statistics",
-    },
-    {
         .id = OPT_EXPOSE_GC,
         .longopt = "expose-gc",
         .help = "expose gc() function in global namespace",
@@ -134,16 +129,23 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
         .help = "disable loading native addons",
     },
     {
-        .id = OPT_SHOW_OP,
-        .longopt = "show-opcodes",
-        .help = "dump parser byte-code",
-    },
-    {
         .id = OPT_VERSION_OP,
         .opt = "v",
         .longopt = "version",
         .help = "print veil version",
     },
+#if defined(JERRY_MEM_STATS)
+    {
+        .id = OPT_MEM_STATS,
+        .longopt = "mem-stats",
+        .help = "dump memory statistics",
+    },
+    {
+        .id = OPT_SHOW_OP,
+        .longopt = "show-opcodes",
+        .help = "dump parser byte-code",
+    },
+#endif
 #ifdef JERRY_DEBUGGER
     {
         .id = OPT_DEBUG_SERVER,
