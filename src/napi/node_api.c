@@ -43,3 +43,7 @@ napi_status napi_get_uv_event_loop(napi_env env, uv_loop_t** loop) {
   NAPI_ASSIGN(loop, iotjs_loop);
   NAPI_RETURN(napi_ok);
 }
+
+napi_status napi_adjust_external_memory(napi_env env, int64_t change_in_bytes, int64_t* adjusted_value) {
+  NAPI_RETURN(napi_ok);
+}

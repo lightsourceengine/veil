@@ -122,6 +122,7 @@ extern void force_terminate(void);
 #include "iotjs_module.h"
 #include "iotjs_string.h"
 #include "iotjs_util.h"
+#include "veil_string.h"
 
 #if defined(__linux__)
 #include <linux/limits.h>

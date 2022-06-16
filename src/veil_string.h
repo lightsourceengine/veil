@@ -13,9 +13,15 @@
 
 #pragma once
 
-#include "jerryscript.h"
+#include <stdlib.h>
+#include <stdint.h>
 
-typedef void (*veil_module_on_ready_handler_t)();
+typedef struct {
+  uint8_t* data;
+  size_t length;
+} veil_string_utf8;
 
-jerry_value_t veil_module_run(veil_module_on_ready_handler_t on_ready);
-void veil_module_cleanup();
+veil_string_utf8 veil_string_utf8_from_iso_8859_1(const char* iso_8859_1, size_t length);
+veil_string_utf8 veil_string_utf8_from_utf16(const uint16_t* utf16_str, size_t length);
+
+void veil_string_utf8_drop(veil_string_utf8* str);
