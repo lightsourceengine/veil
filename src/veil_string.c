@@ -14,6 +14,8 @@
 #include "veil_string.h"
 
 #include "iotjs_util.h"
+#include <libutf16/utf16_to_utf8.h>
+#include <libutf16/utf8_to_utf16.h>
 
 veil_string_utf8 veil_string_utf8_from_iso_8859_1(const char* iso_8859_1, size_t length) {
   size_t i;
@@ -60,7 +62,41 @@ veil_string_utf8 veil_string_utf8_from_iso_8859_1(const char* iso_8859_1, size_t
 }
 
 veil_string_utf8 veil_string_utf8_from_utf16(const uint16_t* utf16_str, size_t length) {
-  return (veil_string_utf8) {0};
+  if (length == 0) {
+    return (veil_string_utf8){0};
+  }
+
+  size_t buffer_size = utf16_to_utf8_size(&utf16_str, length);
+  uint8_t* buffer = (uint8_t*)iotjs_buffer_allocate(buffer_size + 1);
+  size_t result = utf16_to_utf8(&utf16_str, &buffer, buffer_size, length);
+
+  if (result != length) {
+    iotjs_buffer_release((char*)buffer);
+    buffer = NULL;
+    buffer_size = 0;
+  } else {
+    buffer[buffer_size] = '\0';
+  }
+
+  return (veil_string_utf8) {
+    .data = buffer,
+    .length = buffer_size
+  };
+}
+
+size_t veil_string_copy_utf8_to_utf16(const uint8_t* utf8, size_t utf8_length,
+                                         uint16_t* utf16, size_t utf16_length) {
+  if (utf16 == NULL) {
+    return utf8_to_utf16_size(&utf8, utf8_length);
+  }
+
+  size_t copied = utf8_to_utf16(&utf8, &utf16, utf16_length, utf8_length);
+
+  if (copied != utf16_length) {
+    return 0;
+  }
+
+  return copied;
 }
 
 void veil_string_utf8_drop(veil_string_utf8* str) {

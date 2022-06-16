@@ -108,6 +108,17 @@ The externally maintained libraries used by veil are:
   Apache License Version 2.0 (copy at end of file)
   """
 
+- libutf16
+  Location: deps/libutf16
+  Repository: https://github.com/mbuilov/libutf16
+  License: Apache License Version 2.0
+
+  """
+  Copyright (C) 2018-2022 Michael M. Builov, https://github.com/mbuilov/libutf16
+
+  Apache License Version 2.0 (copy at end of file)
+  """
+
 - libtuv
   Location: deps/libtuv
   Repository: http://github.com/Samsung/libtuv

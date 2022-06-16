@@ -547,6 +547,7 @@ add_dependencies(${TARGET_LIB_IOTJS}
   ${TUV_LIBS}
   libhttp-parser
   ${MBEDTLS_LIBS}
+  libutf16
 )
 
 set_target_properties(${TARGET_LIB_IOTJS} PROPERTIES
@@ -566,6 +567,7 @@ target_link_libraries(${TARGET_LIB_IOTJS}
   libhttp-parser
   ${MBEDTLS_LIBS}
   ${EXTERNAL_LIBS}
+  libutf16
 )
 
 if("${LIB_INSTALL_DIR}" STREQUAL "")

@@ -224,5 +224,6 @@ endif()
 include(cmake/jerry.cmake)
 include(cmake/http-parser.cmake)
 include(cmake/libtuv.cmake)
+include(cmake/libutf16.cmake)
 
 include(cmake/veil.cmake)

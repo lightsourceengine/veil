@@ -17,3 +17,6 @@
 [submodule "deps/node-api-headers"]
 	path = deps/node-api-headers
 	url = https://github.com/nodejs/node-api-headers.git
+[submodule "deps/libutf16"]
+	path = deps/libutf16
+	url = https://github.com/mbuilov/libutf16.git
