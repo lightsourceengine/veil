@@ -970,3 +970,15 @@ napi_status napi_is_promise(napi_env env, napi_value promise,
   *is_promise = jerry_value_is_promise(AS_JERRY_VALUE(promise));
   NAPI_RETURN(napi_ok);
 }
+
+napi_status napi_run_script(napi_env env,
+                            napi_value script,
+                            napi_value* result) {
+  NAPI_TRY_ENV(env);
+
+  jerry_value_t ret = jerry_run(AS_JERRY_VALUE(script));
+
+  JERRYX_CREATE(jval, ret);
+
+  return napi_assign_nvalue(jval, result);
+}

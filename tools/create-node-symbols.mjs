@@ -28,19 +28,12 @@ const require = createRequire(self)
 // veil supports v3 of n-api
 const { v3 } = require('../deps/node-api-headers').symbols
 
-// veil is missing these apis from v3 (should be added)
-const unimplemented = new Set([
-  "napi_run_script"
-])
-
 // node_symbols.txt is just a list of symbols (one symbol per line). cmake will read this
 // and set the compiler commands for undefined symbols
 const file = resolve(fileURLToPath(self), '..', '..', 'src', 'napi', 'node_symbols.txt')
 
-const isImplemented = (value) => !unimplemented.has(value)
-
 // create the list from node-api-headers
-const symbolsList = [ ...v3.js_native_api_symbols, ...v3.node_api_symbols ].filter(isImplemented)
+const symbolsList = [ ...v3.js_native_api_symbols, ...v3.node_api_symbols ]
 
 // flush symbols to disk
 writeFileSync(file, symbolsList.join(EOL), 'utf8')
