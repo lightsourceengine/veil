@@ -23,6 +23,8 @@ typedef struct {
 
 veil_string_utf8 veil_string_utf8_from_iso_8859_1(const char* iso_8859_1, size_t length);
 veil_string_utf8 veil_string_utf8_from_utf16(const uint16_t* utf16_str, size_t length);
+
 size_t veil_string_copy_utf8_to_utf16(const uint8_t* utf8, size_t utf8_length, uint16_t* utf16, size_t utf16_length);
+size_t veil_string_copy_utf8_to_iso_8859_1(const uint8_t* utf8, size_t utf8_length, char* iso_8859_1, size_t iso_8859_1_length);
 
 void veil_string_utf8_drop(veil_string_utf8* str);

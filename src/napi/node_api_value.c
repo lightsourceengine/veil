@@ -681,6 +681,52 @@ napi_status napi_get_value_string_utf16(napi_env env, napi_value value,
   NAPI_RETURN(napi_ok);
 }
 
+NAPI_EXTERN napi_status napi_get_value_string_latin1(napi_env env,
+                                                     napi_value value,
+                                                     char* buf,
+                                                     size_t bufsize,
+                                                     size_t* result) {
+  NAPI_TRY_ENV(env);
+  jerry_value_t jval = AS_JERRY_VALUE(value);
+  NAPI_TRY_TYPE(string, jval);
+
+  if (buf == NULL) {
+    NAPI_ASSIGN(result, (size_t)jerry_string_length(jval));
+    NAPI_RETURN(napi_ok);
+  }
+
+  jerry_size_t utf8_size = jerry_string_size(jval, JERRY_ENCODING_UTF8);
+
+  if (utf8_size == 0) {
+    NAPI_ASSIGN(result, 0);
+    NAPI_RETURN(napi_ok);
+  }
+
+  char* utf8 = iotjs_buffer_allocate(utf8_size);
+
+  jerry_size_t written_size =
+      jerry_string_to_buffer(jval, JERRY_ENCODING_UTF8, (jerry_char_t*)utf8, utf8_size);
+
+  if (written_size != utf8_size) {
+    iotjs_buffer_release(utf8);
+    NAPI_ASSIGN(result, 0);
+    NAPI_RETURN_WITH_MSG(napi_generic_failure, "Failed to read UTF-8 bytes from string.");
+  }
+
+  size_t copied = veil_string_copy_utf8_to_iso_8859_1((const uint8_t*)utf8, utf8_size, buf, bufsize);
+
+  if (copied != bufsize) {
+    iotjs_buffer_release(utf8);
+    NAPI_ASSIGN(result, 0);
+    NAPI_RETURN_WITH_MSG(napi_generic_failure, "Failed to convert internal UTF-8 to ISO-8859-1.");
+  }
+
+  iotjs_buffer_release(utf8);
+  NAPI_ASSIGN(result, copied);
+
+  NAPI_RETURN(napi_ok);
+}
+
 napi_status napi_get_global(napi_env env, napi_value* result) {
   NAPI_TRY_ENV(env);
   JERRYX_CREATE(jval, jerry_current_realm());

@@ -16,6 +16,7 @@
 #include "iotjs_util.h"
 #include <libutf16/utf16_to_utf8.h>
 #include <libutf16/utf8_to_utf16.h>
+#include <libutf16/utf8_to_utf16_one.h>
 
 veil_string_utf8 veil_string_utf8_from_iso_8859_1(const char* iso_8859_1, size_t length) {
   size_t i;
@@ -97,6 +98,41 @@ size_t veil_string_copy_utf8_to_utf16(const uint8_t* utf8, size_t utf8_length,
   }
 
   return copied;
+}
+
+size_t veil_string_copy_utf8_to_iso_8859_1(const uint8_t* utf8, size_t utf8_length, char* iso_8859_1, size_t iso_8859_1_length) {
+  size_t result;
+  utf32_char_t codepoint;
+  utf8_state_t state = 0;
+  const uint8_t* pos = utf8;
+  size_t length = utf8_length;
+  size_t count = 0;
+
+  while (true) {
+    result = utf8_to_utf32_one(&codepoint, pos, length, &state);
+
+    if (result == 0) {
+      // hit null terminator
+      break;
+    } else if (result == (size_t)-1 || result == (size_t)-2) {
+      // error: UTF-8 byte sequence is longer or shorter than expected
+      count = 0;
+      break;
+    } else if (iso_8859_1) {
+      if (codepoint > 0xFF) {
+        // unsupported unicode character, fallback to ?
+        codepoint = '?';
+      }
+
+      iso_8859_1[count] = (char)codepoint;
+    }
+
+    count++;
+    pos += result;
+    length -= result;
+  }
+
+  return count;
 }
 
 void veil_string_utf8_drop(veil_string_utf8* str) {

@@ -30,7 +30,6 @@ const { v3 } = require('../deps/node-api-headers').symbols
 
 // veil is missing these apis from v3 (should be added)
 const unimplemented = new Set([
-  "napi_get_value_string_latin1",
   "napi_run_script"
 ])
 
