@@ -11,10 +11,9 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import { _internal } from 'util'
 import { isAbsolute, join, posix, sep, normalize } from 'path'
-
-const { validateString, ERR_INVALID_ARG_TYPE } = _internal
+import { validateString } from './internal/validators.mjs'
+import { ERR_INVALID_ARG_TYPE } from './internal/errors.mjs'
 
 // TODO: port over the url handling from nodejs. This is a temporary implementation that supports
 //       the primary use cases of file urls.

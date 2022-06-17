@@ -1,58 +1,55 @@
-const e=e=>e===null
-const r=e=>e===undefined
-const t=e=>e===null||e===undefined
-const n=e=>typeof e==='number'
-const o=e=>e===0||e!==e/2
-const s=e=>typeof e==='boolean'
-const i=e=>typeof e==='string'
-const c=e=>typeof e==='object'&&e!=null
-const a=e=>typeof e==='function'
-const l=(e,r)=>{e.prototype=Object.create(r.prototype,{constructor:{value:e,enumerable:false,writable:true,configurable:true}})}
-const f=(...e)=>{const[r]=e
-if(t(r)){throw new TypeError('target cannot be null or undefined')}for(var n=1;n<e.length;++n){var o=e[n]
-if(!t(o)){for(var s in o){if(o.hasOwnProperty(s)){r[s]=o[s]}}}}return r}
-const u=(...e)=>{const[r]=e
-if(typeof r==='string'){if(r.includes('%'));else if(e.length===1){return r}else{return e.map(y).join(' ')}}else{if(e.length===0){return''}else if(e.length===1){return y(r)}else{return e.map(y).join(' ')}}let t=1
+const r=r=>r===null
+const e=r=>r===undefined
+const t=r=>r===null||r===undefined
+const n=r=>typeof r==='number'
+const i=r=>r===0||r!==r/2
+const o=r=>typeof r==='boolean'
+const s=r=>typeof r==='string'
+const c=r=>typeof r==='object'&&r!=null
+const a=r=>typeof r==='function'
+const l=(r,e)=>{r.prototype=Object.create(e.prototype,{constructor:{value:r,enumerable:false,writable:true,configurable:true}})}
+const u=(...r)=>{const[e]=r
+if(t(e)){throw new TypeError('target cannot be null or undefined')}for(var n=1;n<r.length;++n){var i=r[n]
+if(!t(i)){for(var o in i){if(i.hasOwnProperty(o)){e[o]=i[o]}}}}return e}
+const f=(...r)=>{const[e]=r
+if(typeof e==='string'){if(e.includes('%'));else if(r.length===1){return e}else{return r.map(y).join(' ')}}else{if(r.length===0){return''}else if(r.length===1){return y(e)}else{return r.map(y).join(' ')}}let t=1
 var n
-var o=''
+var i=''
+var o=0
 var s=0
-var i=0
-while(i<r.length){if(r.charAt(i)!=='%'){i++
-continue}o+=r.slice(s,i)
-switch(r.charAt(i+1)){case's':n=String(e[t])
+while(s<e.length){if(e.charAt(s)!=='%'){s++
+continue}i+=e.slice(o,s)
+switch(e.charAt(s+1)){case's':n=String(r[t])
 break
-case'd':n=Number(e[t])
+case'd':n=Number(r[t])
 break
-case'j':try{n=JSON.stringify(e[t])}catch(e){n='[Circular]'}break
-case'%':o+='%'
-s=i=i+2
+case'j':try{n=JSON.stringify(r[t])}catch(r){n='[Circular]'}break
+case'%':i+='%'
+o=s=s+2
 continue
-default:o=o+'%'+r.charAt(i+1)
-s=i=i+2
-continue}if(t>=e.length){o=o+'%'+r.charAt(i+1)}else{t++
-o+=n}s=i=i+2}o+=r.slice(s,i)
-while(t<e.length){o+=' '+y(e[t++])}return o}
-const y=e=>{if(!e){return String(e)}else if(Array.isArray(e)){return`[${e.toString()}]`}else if(e instanceof Error){const{message:r,stack:t}=e
-const n=e.code?`Error [${e.code}]: ${r}`:`Error: ${r}`
-if(Array.isArray(t)){return n+'\n'+t.map((e=>`    at ${e}`)).join('\n')}return n}else if(typeof e==='object'){return JSON.stringify(e,null,2)}else{return e.toString()}}
-const g=(e,r)=>{var t=Number(e)
-return isNaN(t)?r:t}
-const p=(e,r,t)=>{var n='error'
-var o=r+' '+n
-if(t)o+=' '+t
-var s=new Error(o)
-s.code=n
-s.errno=n
-s.syscall=r
-return s}
-const d=(e,r,t,n,o)=>{var s
-if(n&&n>0){s=t+':'+n}else{s=t}if(o){s+=' - Local ('+o+')'}var i=p(e,r,s)
-i.address=t
-if(n){i.port=n}return i}
+default:i=i+'%'+e.charAt(s+1)
+o=s=s+2
+continue}if(t>=r.length){i=i+'%'+e.charAt(s+1)}else{t++
+i+=n}o=s=s+2}i+=e.slice(o,s)
+while(t<r.length){i+=' '+y(r[t++])}return i}
+const y=r=>{if(!r){return String(r)}else if(Array.isArray(r)){return`[${r.toString()}]`}else if(r instanceof Error){const{message:e,stack:t}=r
+const n=r.code?`Error [${r.code}]: ${e}`:`Error: ${e}`
+if(Array.isArray(t)){return n+'\n'+t.map((r=>`    at ${r}`)).join('\n')}return n}else if(typeof r==='object'){return JSON.stringify(r,null,2)}else{return r.toString()}}
+const g=(r,e)=>{var t=Number(r)
+return isNaN(t)?e:t}
+const p=(r,e,t)=>{var n='error'
+var i=e+' '+n
+if(t)i+=' '+t
+var o=new Error(i)
+o.code=n
+o.errno=n
+o.syscall=e
+return o}
+const d=(r,e,t,n,i)=>{var o
+if(n&&n>0){o=t+':'+n}else{o=t}if(i){o+=' - Local ('+i+')'}var s=p(r,e,o)
+s.address=t
+if(n){s.port=n}return s}
 const{isBuffer:h}=Buffer
 const{isArray:b}=Array
-class v extends Error{constructor(e,r,t){super()
-this.code='ERR_INVALID_ARG_TYPE'
-this.message=`The ${e} argument must be of type ${r}. Received ${typeof t}`}}const m={validateObject:(e,r)=>{if(typeof e!=='object'||e.constructor!==Object){throw new v(r,'Object',e)}},validateString:(e,r)=>{if(typeof e!=='string'){throw new v(r,'string',e)}},ERR_INVALID_ARG_TYPE:v}
-const A={isNull:e,isUndefined:r,isNullOrUndefined:t,isNumber:n,isBoolean:s,isString:i,isObject:c,isFinite:o,isFunction:a,isBuffer:h,isArray:b,exceptionWithHostPort:d,errnoException:p,stringToNumber:g,inherits:l,mixin:f,format:u,_internal:m}
-export{m as _internal,A as default,p as errnoException,d as exceptionWithHostPort,u as format,l as inherits,b as isArray,s as isBoolean,h as isBuffer,o as isFinite,a as isFunction,e as isNull,t as isNullOrUndefined,n as isNumber,c as isObject,i as isString,r as isUndefined,f as mixin,g as stringToNumber}
+const v={isNull:r,isUndefined:e,isNullOrUndefined:t,isNumber:n,isBoolean:o,isString:s,isObject:c,isFinite:i,isFunction:a,isBuffer:h,isArray:b,exceptionWithHostPort:d,errnoException:p,stringToNumber:g,inherits:l,mixin:u,format:f}
+export{v as default,p as errnoException,d as exceptionWithHostPort,f as format,l as inherits,b as isArray,o as isBoolean,h as isBuffer,i as isFinite,a as isFunction,r as isNull,t as isNullOrUndefined,n as isNumber,c as isObject,s as isString,e as isUndefined,u as mixin,g as stringToNumber}

@@ -19,20 +19,18 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-'use strict';
-
-import { _internal } from "node:util"
-
-const { validateString, validateObject } = _internal
-const CHAR_UPPERCASE_A = 65
-const CHAR_LOWERCASE_A = 97
-const CHAR_UPPERCASE_Z = 90
-const CHAR_LOWERCASE_Z = 122
-const CHAR_DOT = 46
-const CHAR_FORWARD_SLASH = 47
-const CHAR_BACKWARD_SLASH = 92
-const CHAR_COLON = 58
-const CHAR_QUESTION_MARK = 63
+import { validateObject, validateString } from './internal/validators.mjs'
+import {
+  CHAR_UPPERCASE_A,
+  CHAR_LOWERCASE_A,
+  CHAR_UPPERCASE_Z,
+  CHAR_LOWERCASE_Z,
+  CHAR_DOT,
+  CHAR_FORWARD_SLASH,
+  CHAR_BACKWARD_SLASH,
+  CHAR_COLON,
+  CHAR_QUESTION_MARK
+} from './internal/constants.mjs'
 
 const platformIsWin32 = (process.platform === 'win32');
 

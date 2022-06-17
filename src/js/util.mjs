@@ -234,28 +234,6 @@ const exceptionWithHostPort = (err, syscall, address, port, additional) => {
 const { isBuffer } = Buffer
 const { isArray } = Array
 
-class ERR_INVALID_ARG_TYPE extends Error {
-  constructor (name, expected, actual) {
-    super()
-    this.code = 'ERR_INVALID_ARG_TYPE'
-    this.message = `The ${name} argument must be of type ${expected}. Received ${typeof actual}`
-  }
-}
-
-const _internal = {
-  validateObject: (value, name) => {
-    if (typeof value !== 'object' || value.constructor !== Object) {
-      throw new ERR_INVALID_ARG_TYPE(name, 'Object', value)
-    }
-  },
-  validateString: (value, name) => {
-    if (typeof value !== 'string') {
-      throw new ERR_INVALID_ARG_TYPE(name, 'string', value)
-    }
-  },
-  ERR_INVALID_ARG_TYPE
-}
-
 export {
   isNull,
   isUndefined,
@@ -273,8 +251,7 @@ export {
   stringToNumber,
   inherits,
   mixin,
-  format,
-  _internal
+  format
 }
 
 export default {
@@ -294,6 +271,5 @@ export default {
   stringToNumber,
   inherits,
   mixin,
-  format,
-  _internal
+  format
 }
