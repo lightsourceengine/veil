@@ -1,6 +1,5 @@
-class e extends Error{constructor(e,t,r){super()
-this.code='ERR_INVALID_ARG_TYPE'
-this.message=`The ${e} argument must be of type ${t}. Received ${typeof r}`}}const t=(t,r)=>{if(typeof t!=='object'||t.constructor!==Object){throw new e(r,'Object',t)}}
+class e extends Error{constructor(e,t,r){super(`The ${e} argument must be of type ${t}. Received ${typeof r}`)
+this.code='ERR_INVALID_ARG_TYPE'}}const t=(t,r)=>{if(typeof t!=='object'||t.constructor!==Object){throw new e(r,'Object',t)}}
 const r=(t,r)=>{if(typeof t!=='string'){throw new e(r,'string',t)}}
 const i=65
 const l=97
@@ -203,12 +202,12 @@ t.base=e.slice(s,c)
 t.ext=e.slice(f,c)}}if(s>0&&s!==l)t.dir=e.slice(0,s-1)
 else t.dir=t.root
 return t},sep:'\\',delimiter:';'}
-const m=(()=>{if(d){const e=/\\/g
+const b=(()=>{if(d){const e=/\\/g
 return()=>{const t=process.cwd().replace(e,'/')
 return t.slice(t.indexOf('/'))}}return()=>process.cwd()})()
-const b={resolve(...e){let t=''
+const m={resolve(...e){let t=''
 let i=false
-for(let l=e.length-1;l>=-1&&!i;l--){const n=l>=0?e[l]:m()
+for(let l=e.length-1;l>=-1&&!i;l--){const n=l>=0?e[l]:b()
 r(n,'path')
 if(n.length===0){continue}t=`${n}/${t}`
 i=n.charCodeAt(0)===s}t=g(t,!i,'/',C)
@@ -226,11 +225,11 @@ for(let i=0;i<e.length;++i){const l=e[i]
 r(l,'path')
 if(l.length>0){if(t===undefined)t=l
 else t+=`/${l}`}}if(t===undefined)return'.'
-return b.normalize(t)},relative(e,t){r(e,'from')
+return m.normalize(t)},relative(e,t){r(e,'from')
 r(t,'to')
 if(e===t)return''
-e=b.resolve(e)
-t=b.resolve(t)
+e=m.resolve(e)
+t=m.resolve(t)
 if(e===t)return''
 const i=1
 const l=e.length
@@ -300,6 +299,6 @@ t.base=e.slice(r,c)
 t.ext=e.slice(n,c)}}if(f>0)t.dir=e.slice(0,f-1)
 else if(i)t.dir='/'
 return t},sep:'/',delimiter:':'}
-const w=d?p:b
+const w=d?p:m
 const{basename:k,delimiter:x,dirname:v,extname:j,format:L,isAbsolute:O,join:y,normalize:z,parse:N,relative:I,resolve:P,sep:R,toNamespacedPath:E}=w
-export{k as basename,w as default,x as delimiter,v as dirname,j as extname,L as format,O as isAbsolute,y as join,z as normalize,N as parse,b as posix,I as relative,P as resolve,R as sep,E as toNamespacedPath,p as win32}
+export{k as basename,w as default,x as delimiter,v as dirname,j as extname,L as format,O as isAbsolute,y as join,z as normalize,N as parse,m as posix,I as relative,P as resolve,R as sep,E as toNamespacedPath,p as win32}

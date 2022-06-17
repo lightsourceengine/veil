@@ -24,3 +24,9 @@ export const validateString = (value, name) => {
     throw new ERR_INVALID_ARG_TYPE(name, 'string', value)
   }
 }
+
+export const validateFunction = (value, name) => {
+  if (typeof value !== 'function') {
+    throw new ERR_INVALID_ARG_TYPE(name, 'Function', value);
+  }
+}

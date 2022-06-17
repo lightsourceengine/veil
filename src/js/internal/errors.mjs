@@ -13,8 +13,14 @@
 
 export class ERR_INVALID_ARG_TYPE extends Error {
   constructor (name, expected, actual) {
-    super()
+    super(`The ${name} argument must be of type ${expected}. Received ${typeof actual}`)
     this.code = 'ERR_INVALID_ARG_TYPE'
-    this.message = `The ${name} argument must be of type ${expected}. Received ${typeof actual}`
+  }
+}
+
+export class ERR_INVALID_URI extends URIError {
+  constructor () {
+    super('URI malformed')
+    this.code = 'ERR_INVALID_URI'
   }
 }

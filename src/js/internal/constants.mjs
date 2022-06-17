@@ -20,3 +20,7 @@ export const CHAR_FORWARD_SLASH = 47
 export const CHAR_BACKWARD_SLASH = 92
 export const CHAR_COLON = 58
 export const CHAR_QUESTION_MARK = 63
+export const CHAR_AMPERSAND = 38
+export const CHAR_EQUAL = 61
+export const CHAR_PERCENT = 37
+export const CHAR_PLUS = 43

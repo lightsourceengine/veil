@@ -1,7 +1,6 @@
 import{isAbsolute as t,join as e,normalize as r,posix as s,sep as n}from'path'
-class o extends Error{constructor(t,e,r){super()
-this.code='ERR_INVALID_ARG_TYPE'
-this.message=`The ${t} argument must be of type ${e}. Received ${typeof r}`}}const i=(t,e)=>{if(typeof t!=='string'){throw new o(e,'string',t)}}
+class o extends Error{constructor(t,e,r){super(`The ${t} argument must be of type ${e}. Received ${typeof r}`)
+this.code='ERR_INVALID_ARG_TYPE'}}const i=(t,e)=>{if(typeof t!=='string'){throw new o(e,'string',t)}}
 class a{constructor(t,e){this._protocol=t
 this._pathname=e}get href(){return`${this._protocol}//${this._pathname}`}get origin(){return String(null)}get protocol(){return this._protocol}get username(){return''}get password(){return''}get host(){return''}get hostname(){return''}get port(){return''}get pathname(){return this._pathname}get search(){return''}get searchParams(){return{}}get hash(){return''}toString(){return this.href}toJSON(){return this.href}}const h=n=>{i(n,'path')
 let o=t(n)?n:e(process.cwd(),n)
