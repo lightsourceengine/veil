@@ -6,7 +6,7 @@ add_library(${TARGET_LIB_STC}
 )
 
 if(NOT USING_MSVC)
-  target_compile_options(${TARGET_LIB_STC} PRIVATE -Wno-missing-field-initializers -Wno-missing-braces)
+  target_compile_options(${TARGET_LIB_STC} PRIVATE -Wno-missing-field-initializers -Wno-missing-braces -Wno-implicit-fallthrough)
 endif()
 
 target_include_directories(${TARGET_LIB_STC}
