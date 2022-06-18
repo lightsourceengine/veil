@@ -225,6 +225,7 @@
 #endif
 #define IOTJS_MAGIC_STRING_TMPDIR "tmpdir"
 #define IOTJS_MAGIC_STRING_TOSTRING "toString"
+#define IOTJS_MAGIC_STRING_TOUSVSTRING "toUSVString"
 #define IOTJS_MAGIC_STRING_UNLINK "unlink"
 #define IOTJS_MAGIC_STRING_UNREF "unref"
 #define IOTJS_MAGIC_STRING_UPGRADE "upgrade"

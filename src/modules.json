@@ -203,10 +203,13 @@
     },
     "url": {
       "js_file": "$JS_GEN/url.mjs",
+      "native_files": ["modules/veil_module_url.c"],
       "import": ["path"]
     },
     "util": {
-      "js_file": "$JS_GEN/util.mjs"
+      "js_file": "$JS_GEN/util.mjs",
+      "init": "veil_init_util",
+      "native_files": ["modules/veil_module_util.c"]
     }
   }
 }

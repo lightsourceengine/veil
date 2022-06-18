@@ -548,6 +548,7 @@ add_dependencies(${TARGET_LIB_IOTJS}
   libhttp-parser
   ${MBEDTLS_LIBS}
   libutf16
+  stc
 )
 
 set_target_properties(${TARGET_LIB_IOTJS} PROPERTIES
@@ -556,6 +557,11 @@ set_target_properties(${TARGET_LIB_IOTJS} PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
   PUBLIC_HEADER "${IOTJS_PUBLIC_HEADERS}"
 )
+
+if(NOT USING_MSVC)
+  target_compile_options(${TARGET_LIB_IOTJS} PRIVATE -Wno-missing-field-initializers -Wno-missing-braces)
+endif()
+
 target_include_directories(${TARGET_LIB_IOTJS}
   PRIVATE ${IOTJS_INCLUDE_DIRS})
 target_link_libraries(${TARGET_LIB_IOTJS}
@@ -568,6 +574,7 @@ target_link_libraries(${TARGET_LIB_IOTJS}
   ${MBEDTLS_LIBS}
   ${EXTERNAL_LIBS}
   libutf16
+  stc
 )
 
 if("${LIB_INSTALL_DIR}" STREQUAL "")

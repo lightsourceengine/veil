@@ -20,3 +20,6 @@
 [submodule "deps/libutf16"]
 	path = deps/libutf16
 	url = https://github.com/mbuilov/libutf16.git
+[submodule "deps/STC/repo"]
+	path = deps/STC/repo
+	url = https://github.com/tylov/STC.git

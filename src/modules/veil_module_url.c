@@ -13,26 +13,8 @@
 
 #include "iotjs_def.h"
 
-#define NANOS_PER_MILLIS 1e6
+jerry_value_t veil_init_url(void) {
+  jerry_value_t url = jerry_object();
 
-JS_FUNCTION(now) {
-  uint64_t diff = uv_hrtime() - iotjs_environment_get()->time_origin;
-
-  return jerry_number(diff / NANOS_PER_MILLIS);
-}
-
-jerry_value_t veil_init_perf_hooks(void) {
-  jerry_value_t perf_hooks = jerry_object();
-  jerry_value_t time_origin;
-
-  time_origin = jerry_number(iotjs_environment_get()->time_origin / NANOS_PER_MILLIS);
-  iotjs_jval_set_property_jval(
-      perf_hooks,
-      IOTJS_MAGIC_STRING_TIMEORIGIN,
-      time_origin);
-  jerry_value_free(time_origin);
-
-  iotjs_jval_set_method(perf_hooks, IOTJS_MAGIC_STRING_NOW, now);
-
-  return perf_hooks;
+  return url;
 }

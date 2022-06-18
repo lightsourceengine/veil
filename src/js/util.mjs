@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+const { toUSVString } = import.meta.native
+
 const isNull = (arg) => {
   return arg === null;
 }
@@ -229,20 +231,6 @@ const exceptionWithHostPort = (err, syscall, address, port, additional) => {
   }
 
   return ex;
-}
-
-const unpairedSurrogateRe = /(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])/;
-
-const toUSVString = (val) => {
-  const str = `${val}`;
-  const match = unpairedSurrogateRe.exec(str);
-
-  if (!match) {
-    return str;
-  }
-
-  // TODO: need native support to clear out surrogates
-  throw Error('toUSVString() is not implemented')
 }
 
 const { isBuffer } = Buffer
