@@ -14,6 +14,7 @@ if(NOT USING_MSVC)
       -Wno-missing-field-initializers
       -Wno-missing-braces
       -Wno-implicit-fallthrough
+      -Wno-sign-compare
   )
 endif()
 
