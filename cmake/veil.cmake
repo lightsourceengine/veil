@@ -559,7 +559,13 @@ set_target_properties(${TARGET_LIB_IOTJS} PROPERTIES
 )
 
 if(NOT USING_MSVC)
-  target_compile_options(${TARGET_LIB_IOTJS} PRIVATE -Wno-missing-field-initializers -Wno-missing-braces -Wno-implicit-fallthrough)
+  target_compile_options(
+      ${TARGET_LIB_IOTJS}
+      PRIVATE
+      -Wno-missing-field-initializers
+      -Wno-missing-braces
+      -Wno-implicit-fallthrough
+  )
 endif()
 
 target_include_directories(${TARGET_LIB_IOTJS}

@@ -408,12 +408,11 @@ napi_status napi_create_string_latin1(napi_env env, const char* str,
     length = strlen(str);
   }
 
-  veil_string_utf8 utf8 = veil_string_utf8_from_iso_8859_1(str, length);
+  cstr utf8 = veil_string_utf8_from_iso_8859_1(str, length);
 
-  JERRYX_CREATE(jval,
-                jerry_string(utf8.data, utf8.length, JERRY_ENCODING_UTF8));
+  JERRYX_CREATE(jval, jerry_string((const jerry_char_t*)cstr_data(&utf8), cstr_size(utf8), JERRY_ENCODING_UTF8));
 
-  veil_string_utf8_drop(&utf8);
+  cstr_drop(&utf8);
 
   return napi_assign_nvalue(jval, result);
 }
@@ -435,12 +434,11 @@ napi_status napi_create_string_utf16(napi_env env, const char16_t* str,
     }
   }
 
-  veil_string_utf8 utf8 = veil_string_utf8_from_utf16(str, length);
+  cstr utf8 = veil_string_utf8_from_utf16(str, length);
 
-  JERRYX_CREATE(jval,
-                jerry_string(utf8.data, utf8.length, JERRY_ENCODING_UTF8));
+  JERRYX_CREATE(jval, jerry_string((const jerry_char_t*)cstr_data(&utf8), cstr_size(utf8), JERRY_ENCODING_UTF8));
 
-  veil_string_utf8_drop(&utf8);
+  cstr_drop(&utf8);
 
   return napi_assign_nvalue(jval, result);
 }

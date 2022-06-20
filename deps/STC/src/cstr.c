@@ -12,4 +12,4 @@
  */
 
 #define STC_IMPLEMENTATION
-#include <stc/utf8.h>
+#include <stc/cstr.h>
