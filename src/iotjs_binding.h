@@ -20,7 +20,7 @@
 #include "jerryscript.h"
 
 #include <stdio.h>
-
+#include <stc/forward.h>
 
 typedef const jerry_object_native_info_t JNativeInfoType;
 
@@ -34,6 +34,7 @@ jerry_value_t iotjs_jval_create_error_without_error_flag(const char* msg);
 bool iotjs_jval_as_boolean(jerry_value_t);
 double iotjs_jval_as_number(jerry_value_t);
 iotjs_string_t iotjs_jval_as_string(jerry_value_t);
+cstr iotjs_jval_as_cstr(jerry_value_t);
 jerry_value_t iotjs_jval_as_object(jerry_value_t);
 jerry_value_t iotjs_jval_as_array(jerry_value_t);
 jerry_value_t iotjs_jval_as_function(jerry_value_t);
@@ -80,6 +81,8 @@ void iotjs_jval_set_property_by_index(jerry_value_t jarr, uint32_t idx,
 jerry_value_t iotjs_jval_get_property_by_index(jerry_value_t jarr,
                                                uint32_t idx);
 iotjs_string_t iotjs_jval_get_property_as_string(jerry_value_t jobj, const char* name);
+cstr iotjs_jval_get_property_as_cstr(jerry_value_t jobj, const char* name);
+int32_t iotjs_jval_get_property_as_int32(jerry_value_t jobj, const char* name, int32_t fallback);
 
 // Evaluates javascript source file.
 jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,

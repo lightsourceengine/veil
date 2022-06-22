@@ -21,6 +21,7 @@
 #include "modules/iotjs_module_buffer.h"
 
 #include <math.h>
+#include <stc/cstr.h>
 
 /* Feature missing error messages */
 const char* const napi_err_no_dataview =

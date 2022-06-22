@@ -11,38 +11,14 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import {
-  // WHATWG API
-  URL,
-  URLSearchParams,
-  domainToASCII,
-  domainToUnicode,
-  // Utilities
-  pathToFileURL,
-  fileURLToPath,
-  urlToHttpOptions
-} from './internal/url.mjs'
+#pragma once
 
-export {
-  // WHATWG API
-  URL,
-  URLSearchParams,
-  domainToASCII,
-  domainToUnicode,
-  // Utilities
-  pathToFileURL,
-  fileURLToPath,
-  urlToHttpOptions
-} from './internal/url.mjs'
+#include <stdint.h>
 
-export default {
-  // WHATWG API
-  URL,
-  URLSearchParams,
-  domainToASCII,
-  domainToUnicode,
-  // Utilities
-  pathToFileURL,
-  fileURLToPath,
-  urlToHttpOptions
-}
+const uint8_t VEIL_URL_QUERY_ENCODE_SET_SPECIAL[32];
+const uint8_t VEIL_URL_QUERY_ENCODE_SET_NONSPECIAL[32];
+const uint8_t VEIL_URL_USERINFO_ENCODE_SET[32];
+const uint8_t VEIL_URL_PATH_ENCODE_SET[32];
+const uint8_t VEIL_URL_FRAGMENT_ENCODE_SET[32];
+const uint8_t VEIL_URL_C0_CONTROL_ENCODE_SET[32];
+const char VEIL_URL_HEX[1024];

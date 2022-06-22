@@ -17,6 +17,7 @@
 #include <libutf16/utf16_to_utf8.h>
 #include <libutf16/utf8_to_utf16.h>
 #include <libutf16/utf8_to_utf16_one.h>
+#include <stc/cstr.h>
 
 cstr veil_string_utf8_from_iso_8859_1(const char* iso_8859_1, size_t length) {
   size_t i;
@@ -122,4 +123,26 @@ size_t veil_string_copy_utf8_to_iso_8859_1(const uint8_t* utf8, size_t utf8_leng
   }
 
   return count;
+}
+
+const char* cstr_str_safe(const cstr* str) {
+  if (!str) {
+    return "";
+  }
+
+  const char* result = cstr_str(str);
+
+  return result ? result : "";
+}
+
+cstr* cstr_append_char(cstr* str, char ch) {
+  return cstr_append_n(str, &ch, 1);
+}
+
+char cstr_at(const cstr* str, size_t index) {
+  return cstr_str(str)[index];
+}
+
+bool cstr_eq_raw(const cstr* s1, const char* s2) {
+  return strcmp(cstr_str_safe(s1), s2) == 0;
 }

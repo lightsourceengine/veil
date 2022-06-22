@@ -20,6 +20,7 @@
 #include "modules/iotjs_module_buffer.h"
 
 #include <string.h>
+#include <stc/cstr.h>
 
 
 jerry_value_t iotjs_jval_create_string(const iotjs_string_t* v) {
@@ -235,6 +236,26 @@ iotjs_string_t iotjs_jval_as_string(jerry_value_t jval) {
   return res;
 }
 
+cstr iotjs_jval_as_cstr(jerry_value_t jval) {
+  IOTJS_ASSERT(jerry_value_is_string(jval));
+
+  jerry_size_t size = jerry_string_size(jval, JERRY_ENCODING_UTF8);
+  cstr res = cstr_init();
+  jerry_char_t* jerry_buffer;
+  size_t check;
+
+  if (size == 0) {
+    return res;
+  }
+
+  cstr_resize(&res, size, 0);
+  jerry_buffer = (jerry_char_t*)cstr_str(&res);
+  check = jerry_string_to_buffer(jval, JERRY_ENCODING_UTF8, jerry_buffer, size);
+
+  IOTJS_ASSERT(check == size);
+
+  return res;
+}
 
 jerry_value_t iotjs_jval_as_object(jerry_value_t jval) {
   IOTJS_ASSERT(jerry_value_is_object(jval));
@@ -413,6 +434,36 @@ iotjs_string_t iotjs_jval_get_property_as_string(jerry_value_t jobj, const char*
   jerry_value_free(value);
 
   return as_string;
+}
+
+cstr iotjs_jval_get_property_as_cstr(jerry_value_t jobj, const char* name) {
+  jerry_value_t value = iotjs_jval_get_property(jobj, name);
+  cstr as_string;
+
+  if (jerry_value_is_string(value)) {
+    as_string = iotjs_jval_as_cstr(value);
+  } else {
+    as_string = cstr_init();
+  }
+
+  jerry_value_free(value);
+
+  return as_string;
+}
+
+int32_t iotjs_jval_get_property_as_int32(jerry_value_t jobj, const char* name, int32_t fallback) {
+  jerry_value_t value = iotjs_jval_get_property(jobj, name);
+  int32_t result;
+
+  if (jerry_value_is_number(value)) {
+    result = jerry_value_as_int32(value);
+  } else {
+    result = fallback;
+  }
+
+  jerry_value_free(value);
+
+  return result;
 }
 
 jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
