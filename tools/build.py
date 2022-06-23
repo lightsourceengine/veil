@@ -99,9 +99,6 @@ def init_options():
     iotjs_group.add_argument('--config', default=path.BUILD_CONFIG_PATH,
         help='Specify the config file (default: %(default)s)',
         dest='config_path')
-    iotjs_group.add_argument('-e', '--experimental',
-        action='store_true', default=False,
-        help='Enable to build experimental features')
     iotjs_group.add_argument('--external-include-dir',
         action='append', default=[],
         help='Specify additional external include directory '
@@ -129,9 +126,6 @@ def init_options():
     iotjs_group.add_argument('--no-parallel-build',
         action='store_true', default=False,
         help='Disable parallel build')
-    iotjs_group.add_argument('--no-snapshot',
-        action='store_true', default=False,
-        help='Disable snapshot generation for IoT.js')
     iotjs_group.add_argument('--nuttx-home', default=None, dest='sysroot',
         help='Specify the NuttX base directory (required for NuttX build)')
     iotjs_group.add_argument('--profile',
@@ -242,10 +236,7 @@ def adjust_options(options):
 
     # Set the default value of '--js-backtrace' if it is not defined.
     if not options.js_backtrace:
-        if options.buildtype == 'debug':
-            options.js_backtrace = "ON"
-        else:
-            options.js_backtrace = "OFF"
+        options.js_backtrace = "ON"
 
 
 def print_progress(msg):
@@ -331,7 +322,7 @@ def build_iotjs(options):
         '-DTARGET_BOARD=%s' % options.target_board,
         '-DENABLE_LTO=%s' % get_on_off(options.jerry_lto), # --jerry-lto
         '-DENABLE_MODULE_NAPI=%s' % get_on_off(options.n_api), # --n-api
-        '-DENABLE_SNAPSHOT=%s' % get_on_off(not options.no_snapshot),
+        '-DENABLE_SNAPSHOT=OFF',
         '-DBUILD_LIB_ONLY=%s' % get_on_off(options.buildlib), # --buildlib
         '-DCREATE_SHARED_LIB=%s' % get_on_off(options.create_shared_lib),
         # --jerry-memstat
@@ -380,10 +371,6 @@ def build_iotjs(options):
     if options.jerry_cmake_param:
         cmake_opt.append("-DEXTRA_JERRY_CMAKE_PARAMS='%s'" %
                          ' '.join(options.jerry_cmake_param))
-
-    # --experimental
-    if options.experimental:
-        cmake_opt.append('-DEXPERIMENTAL=ON')
 
     # --profile
     if options.profile:

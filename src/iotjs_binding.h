@@ -134,7 +134,7 @@ int32_t iotjs_jval_get_property_as_int32(jerry_value_t jobj, const char* name, i
                             const jerry_value_t jargv[], \
                             const jerry_length_t jargc)
 
-#if defined(EXPERIMENTAL) && !defined(DEBUG)
+#if !defined(DEBUG)
 // This code branch is to be in #ifdef NDEBUG
 #define DJS_CHECK(predicate) ((void)0)
 #define DJS_CHECK_ARG(index, type) ((void)0)
