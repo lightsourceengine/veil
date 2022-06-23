@@ -214,7 +214,9 @@ napi_status napi_create_dataview(napi_env env, size_t byte_length,
   NAPI_RETURN(napi_ok);
 }
 
-static void napi_external_destroy(iotjs_object_info_t* info) {
+static void napi_external_destroy(void *native_p, struct jerry_object_native_info_t *info_p) {
+  iotjs_object_info_t* info = native_p;
+
   if (info->finalize_cb != NULL) {
     info->finalize_cb(info->env, info->native_object, info->finalize_hint);
   }

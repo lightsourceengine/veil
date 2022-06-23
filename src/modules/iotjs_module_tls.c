@@ -18,14 +18,16 @@
 
 #include "stdarg.h"
 
-static void iotjs_tls_context_destroy(iotjs_tls_context_t *tls_context);
+static void iotjs_tls_context_destroy(void *native_p, struct jerry_object_native_info_t *info_p);
 
 static const jerry_object_native_info_t tls_context_native_info = {
   .free_cb = (jerry_object_native_free_cb_t)iotjs_tls_context_destroy
 };
 
 
-static void iotjs_tls_context_destroy(iotjs_tls_context_t *tls_context) {
+static void iotjs_tls_context_destroy(void *native_p, struct jerry_object_native_info_t *info_p) {
+  iotjs_tls_context_t* tls_context = native_p;
+
   if (tls_context->ref_count > 1) {
     tls_context->ref_count--;
     return;
@@ -67,7 +69,7 @@ static void iotjs_tls_destroy(void *native_p, struct jerry_object_native_info_t 
 
   mbedtls_ssl_free(&tls_data->ssl);
   mbedtls_ssl_config_free(&tls_data->conf);
-  iotjs_tls_context_destroy(tls_data->tls_context);
+  iotjs_tls_context_destroy(tls_data->tls_context, info_p);
 
   IOTJS_RELEASE(tls_data->bio.receive_bio.mem);
   IOTJS_RELEASE(tls_data->bio.send_bio.mem);
