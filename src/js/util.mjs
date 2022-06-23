@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+import { validateFunction } from './internal/validators.mjs'
+
 const { toUSVString } = import.meta.native
 
 const isNull = (arg) => {
@@ -76,10 +78,10 @@ const mixin = (...args) => {
     throw new TypeError('target cannot be null or undefined');
   }
 
-  for (var i = 1; i < args.length; ++i) {
-    var source = args[i];
+  for (let i = 1; i < args.length; ++i) {
+    const source = args[i];
     if (!isNullOrUndefined(source)) {
-      for (var prop in source) {
+      for (const prop in source) {
         if (source.hasOwnProperty(prop)) {
           target[prop] = source[prop];
         }
@@ -89,6 +91,60 @@ const mixin = (...args) => {
 
   return target;
 }
+
+const kCustomPromisifiedSymbol = Symbol.for('nodejs.util.promisify.custom');
+const kCustomPromisifyArgsSymbol = Symbol('customPromisifyArgs');
+
+const promisify = (original) => {
+  let fn
+
+  validateFunction(original, 'original');
+
+  if (original[kCustomPromisifiedSymbol]) {
+    fn = original[kCustomPromisifiedSymbol];
+
+    validateFunction(fn, 'util.promisify.custom');
+
+    return Object.defineProperty(fn, kCustomPromisifiedSymbol, {
+      value: fn, enumerable: false, writable: false, configurable: true
+    });
+  }
+
+  // Names to create an object from in case the callback receives multiple
+  // arguments, e.g. ['bytesRead', 'buffer'] for fs.read.
+  const argumentNames = original[kCustomPromisifyArgsSymbol];
+
+  fn = function (...args) {
+    return new Promise((resolve, reject) => {
+      args.push((err, ...values) => {
+        if (err) {
+          return reject(err);
+        }
+        if (argumentNames !== undefined && values.length > 1) {
+          const obj = {};
+          for (let i = 0; i < argumentNames.length; i++)
+            obj[argumentNames[i]] = values[i];
+          resolve(obj);
+        } else {
+          resolve(values[0]);
+        }
+      });
+      Reflect.apply(original, this, args);
+    })
+  }
+
+  Object.setPrototypeOf(fn, Object.getPrototypeOf(original));
+
+  Object.defineProperty(fn, kCustomPromisifiedSymbol, {
+    value: fn, enumerable: false, writable: false, configurable: true
+  });
+  return Object.defineProperties(
+    fn,
+    Object.getOwnPropertyDescriptors(original)
+  );
+}
+
+promisify.custom = kCustomPromisifiedSymbol;
 
 const format = (...args) => {
   const [s] = args
@@ -112,10 +168,10 @@ const format = (...args) => {
   }
 
   let i = 1;
-  var arg_string;
-  var str = '';
-  var start = 0;
-  var end = 0;
+  let arg_string;
+  let str = '';
+  let start = 0;
+  let end = 0;
 
   while (end < s.length) {
     if (s.charAt(end) !== '%') {
@@ -191,19 +247,16 @@ const formatValue = (v) => {
 
 
 const stringToNumber = (value, default_value) => {
-  var num = Number(value);
+  const num = Number(value);
   return isNaN(num) ? default_value : num;
 }
 
 
 const errnoException = (err, syscall, original) => {
-  var errname = 'error'; // uv.errname(err);
-  var message = syscall + ' ' + errname;
+  const errname = 'error'; // uv.errname(err);
+  const message = `${syscall} ${errname}`;
+  const e = Error(original ? `${message} ${original}` : message);
 
-  if (original)
-    message += ' ' + original;
-
-  var e = new Error(message);
   e.code = errname;
   e.errno = errname;
   e.syscall = syscall;
@@ -213,20 +266,13 @@ const errnoException = (err, syscall, original) => {
 
 
 const exceptionWithHostPort = (err, syscall, address, port, additional) => {
-  var details;
-  if (port && port > 0) {
-    details = address + ':' + port;
-  } else {
-    details = address;
-  }
+  const hasPort = (port >>> 0) > 0
+  const details = hasPort ? `${address}:${port}`: address
+  const ex = errnoException(err, syscall, additional ? `${details} - Local (${additional})` : details);
 
-  if (additional) {
-    details += ' - Local (' + additional + ')';
-  }
-
-  var ex = errnoException(err, syscall, details);
   ex.address = address;
-  if (port) {
+
+  if (hasPort) {
     ex.port = port;
   }
 
@@ -254,6 +300,7 @@ export {
   inherits,
   mixin,
   format,
+  promisify,
   toUSVString
 }
 
@@ -275,5 +322,6 @@ export default {
   inherits,
   mixin,
   format,
+  promisify,
   toUSVString
 }
