@@ -1,149 +1,80 @@
-import t from'util'
-import e from'constants'
-import n from'stream'
-const r=import.meta.native
-const i=(e,n)=>{if(!t.isString(e)&&!t.isBuffer(e)){throw new TypeError('Path should be a string or a buffer')}if(!e||!e.length){process.nextTick((function(){if(n)n(false)}))
-return}var i=function(t){if(n)n(t?false:true)}
-r.stat(q(e,'path'),G(i,'callback'))}
-const s=t=>{if(!t||!t.length){return false}try{r.stat(q(t,'path'))
-return true}catch(t){return false}}
-const a=(t,e)=>{r.stat(q(t,'path'),G(e,'callback'))}
-const f=t=>r.stat(q(t,'path'))
-const o=(t,e)=>{r.fstat(j(t,'fd'),G(e,'callback'))}
-const c=t=>r.fstat(j(t,'fd'))
-const u=(t,e)=>{r.close(j(t,'fd'),G(e,'callback'))}
-const l=t=>{r.close(j(t,'fd'))}
-const h=(...t)=>{const[e,n,i]=t
-r.open(q(e,'path'),A(n),z(i,438),G(t[t.length-1]),'callback')}
-const d=(t,e,n)=>r.open(q(t,'path'),A(e),z(n,438))
-const p=(e,n,i,s,a,f)=>{if(t.isNullOrUndefined(a)){a=-1}f=G(f,'callback')
-var o=function(t,e){f(t,e||0,n)}
-return r.read(j(e,'fd'),$(n,'buffer'),j(i,'offset'),j(s,'length'),j(a,'position'),o)}
-const w=(e,n,i,s,a)=>{if(t.isNullOrUndefined(a)){a=-1}return r.read(j(e,'fd'),$(n,'buffer'),j(i,'offset'),j(s,'length'),j(a,'position'))}
-const v=(e,n,i,s,a,f)=>{if(t.isFunction(a)){f=a
-a=-1}else if(t.isNullOrUndefined(a)){a=-1}f=G(f,'callback')
-var o=function(t,e){f(t,e,n)}
-return r.write(j(e,'fd'),$(n,'buffer'),j(i,'offset'),j(s,'length'),j(a,'position'),o)}
-const b=(e,n,i,s,a)=>{if(t.isNullOrUndefined(a)){a=-1}return r.write(j(e,'fd'),$(n,'buffer'),j(i,'offset'),j(s,'length'),j(a,'position'))}
-const m=(t,e)=>{q(t)
-G(e)
-var n
-var r
-h(t,'r',(function(t,s){if(t){return e(t)}n=s
-r=[]
-i()}))
-var i=function(){var t=new Buffer(1023)
-p(n,t,0,1023,-1,s)}
-var s=function(t,s,f){if(t){u(n,(function(t){return e(t)}))}if(s===0){a()}else{r.push(f.slice(0,s))
-i()}}
-var a=function(){u(n,(function(t){return e(t,Buffer.concat(r))}))}}
-const _=t=>{q(t)
-var e=d(t,'r',438)
-var n=[]
-while(true){try{var r=new Buffer(1023)
-var i=w(e,r,0,1023)
-if(i){n.push(r.slice(0,i))}else{break}}catch(t){break}}l(e)
-return Buffer.concat(n)}
-const y=(t,e,n)=>{q(t)
-G(n)
-var r
-var i
-var s
-var a=I(e)
-h(t,'w',(function(t,e){if(t){return n(t)}r=e
-i=a.length
-s=0
-f()}))
-var f=function(){var t=i-s>=1024?1023:i-s
-v(r,a,s,t,s,o)}
-var o=function(t,e){if(t){u(r,(function(t){return n(t)}))}if(e<=0||s+e===i){u(r,(function(t){n(t)}))}else{s+=e
-f()}}}
-const g=(t,e)=>{q(t)
-var n=I(e)
-var r=d(t,'w')
-var i=n.length
-var s=0
-while(true){try{var a=i-s>=1024?1023:i-s
-var f=b(r,n,s,a,s)
-s+=f
-if(s===i){break}}catch(t){break}}l(r)
-return s}
-const k=(e,n,i)=>{if(t.isFunction(n))i=n
-q(e,'path')
-G(i,'callback')
-r.mkdir(e,z(n,511),i)}
-const S=(t,e)=>r.mkdir(q(t,'path'),z(e,511))
-const O=(t,e)=>{q(t,'path')
-G(e,'callback')
-r.rmdir(t,e)}
-const C=t=>r.rmdir(q(t,'path'))
-const N=(t,e)=>{q(t)
-G(e)
-r.unlink(t,e)}
-const R=t=>r.unlink(q(t,'path'))
-const x=(t,e,n)=>{q(t)
-q(e)
-G(n)
-r.rename(t,e,n)}
-const B=(t,e)=>{q(t)
-q(e)
-r.rename(t,e)}
-const U=(t,e)=>{q(t)
-G(e)
-r.readdir(t,e)}
-const E=t=>r.readdir(q(t,'path'))
-var F=n.Readable
-var T=n.Writable
-var W=function(t){u(t._fd,(function(e){if(e){throw e}t.emit('close')}))}
-var D=function(e,n){if(!(this instanceof D)){return new D(e,n)}n=n||{}
-F.call(this,{defaultEncoding:n.encoding||null})
-this.bytesRead=0
-this.path=e
-this._autoClose=t.isNullOrUndefined(n.autoClose)||n.autoClose
-this._fd=n.fd
-this._buff=new Buffer(n.bufferSize||4096)
-var r=this
-if(t.isNullOrUndefined(this._fd)){h(this.path,n.flags||'r',n.mode||438,(function(t,e){if(t){throw t}r._fd=e
-r.emit('open',r._fd)
-r.doRead()}))}this.once('open',(function(){this.emit('ready')}))
-if(this._autoClose){this.on('end',(function(){W(r)}))}}
-t.inherits(D,F)
-D.prototype.doRead=function(){var t=this
-p(this._fd,this._buff,0,this._buff.length,null,(function(e,n){if(e){if(t._autoClose){W(t)}throw e}t.bytesRead+=n
-if(n===0){t.push(null)}else{t.push(n===t._buff.length?t._buff:t._buff.slice(0,n))
-t.doRead()}}))}
-var L=function(e,n){if(!(this instanceof L)){return new L(e,n)}n=n||{}
-T.call(this)
-this._fd=n._fd
-this._autoClose=t.isNullOrUndefined(n.autoClose)||n.autoClose
-this.bytesWritten=0
-var r=this
-if(!this._fd){h(e,n.flags||'w',n.mode||438,(function(t,e){if(t){throw t}r._fd=e
-r.emit('open',r._fd)}))}this.once('open',(function(){r.emit('ready')}))
-if(this._autoClose){this.on('finish',(function(){W(r)}))}this._readyToWrite()}
-t.inherits(L,T)
-L.prototype._write=function(t,e,n){var r=this
-v(this._fd,t,0,t.length,(function(t,i){if(t){if(r._autoClose){W(r)}throw t}this.bytesWritten+=i
-if(e){e()}n()}))}
-const P=(t,e)=>new L(t,e)
-const Y=(t,e)=>new D(t,e)
-function A(t){const{O_APPEND:n,O_CREAT:r,O_EXCL:i,O_RDONLY:s,O_RDWR:a,O_SYNC:f,O_TRUNC:o,O_WRONLY:c}=e
-if(typeof t==='string'){switch(t){case'r':return s
-case'rs':case'sr':return s|f
+import e from'util'
+import t from'constants'
+import r from'stream'
+const n=import.meta.native,i=(t,r)=>{if(!e.isString(t)&&!e.isBuffer(t))throw new TypeError('Path should be a string or a buffer')
+if(!t||!t.length)return process.nextTick((function(){if(r)r(false)})),void 0
+var i=function(e){if(r)r(e?false:true)}
+n.stat(q(t,'path'),G(i,'callback'))},f=e=>{if(!e||!e.length)return false
+try{return n.stat(q(e,'path')),true}catch(e){return false}},a=(e,t)=>{n.stat(q(e,'path'),G(t,'callback'))},s=e=>n.stat(q(e,'path')),o=(e,t)=>{n.fstat(j(e,'fd'),G(t,'callback'))},u=e=>n.fstat(j(e,'fd')),c=(e,t)=>{n.close(j(e,'fd'),G(t,'callback'))},l=e=>{n.close(j(e,'fd'))},d=(...e)=>{const[t,r,i]=e
+n.open(q(t,'path'),A(r),z(i,438),G(e[e.length-1]),'callback')},h=(e,t,r)=>n.open(q(e,'path'),A(t),z(r,438)),p=(t,r,i,f,a,s)=>{if(e.isNullOrUndefined(a))a=-1
+s=G(s,'callback')
+var o=function(e,t){s(e,t||0,r)}
+return n.read(j(t,'fd'),$(r,'buffer'),j(i,'offset'),j(f,'length'),j(a,'position'),o)},w=(t,r,i,f,a)=>{if(e.isNullOrUndefined(a))a=-1
+return n.read(j(t,'fd'),$(r,'buffer'),j(i,'offset'),j(f,'length'),j(a,'position'))},b=(t,r,i,f,a,s)=>{if(e.isFunction(a))s=a,a=-1
+else if(e.isNullOrUndefined(a))a=-1
+s=G(s,'callback')
+var o=function(e,t){s(e,t,r)}
+return n.write(j(t,'fd'),$(r,'buffer'),j(i,'offset'),j(f,'length'),j(a,'position'),o)},m=(t,r,i,f,a)=>{if(e.isNullOrUndefined(a))a=-1
+return n.write(j(t,'fd'),$(r,'buffer'),j(i,'offset'),j(f,'length'),j(a,'position'))},_=(e,t)=>{var r,n
+q(e),G(t),d(e,'r',(function(e,f){if(e)return t(e)
+r=f,n=[],i()}))
+var i=function(){var e=new Buffer(1023)
+p(r,e,0,1023,-1,f)},f=function(e,f,s){if(e)c(r,(function(e){return t(e)}))
+if(0===f)a()
+else n.push(s.slice(0,f)),i()},a=function(){c(r,(function(e){return t(e,Buffer.concat(n))}))}},y=e=>{q(e)
+var t=h(e,'r',438),r=[]
+while(true)try{var n=new Buffer(1023),i=w(t,n,0,1023)
+if(i)r.push(n.slice(0,i))
+else break}catch(e){break}return l(t),Buffer.concat(r)},g=(e,t,r)=>{var n,i,f
+q(e),G(r)
+var a=I(t)
+d(e,'w',(function(e,t){if(e)return r(e)
+n=t,i=a.length,f=0,s()}))
+var s=function(){var e=i-f>=1024?1023:i-f
+b(n,a,f,e,f,o)},o=function(e,t){if(e)c(n,(function(e){return r(e)}))
+if(t<=0||f+t===i)c(n,(function(e){r(e)}))
+else f+=t,s()}},k=(e,t)=>{q(e)
+var r=I(t),n=h(e,'w'),i=r.length,f=0
+while(true)try{var a=i-f>=1024?1023:i-f,s=m(n,r,f,a,f)
+if(f+=s,f===i)break}catch(e){break}return l(n),f},v=(t,r,i)=>{if(e.isFunction(r))i=r
+q(t,'path'),G(i,'callback'),n.mkdir(t,z(r,511),i)},S=(e,t)=>n.mkdir(q(e,'path'),z(t,511)),O=(e,t)=>{q(e,'path'),G(t,'callback'),n.rmdir(e,t)},C=e=>n.rmdir(q(e,'path')),N=(e,t)=>{q(e),G(t),n.unlink(e,t)},R=e=>n.unlink(q(e,'path')),x=(e,t,r)=>{q(e),q(t),G(r),n.rename(e,t,r)},B=(e,t)=>{q(e),q(t),n.rename(e,t)},U=(e,t)=>{q(e),G(t),n.readdir(e,t)},E=e=>n.readdir(q(e,'path'))
+var F=r.Readable,T=r.Writable,W=function(e){c(e._fd,(function(t){if(t)throw t
+e.emit('close')}))},D=function(t,r){if(!(this instanceof D))return new D(t,r)
+r=r||{},F.call(this,{defaultEncoding:r.encoding||null}),this.bytesRead=0,this.path=t,this._autoClose=e.isNullOrUndefined(r.autoClose)||r.autoClose,this._fd=r.fd,this._buff=new Buffer(r.bufferSize||4096)
+var n=this
+if(e.isNullOrUndefined(this._fd))d(this.path,r.flags||'r',r.mode||438,(function(e,t){if(e)throw e
+n._fd=t,n.emit('open',n._fd),n.doRead()}))
+if(this.once('open',(function(){this.emit('ready')})),this._autoClose)this.on('end',(function(){W(n)}))}
+e.inherits(D,F),D.prototype.doRead=function(){var e=this
+p(this._fd,this._buff,0,this._buff.length,null,(function(t,r){if(t){if(e._autoClose)W(e)
+throw t}if(e.bytesRead+=r,0===r)e.push(null)
+else e.push(r===e._buff.length?e._buff:e._buff.slice(0,r)),e.doRead()}))}
+var L=function(t,r){if(!(this instanceof L))return new L(t,r)
+r=r||{},T.call(this),this._fd=r._fd,this._autoClose=e.isNullOrUndefined(r.autoClose)||r.autoClose,this.bytesWritten=0
+var n=this
+if(!this._fd)d(t,r.flags||'w',r.mode||438,(function(e,t){if(e)throw e
+n._fd=t,n.emit('open',n._fd)}))
+if(this.once('open',(function(){n.emit('ready')})),this._autoClose)this.on('finish',(function(){W(n)}))
+this._readyToWrite()}
+e.inherits(L,T),L.prototype._write=function(e,t,r){var n=this
+b(this._fd,e,0,e.length,(function(e,i){if(e){if(n._autoClose)W(n)
+throw e}if(this.bytesWritten+=i,t)t()
+r()}))}
+const P=(e,t)=>new L(e,t),Y=(e,t)=>new D(e,t)
+function A(e){const{O_APPEND:r,O_CREAT:n,O_EXCL:i,O_RDONLY:f,O_RDWR:a,O_SYNC:s,O_TRUNC:o,O_WRONLY:u}=t
+if('string'===typeof e)switch(e){case'r':return f
+case'rs':case'sr':return f|s
 case'r+':return a
-case'rs+':case'sr+':return a|f
-case'w':return o|r|c
-case'wx':case'xw':return o|r|c|i
-case'w+':return o|r|a
-case'wx+':case'xw+':return o|r|a|i
-case'a':return n|r|c
-case'ax':case'xa':return n|r|c|i
-case'a+':return n|r|a
-case'ax+':case'xa+':return n|r|a|i}}throw new TypeError('Bad argument: flags')}function z(e,n){if(t.isNumber(e)){return e}else if(t.isString(e)){return parseInt(e,8)}else if(n){return z(n)}}const I=e=>t.isBuffer(e)?e:new Buffer(e+'')
-const X=(t,e,n)=>{if(!n(t)){throw new TypeError(`Bad arguments: ${e}`)}return t}
-const $=(e,n)=>X(e,n,t.isBuffer)
-const j=(e,n)=>X(e,n,t.isNumber)
-const q=(e,n)=>X(e,n,t.isString)
-const G=(e,n)=>X(e,n,t.isFunction)
-const H={createWriteStream:P,createReadStream:Y,readdirSync:E,readdir:U,renameSync:B,rename:x,unlinkSync:R,unlink:N,rmdirSync:C,rmdir:O,mkdirSync:S,mkdir:k,writeFileSync:g,writeFile:y,readFileSync:_,readFile:m,writeSync:b,write:v,readSync:w,read:p,openSync:d,open:h,closeSync:l,close:u,fstatSync:c,fstat:o,statSync:f,stat:a,existsSync:s,exists:i}
-export{u as close,l as closeSync,Y as createReadStream,P as createWriteStream,H as default,i as exists,s as existsSync,o as fstat,c as fstatSync,k as mkdir,S as mkdirSync,h as open,d as openSync,p as read,m as readFile,_ as readFileSync,w as readSync,U as readdir,E as readdirSync,x as rename,B as renameSync,O as rmdir,C as rmdirSync,a as stat,f as statSync,N as unlink,R as unlinkSync,v as write,y as writeFile,g as writeFileSync,b as writeSync}
+case'rs+':case'sr+':return a|s
+case'w':return o|n|u
+case'wx':case'xw':return o|n|u|i
+case'w+':return o|n|a
+case'wx+':case'xw+':return o|n|a|i
+case'a':return r|n|u
+case'ax':case'xa':return r|n|u|i
+case'a+':return r|n|a
+case'ax+':case'xa+':return r|n|a|i}throw new TypeError('Bad argument: flags')}function z(t,r){if(e.isNumber(t))return t
+else if(e.isString(t))return parseInt(t,8)
+else if(r)return z(r)}const I=t=>e.isBuffer(t)?t:new Buffer(t+''),X=(e,t,r)=>{if(!r(e))throw new TypeError(`Bad arguments: ${t}`)
+return e},$=(t,r)=>X(t,r,e.isBuffer),j=(t,r)=>X(t,r,e.isNumber),q=(t,r)=>X(t,r,e.isString),G=(t,r)=>X(t,r,e.isFunction),H={createWriteStream:P,createReadStream:Y,readdirSync:E,readdir:U,renameSync:B,rename:x,unlinkSync:R,unlink:N,rmdirSync:C,rmdir:O,mkdirSync:S,mkdir:v,writeFileSync:k,writeFile:g,readFileSync:y,readFile:_,writeSync:m,write:b,readSync:w,read:p,openSync:h,open:d,closeSync:l,close:c,fstatSync:u,fstat:o,statSync:s,stat:a,existsSync:f,exists:i}
+export{c as close,l as closeSync,Y as createReadStream,P as createWriteStream,H as default,i as exists,f as existsSync,o as fstat,u as fstatSync,v as mkdir,S as mkdirSync,d as open,h as openSync,p as read,_ as readFile,y as readFileSync,w as readSync,U as readdir,E as readdirSync,x as rename,B as renameSync,O as rmdir,C as rmdirSync,a as stat,s as statSync,N as unlink,R as unlinkSync,b as write,g as writeFile,k as writeFileSync,m as writeSync}

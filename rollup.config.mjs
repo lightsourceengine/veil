@@ -31,8 +31,13 @@ const minify = (options = {}) => terser({
     // disable common source of minification bugs
     properties: false
   },
-  // disable common source of minification bugs
-  compress: false,
+  compress: {
+    defaults: false,
+    join_vars: true,
+    arrows: true,
+    sequences: true,
+    module: true
+  },
   output: {
     // source contains escaped unicode chars, preserve them. js2c.py does not handle unicode.
     ascii_only: true,

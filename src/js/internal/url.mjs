@@ -477,18 +477,19 @@ function onParseComplete(flags, protocol, username, password,
   const ctx = this[context];
   ctx.flags = flags;
   ctx.scheme = protocol;
-  ctx.username = (flags & URL_FLAGS_HAS_USERNAME) !== 0 ? username : '';
-  ctx.password = (flags & URL_FLAGS_HAS_PASSWORD) !== 0 ? password : '';
+  ctx.username = username || '';
+  ctx.password = password || '';
   ctx.port = port;
-  ctx.path = (flags & URL_FLAGS_HAS_PATH) !== 0 ? path : [];
+  ctx.path = path || [];
   ctx.query = query;
   ctx.fragment = fragment;
   ctx.host = host;
-  if (!this[searchParams]) { // Invoked from URL constructor
-    this[searchParams] = new URLSearchParams();
-    this[searchParams][context] = this;
+  let sp = this[searchParams]
+  if (!sp) { // Invoked from URL constructor
+    sp = this[searchParams] = new URLSearchParams();
+    sp[context] = this;
   }
-  initSearchParams(this[searchParams], query);
+  initSearchParams(sp, query);
 }
 
 function onParseError(input, flags) {
@@ -725,7 +726,7 @@ class URL {
     assertThisInstanceOfURL(this);
     // toUSVString is not needed.
     scheme = `${scheme}`;
-    if (scheme.length === 0)
+    if (!scheme.length)
       return;
     const ctx = this[context];
     parse(scheme, kSchemeStart, null, ctx, onParseProtocolComplete.bind(this));
@@ -836,27 +837,23 @@ class URL {
     const ctx = this[context];
     if (this[cannotBeBase])
       return ctx.path[0];
-    if (ctx.path.length === 0)
+    if (!ctx.path.length)
       return '';
     return `/${ctx.path.join('/')}`;
   }
 
   set pathname(path) {
     assertThisInstanceOfURL(this);
-    // toUSVString is not needed.
-    path = `${path}`;
-    if (this[cannotBeBase])
-      return;
-    parse(path, kPathStart, null, this[context],
-      onParsePathComplete.bind(this));
+    if (!this[cannotBeBase]) {
+      // toUSVString is not needed.
+      parse(`${path}`, kPathStart, null, this[context], onParsePathComplete.bind(this));
+    }
   }
 
   get search() {
     assertThisInstanceOfURL(this);
     const { query } = this[context];
-    if (query === null || query === '')
-      return '';
-    return `?${query}`;
+    return query ? `?${query}` : '';
   }
 
   set search(search) {
@@ -886,9 +883,7 @@ class URL {
   get hash() {
     assertThisInstanceOfURL(this);
     const { fragment } = this[context];
-    if (fragment === null || fragment === '')
-      return '';
-    return `#${fragment}`;
+    return fragment ? `#${fragment}` : '';
   }
 
   set hash(hash) {
@@ -1110,15 +1105,15 @@ paramHexTable[0x20] = '+';
 // application/x-www-form-urlencoded serializer
 // Ref: https://url.spec.whatwg.org/#concept-urlencoded-serializer
 function serializeParams(array) {
-  const len = array.length;
-  if (len === 0)
+  const { length } = array;
+  if (!length)
     return '';
 
   const firstEncodedParam = encodeStr(array[0], noEscape, paramHexTable);
   const firstEncodedValue = encodeStr(array[1], noEscape, paramHexTable);
   let output = `${firstEncodedParam}=${firstEncodedValue}`;
 
-  for (let i = 2; i < len; i += 2) {
+  for (let i = 2; i < length; i += 2) {
     const encodedParam = encodeStr(array[i], noEscape, paramHexTable);
     const encodedValue = encodeStr(array[i + 1], noEscape, paramHexTable);
     output += `&${encodedParam}=${encodedValue}`;
@@ -1215,8 +1210,7 @@ defineIDLClass(URLSearchParamsIteratorPrototype, 'URLSearchParams Iterator', {
       index
     } = this[context];
     const values = target[searchParams];
-    const len = values.length;
-    if (index >= len) {
+    if (index >= values.length) {
       return {
         value: undefined,
         done: true
@@ -1327,9 +1321,10 @@ function urlToHttpOptions(url) {
 const forwardSlashRegEx = /\//g;
 
 function getPathFromURLWin32(url) {
-  const hostname = url.hostname;
-  let pathname = url.pathname;
-  for (let n = 0; n < pathname.length; n++) {
+  let { hostname, pathname } = url
+  const { length } = pathname
+
+  for (let n = 0; n < length; n++) {
     if (pathname[n] === '%') {
       const third = pathname.codePointAt(n + 2) | 0x20;
       if ((pathname[n + 1] === '2' && third === 102) || // 2f 2F /
@@ -1365,8 +1360,9 @@ function getPathFromURLPosix(url) {
   if (url.hostname !== '') {
     throw new ERR_INVALID_FILE_URL_HOST(platform);
   }
-  const pathname = url.pathname;
-  for (let n = 0; n < pathname.length; n++) {
+  const { pathname } = url;
+  const { length } = pathname
+  for (let n = 0; n < length; n++) {
     if (pathname[n] === '%') {
       const third = pathname.codePointAt(n + 2) | 0x20;
       if (pathname[n + 1] === '2' && third === 102) {
@@ -1434,7 +1430,7 @@ function pathToFileURL(filepath) {
       );
     }
     const hostname = paths[2];
-    if (hostname.length === 0) {
+    if (!hostname.length) {
       throw new ERR_INVALID_ARG_VALUE(
         'filepath',
         filepath,

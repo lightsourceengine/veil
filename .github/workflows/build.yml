@@ -38,9 +38,8 @@ jobs:
         if: contains(matrix.os, 'windows') == true
         run: ./tools/build.py --n-api --no-init-submodule --no-snapshot --jerry-heaplimit=8192 --buildtype=release --js-backtrace=ON
 
-      # disable tests until url builtin is complete
-      # - name: Test
-      #   run: ./test/runner.sh
+      - name: Test
+        run: ./test/runner.sh
 
       - name: Package
         run: ./tools/create-package.sh

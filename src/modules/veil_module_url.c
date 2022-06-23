@@ -373,10 +373,6 @@ void url_parse(const char* input, size_t len, veil_url_parse_state state_overrid
     break;
   }
 
-  if (cstr_empty(whitespace_stripped)) {
-    goto EXIT;
-  }
-
   bool atflag = false;  // Set when @ has been seen.
   bool square_bracket_flag = false;  // Set inside of [...]
   bool password_token_seen_flag = false;  // Set after a : after an username.
@@ -1453,7 +1449,7 @@ JS_FUNCTION(js_encode_auth) {
 }
 
 JS_FUNCTION(js_parse) {
-  JS_CHECK(jargc >= 6);
+  JS_CHECK(jargc >= 5);
 
   cstr input = JS_GET_ARG(0, cstr);
   int32_t state_override = jerry_value_as_int32(jargv[1]);
@@ -1462,7 +1458,6 @@ JS_FUNCTION(js_parse) {
   veil_url_data url = veil_url_data_init();
   bool has_url;
   jerry_value_t complete_callback = jargv[4];
-  jerry_value_t error_callback = jargv[5];
   size_t i;
 
   switch (state_override) {
@@ -1523,7 +1518,7 @@ JS_FUNCTION(js_parse) {
 
     if (url.flags & URL_FLAGS_HAS_PATH) {
       size_t length = cvec_str_size(url.path);
-      jerry_value_t path_array = jerry_array_length(length);
+      jerry_value_t path_array = jerry_array(length);
 
       for (i = 0; i < length; i++) {
         const char* p = cstr_str_safe(cvec_str_at(&url.path, i));
@@ -1542,9 +1537,9 @@ JS_FUNCTION(js_parse) {
     }
 
     jerry_value_free(result);
-  } else if (jerry_value_is_function(error_callback)) {
+  } else if (jargc > 5 && jerry_value_is_function(jargv[5])) {
     jerry_value_t flags = jerry_number(url.flags);
-    jerry_value_t result = jerry_call(error_callback, call_info_p->this_value, &flags, 1);
+    jerry_value_t result = jerry_call(jargv[5], call_info_p->this_value, &flags, 1);
 
     jerry_value_free(flags);
     jerry_value_free(result);
