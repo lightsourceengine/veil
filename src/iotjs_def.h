@@ -100,7 +100,7 @@
 #define IOTJS_UNUSED(x) ((void)(x))
 
 #define IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(name)                  \
-  static void iotjs_##name##_destroy(iotjs_##name##_t* wrap);              \
+  static void iotjs_##name##_destroy(void *native_p, struct jerry_object_native_info_t *info_p);              \
   static const jerry_object_native_info_t this_module_native_info = {      \
     .free_cb = (jerry_object_native_free_cb_t)iotjs_##name##_destroy \
   }

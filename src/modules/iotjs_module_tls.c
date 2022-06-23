@@ -62,7 +62,9 @@ static iotjs_tls_context_t *iotjs_tls_context_create(
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(tls);
 
 
-static void iotjs_tls_destroy(iotjs_tls_t *tls_data) {
+static void iotjs_tls_destroy(void *native_p, struct jerry_object_native_info_t *info_p) {
+  iotjs_tls_t* tls_data = native_p;
+
   mbedtls_ssl_free(&tls_data->ssl);
   mbedtls_ssl_config_free(&tls_data->conf);
   iotjs_tls_context_destroy(tls_data->tls_context);

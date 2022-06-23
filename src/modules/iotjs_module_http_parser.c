@@ -92,9 +92,9 @@ static void iotjs_http_parserwrap_create(const jerry_value_t jparser,
   IOTJS_ASSERT(jerry_value_is_object(http_parserwrap->jobject));
 }
 
+static void iotjs_http_parserwrap_destroy(void *native_p, struct jerry_object_native_info_t *info_p) {
+  iotjs_http_parserwrap_t* http_parserwrap = native_p;
 
-static void iotjs_http_parserwrap_destroy(
-    iotjs_http_parserwrap_t* http_parserwrap) {
   cstr_drop(&http_parserwrap->url);
   cstr_drop(&http_parserwrap->status_msg);
   for (size_t i = 0; i < HEADER_MAX; i++) {

@@ -44,7 +44,9 @@ iotjs_bufferwrap_t* iotjs_bufferwrap_create(const jerry_value_t jobject,
 }
 
 
-static void iotjs_bufferwrap_destroy(iotjs_bufferwrap_t* bufferwrap) {
+static void iotjs_bufferwrap_destroy(void *native_p, struct jerry_object_native_info_t *info_p) {
+  iotjs_bufferwrap_t* bufferwrap = native_p;
+
   if (bufferwrap->external_info && bufferwrap->external_info->free_hint) {
     ((void (*)(void*))bufferwrap->external_info->free_hint)(
         bufferwrap->external_info->free_info);

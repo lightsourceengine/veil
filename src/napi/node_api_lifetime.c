@@ -19,7 +19,8 @@
 
 IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(object_info);
 
-static void iotjs_object_info_destroy(iotjs_object_info_t* info) {
+static void iotjs_object_info_destroy(void *native_p, struct jerry_object_native_info_t *info_p) {
+  iotjs_object_info_t* info = native_p;
   iotjs_reference_t* comp = info->ref_start;
   while (comp != NULL) {
     comp->jval = jerry_undefined();
