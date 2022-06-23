@@ -73,14 +73,14 @@ h=w[l]
 if(!(h>=0)){s[o++]=37
 r--}else{f=true
 i=c*16+h}}}s[o++]=i
-r++}return f?s.slice(0,o):s}function _(t,e=false){try{return decodeURIComponent(t)}catch{return y(t,e).toString()}}const b=97
+r++}return f?s.slice(0,o):s}function b(t,e=false){try{return decodeURIComponent(t)}catch{return y(t,e).toString()}}const _=97
 const R=122
 const S=47
 const A=92
 const $=38
 const L=61
-const E=37
-const U=43
+const U=37
+const E=43
 const I=(t,e)=>{if(typeof t!=='object'||t.constructor!==Object){throw new r(e,'Object',t)}}
 const T=(t,e)=>{if(typeof t!=='function'){throw new r(e,'Function',t)}}
 const P=Object.freeze({enumerable:true})
@@ -170,7 +170,7 @@ n=this[nt]
 s+=2}}keys(){ct(this)
 return Tt(this,'key')}values(){ct(this)
 return Tt(this,'value')}toString(){ct(this)
-return Et(this[nt])}}Object.defineProperties(ht.prototype,{append:P,delete:P,get:P,getAll:P,has:P,set:P,sort:P,entries:P,forEach:P,keys:P,values:P,toString:P,[Symbol.toStringTag]:{__proto__:null,configurable:true,value:'URLSearchParams'},[Symbol.iterator]:{__proto__:null,configurable:true,writable:true,value:ht.prototype.entries}})
+return Ut(this[nt])}}Object.defineProperties(ht.prototype,{append:P,delete:P,get:P,getAll:P,has:P,set:P,sort:P,entries:P,forEach:P,keys:P,values:P,toString:P,[Symbol.toStringTag]:{__proto__:null,configurable:true,value:'URLSearchParams'},[Symbol.iterator]:{__proto__:null,configurable:true,writable:true,value:ht.prototype.entries}})
 function at(t,e,n,s,r,o,i,l,c){const h=this[X]
 h.flags=t
 h.scheme=e
@@ -192,10 +192,10 @@ if(o!==null||(t&x)!==0)Reflect.apply(gt,this,arguments)}function dt(t,e,n,s,r,o,
 if((t&D)!==0){h.path=i
 h.flags|=D}else{h.path=[]
 h.flags&=~D}if((t&H)!==0){h.host=r
-h.flags|=H}}function wt(t,e,n,s,r,o,i,l,c){this[X].query=l}function yt(t,e,n,s,r,o,i,l,c){this[X].fragment=c}const _t=t=>{if(!(t instanceof bt))throw new h('URL')}
-class bt{constructor(t,e=undefined){t=`${t}`
+h.flags|=H}}function wt(t,e,n,s,r,o,i,l,c){this[X].query=l}function yt(t,e,n,s,r,o,i,l,c){this[X].fragment=c}const bt=t=>{if(!(t instanceof _t))throw new h('URL')}
+class _t{constructor(t,e=undefined){t=`${t}`
 let n
-if(e!==undefined){n=new bt(e)[X]}this[X]=new lt
+if(e!==undefined){n=new _t(e)[X]}this[X]=new lt
 C(t,-1,n,undefined,at.bind(this),ft.bind(this,t))}get[et](){return(this[X].flags&M)!==0}get[Z](){return(this[X].flags&N)!==0}get[tt](){const{host:t,scheme:e}=this[X]
 return t==null||t===''||this[Z]||e==='file:'}[st](t){if(t)I(t,'options')
 t={fragment:true,unicode:false,search:true,auth:true,...t}
@@ -209,73 +209,73 @@ if(r)n+=`:${e.password}`
 n+='@'}n+=t.unicode?vt(e.host):e.host
 if(e.port!==null)n+=`:${e.port}`}if(this[Z]){n+=e.path[0]}else{if(e.host===null&&e.path.length>1&&e.path[0]===''){n+='/.'}if(e.path.length){n+='/'+e.path.join('/')}}if(t.search&&e.query!==null)n+=`?${e.query}`
 if(t.fragment&&e.fragment!==null)n+=`#${e.fragment}`
-return n}toString(){return this.href}get href(){_t(this)
-return this[st]({})}set href(t){_t(this)
+return n}toString(){return this.href}get href(){bt(this)
+return this[st]({})}set href(t){bt(this)
 t=`${t}`
-C(t,-1,undefined,undefined,at.bind(this),ft.bind(this,t))}get origin(){_t(this)
+C(t,-1,undefined,undefined,at.bind(this),ft.bind(this,t))}get origin(){bt(this)
 const t=this[X]
-switch(t.scheme){case'blob:':if(t.path.length>0){try{return new bt(t.path[0]).origin}catch{}}return ot
-case'ftp:':case'http:':case'https:':case'ws:':case'wss:':return it(t.scheme,t.host,t.port)}return ot}get protocol(){_t(this)
-return this[X].scheme}set protocol(t){_t(this)
+switch(t.scheme){case'blob:':if(t.path.length>0){try{return new _t(t.path[0]).origin}catch{}}return ot
+case'ftp:':case'http:':case'https:':case'ws:':case'wss:':return it(t.scheme,t.host,t.port)}return ot}get protocol(){bt(this)
+return this[X].scheme}set protocol(t){bt(this)
 t=`${t}`
 if(t.length===0)return
 const e=this[X]
-C(t,K,null,e,ut.bind(this))}get username(){_t(this)
-return this[X].username}set username(t){_t(this)
+C(t,K,null,e,ut.bind(this))}get username(){bt(this)
+return this[X].username}set username(t){bt(this)
 t=`${t}`
 if(this[tt])return
 const e=this[X]
 if(t===''){e.username=''
 e.flags&=~V
 return}e.username=k(t)
-e.flags|=V}get password(){_t(this)
-return this[X].password}set password(t){_t(this)
+e.flags|=V}get password(){bt(this)
+return this[X].password}set password(t){bt(this)
 t=`${t}`
 if(this[tt])return
 const e=this[X]
 if(t===''){e.password=''
 e.flags&=~q
 return}e.password=k(t)
-e.flags|=q}get host(){_t(this)
+e.flags|=q}get host(){bt(this)
 const t=this[X]
 let e=t.host||''
 if(t.port!==null)e+=`:${t.port}`
-return e}set host(t){_t(this)
+return e}set host(t){bt(this)
 const e=this[X]
 t=`${t}`
-if(this[Z]){return}C(t,Q,null,e,mt.bind(this))}get hostname(){_t(this)
-return this[X].host||''}set hostname(t){_t(this)
+if(this[Z]){return}C(t,Q,null,e,mt.bind(this))}get hostname(){bt(this)
+return this[X].host||''}set hostname(t){bt(this)
 const e=this[X]
 t=`${t}`
-if(this[Z]){return}C(t,W,null,e,pt.bind(this))}get port(){_t(this)
+if(this[Z]){return}C(t,W,null,e,pt.bind(this))}get port(){bt(this)
 const t=this[X].port
-return t===null?'':String(t)}set port(t){_t(this)
+return t===null?'':String(t)}set port(t){bt(this)
 t=`${t}`
 if(this[tt])return
 const e=this[X]
 if(t===''){e.port=null
-return}C(t,Y,null,e,gt.bind(this))}get pathname(){_t(this)
+return}C(t,Y,null,e,gt.bind(this))}get pathname(){bt(this)
 const t=this[X]
 if(this[Z])return t.path[0]
 if(t.path.length===0)return''
-return`/${t.path.join('/')}`}set pathname(t){_t(this)
+return`/${t.path.join('/')}`}set pathname(t){bt(this)
 t=`${t}`
 if(this[Z])return
-C(t,J,null,this[X],dt.bind(this))}get search(){_t(this)
+C(t,J,null,this[X],dt.bind(this))}get search(){bt(this)
 const{query:t}=this[X]
 if(t===null||t==='')return''
-return`?${t}`}set search(t){_t(this)
+return`?${t}`}set search(t){bt(this)
 const n=this[X]
 t=e(t)
 if(t===''){n.query=null
 n.flags&=~G}else{if(t[0]==='?')t=t.slice(1)
 n.query=''
 n.flags|=G
-if(t){C(t,z,null,n,wt.bind(this))}}St(this[nt],t)}get searchParams(){_t(this)
-return this[nt]}get hash(){_t(this)
+if(t){C(t,z,null,n,wt.bind(this))}}St(this[nt],t)}get searchParams(){bt(this)
+return this[nt]}get hash(){bt(this)
 const{fragment:t}=this[X]
 if(t===null||t==='')return''
-return`#${t}`}set hash(t){_t(this)
+return`#${t}`}set hash(t){bt(this)
 const e=this[X]
 t=`${t}`
 if(!t){e.fragment=null
@@ -283,8 +283,8 @@ e.flags&=~F
 return}if(t[0]==='#')t=t.slice(1)
 e.fragment=''
 e.flags|=F
-C(t,B,null,e,yt.bind(this))}toJSON(){_t(this)
-return this[st]({})}}Object.defineProperties(bt.prototype,{[st]:{__proto__:null,configurable:false,writable:false},[Symbol.toStringTag]:{__proto__:null,configurable:true,value:'URL'},toString:P,href:P,origin:P,protocol:P,username:P,password:P,host:P,hostname:P,port:P,pathname:P,search:P,searchParams:P,hash:P,toJSON:P})
+C(t,B,null,e,yt.bind(this))}toJSON(){bt(this)
+return this[st]({})}}Object.defineProperties(_t.prototype,{[st]:{__proto__:null,configurable:false,writable:false},[Symbol.toStringTag]:{__proto__:null,configurable:true,value:'URL'},toString:P,href:P,origin:P,protocol:P,username:P,password:P,host:P,hostname:P,port:P,pathname:P,search:P,searchParams:P,hash:P,toJSON:P})
 function Rt(t,e){if(!t)return
 const n=t[X]
 const s=e.toString()
@@ -302,7 +302,7 @@ let c
 for(c=0;c<t.length;++c){const h=t.charCodeAt(c)
 if(h===$){if(n===c){s=n=c+1
 continue}if(s<c)o+=t.slice(s,c)
-if(i)o=_(o)
+if(i)o=b(o)
 e.push(o)
 if(!r)e.push('')
 r=false
@@ -311,31 +311,31 @@ i=false
 l=0
 s=n=c+1
 continue}if(!r&&h===L){if(s<c)o+=t.slice(s,c)
-if(i)o=_(o)
+if(i)o=b(o)
 e.push(o)
 r=true
 o=''
 i=false
 l=0
 s=c+1
-continue}if(h===U){if(s<c)o+=t.slice(s,c)
+continue}if(h===E){if(s<c)o+=t.slice(s,c)
 o+=' '
-s=c+1}else if(!i){if(h===E){l=1}else if(l>0){if(m[h]===1){if(++l===3){i=true}}else{l=0}}}}if(n===c)return e
+s=c+1}else if(!i){if(h===U){l=1}else if(l>0){if(m[h]===1){if(++l===3){i=true}}else{l=0}}}}if(n===c)return e
 if(s<c)o+=t.slice(s,c)
-if(i)o=_(o)
+if(i)o=b(o)
 e.push(o)
 if(!r)e.push('')
 return e}const $t=new Int8Array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,1,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0])
 const Lt=g.slice()
 Lt[32]='+'
-function Et(t){const e=t.length
+function Ut(t){const e=t.length
 if(e===0)return''
 const n=d(t[0],$t,Lt)
 const s=d(t[1],$t,Lt)
 let r=`${n}=${s}`
 for(let n=2;n<e;n+=2){const e=d(t[n],$t,Lt)
 const s=d(t[n+1],$t,Lt)
-r+=`&${e}=${s}`}return r}function Ut(t,e,n){Object.defineProperty(t,Symbol.toStringTag,{__proto__:null,writable:false,enumerable:false,configurable:true,value:e})
+r+=`&${e}=${s}`}return r}function Et(t,e,n){Object.defineProperty(t,Symbol.toStringTag,{__proto__:null,writable:false,enumerable:false,configurable:true,value:e})
 for(const e of Object.keys(n)){Object.defineProperty(t,e,{__proto__:null,writable:true,enumerable:true,configurable:true,value:n[e]})}for(const e of Object.getOwnPropertySymbols(n)){Object.defineProperty(t,e,{__proto__:null,writable:true,enumerable:false,configurable:true,value:n[e]})}}function It(t,e,n,s,r,o){const i=n-e
 const l=s-n
 let c,h,a
@@ -350,7 +350,7 @@ t[a++]=o[h++]}}while(c<i)t[a++]=r[c++]
 while(h<l)t[a++]=o[h++]}function Tt(t,e){const n=Object.create(Pt)
 n[X]={target:t,kind:e,index:0}
 return n}const Pt=Object.create(rt)
-Ut(Pt,'URLSearchParams Iterator',{next(){if(!this||Object.getPrototypeOf(this)!==Pt){throw new h('URLSearchParamsIterator')}const{target:t,kind:e,index:n}=this[X]
+Et(Pt,'URLSearchParams Iterator',{next(){if(!this||Object.getPrototypeOf(this)!==Pt){throw new h('URLSearchParamsIterator')}const{target:t,kind:e,index:n}=this[X]
 const s=t[nt]
 const r=s.length
 if(n>=r){return{value:undefined,done:true}}const o=s[n]
@@ -371,10 +371,10 @@ if(n[t+1]==='2'&&e===102||n[t+1]==='5'&&e===99){throw new c('must not include en
 n=decodeURIComponent(n)
 if(e!==''){return`\\\\${vt(e)}${n}`}const s=n.codePointAt(1)|32
 const r=n[2]
-if(s<b||s>R||r!==':'){throw new c('must be absolute')}return n.slice(1)}function Nt(t){if(t.hostname!==''){throw new l(O)}const e=t.pathname
+if(s<_||s>R||r!==':'){throw new c('must be absolute')}return n.slice(1)}function Nt(t){if(t.hostname!==''){throw new l(O)}const e=t.pathname
 for(let t=0;t<e.length;t++){if(e[t]==='%'){const n=e.codePointAt(t+2)|32
-if(e[t+1]==='2'&&n===102){throw new c('must not include encoded / characters')}}}return decodeURIComponent(e)}function Ft(t){if(typeof t==='string')t=new bt(t)
-else if(!(t instanceof bt))throw new r('path',['string','URL'],t)
+if(e[t+1]==='2'&&n===102){throw new c('must not include encoded / characters')}}}return decodeURIComponent(e)}function Ft(t){if(typeof t==='string')t=new _t(t)
+else if(!(t instanceof _t))throw new r('path',['string','URL'],t)
 if(t.protocol!=='file:')throw new u('file')
 return v?Ct(t):Nt(t)}const Ht=/%/g
 const qt=/\\/g
@@ -386,12 +386,13 @@ if(!v&&t.includes('\\'))t=t.replace(qt,'%5C')
 if(t.includes('\n'))t=t.replace(Dt,'%0A')
 if(t.includes('\r'))t=t.replace(Gt,'%0D')
 if(t.includes('\t'))t=t.replace(Vt,'%09')
-return t}function Mt(e){const n=new bt('file://')
+return t}function Mt(e){const n=new _t('file://')
 if(v&&e.startsWith('\\\\')){const t=e.split('\\')
 if(t.length<=3){throw new i('filepath',e,'Missing UNC resource path')}const s=t[2]
 if(s.length===0){throw new i('filepath',e,'Empty UNC servername')}n.hostname=Ot(s)
 n.pathname=xt(t.slice(3).join('/'))}else{let s=t.resolve(e)
 const r=e.charCodeAt(e.length-1)
 if((r===S||v&&r===A)&&s[s.length-1]!==t.sep)s+='/'
-n.pathname=xt(s)}return n}const Bt={URL:bt,URLSearchParams:ht,domainToASCII:Ot,domainToUnicode:vt,pathToFileURL:Mt,fileURLToPath:Ft,urlToHttpOptions:jt}
-export{bt as URL,ht as URLSearchParams,Bt as default,Ot as domainToASCII,vt as domainToUnicode,Ft as fileURLToPath,Mt as pathToFileURL,jt as urlToHttpOptions}
+n.pathname=xt(s)}return n}const Bt={URL:_t,URLSearchParams:ht,domainToASCII:Ot,domainToUnicode:vt,pathToFileURL:Mt,fileURLToPath:Ft,urlToHttpOptions:jt}
+Object.assign(global,{URL:_t,URLSearchParams:ht})
+export{_t as URL,ht as URLSearchParams,Bt as default,Ot as domainToASCII,vt as domainToUnicode,Ft as fileURLToPath,Mt as pathToFileURL,jt as urlToHttpOptions}
