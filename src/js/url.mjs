@@ -46,3 +46,9 @@ export default {
   fileURLToPath,
   urlToHttpOptions
 }
+
+// node puts URL and URLSearchParams in the global namespace
+Object.assign(global, {
+  URL,
+  URLSearchParams
+})
