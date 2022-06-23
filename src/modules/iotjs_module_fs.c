@@ -184,19 +184,19 @@ JS_FUNCTION(fs_open) {
 
   const iotjs_environment_t* env = iotjs_environment_get();
 
-  iotjs_string_t path = JS_GET_ARG(0, string);
+  cstr path = JS_GET_ARG(0, string);
   int flags = JS_GET_ARG(1, number);
   int mode = JS_GET_ARG(2, number);
   const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(3, function);
 
   jerry_value_t ret_value;
   if (!jerry_value_is_null(jcallback)) {
-    FS_ASYNC(env, open, jcallback, iotjs_string_data(&path), flags, mode);
+    FS_ASYNC(env, open, jcallback, cstr_str_safe(&path), flags, mode);
   } else {
-    FS_SYNC(env, open, iotjs_string_data(&path), flags, mode);
+    FS_SYNC(env, open, cstr_str_safe(&path), flags, mode);
   }
 
-  iotjs_string_destroy(&path);
+  cstr_drop(&path);
   return ret_value;
 }
 
@@ -299,17 +299,17 @@ JS_FUNCTION(fs_stat) {
 
   const iotjs_environment_t* env = iotjs_environment_get();
 
-  iotjs_string_t path = JS_GET_ARG(0, string);
+  cstr path = JS_GET_ARG(0, string);
   const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 
   jerry_value_t ret_value;
   if (!jerry_value_is_null(jcallback)) {
-    FS_ASYNC(env, stat, jcallback, iotjs_string_data(&path));
+    FS_ASYNC(env, stat, jcallback, cstr_str_safe(&path));
   } else {
-    FS_SYNC(env, stat, iotjs_string_data(&path));
+    FS_SYNC(env, stat, cstr_str_safe(&path));
   }
 
-  iotjs_string_destroy(&path);
+  cstr_drop(&path);
   return ret_value;
 }
 
@@ -341,18 +341,18 @@ JS_FUNCTION(fs_mkdir) {
 
   const iotjs_environment_t* env = iotjs_environment_get();
 
-  iotjs_string_t path = JS_GET_ARG(0, string);
+  cstr path = JS_GET_ARG(0, string);
   int mode = JS_GET_ARG(1, number);
   const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(2, function);
 
   jerry_value_t ret_value;
   if (!jerry_value_is_null(jcallback)) {
-    FS_ASYNC(env, mkdir, jcallback, iotjs_string_data(&path), mode);
+    FS_ASYNC(env, mkdir, jcallback, cstr_str_safe(&path), mode);
   } else {
-    FS_SYNC(env, mkdir, iotjs_string_data(&path), mode);
+    FS_SYNC(env, mkdir, cstr_str_safe(&path), mode);
   }
 
-  iotjs_string_destroy(&path);
+  cstr_drop(&path);
   return ret_value;
 }
 
@@ -364,17 +364,17 @@ JS_FUNCTION(fs_rmdir) {
 
   const iotjs_environment_t* env = iotjs_environment_get();
 
-  iotjs_string_t path = JS_GET_ARG(0, string);
+  cstr path = JS_GET_ARG(0, string);
   const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 
   jerry_value_t ret_value;
   if (!jerry_value_is_null(jcallback)) {
-    FS_ASYNC(env, rmdir, jcallback, iotjs_string_data(&path));
+    FS_ASYNC(env, rmdir, jcallback, cstr_str_safe(&path));
   } else {
-    FS_SYNC(env, rmdir, iotjs_string_data(&path));
+    FS_SYNC(env, rmdir, cstr_str_safe(&path));
   }
 
-  iotjs_string_destroy(&path);
+  cstr_drop(&path);
   return ret_value;
 }
 
@@ -386,17 +386,17 @@ JS_FUNCTION(fs_unlink) {
 
   const iotjs_environment_t* env = iotjs_environment_get();
 
-  iotjs_string_t path = JS_GET_ARG(0, string);
+  cstr path = JS_GET_ARG(0, string);
   const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 
   jerry_value_t ret_value;
   if (!jerry_value_is_null(jcallback)) {
-    FS_ASYNC(env, unlink, jcallback, iotjs_string_data(&path));
+    FS_ASYNC(env, unlink, jcallback, cstr_str_safe(&path));
   } else {
-    FS_SYNC(env, unlink, iotjs_string_data(&path));
+    FS_SYNC(env, unlink, cstr_str_safe(&path));
   }
 
-  iotjs_string_destroy(&path);
+  cstr_drop(&path);
   return ret_value;
 }
 
@@ -408,21 +408,21 @@ JS_FUNCTION(fs_rename) {
 
   const iotjs_environment_t* env = iotjs_environment_get();
 
-  iotjs_string_t old_path = JS_GET_ARG(0, string);
-  iotjs_string_t new_path = JS_GET_ARG(1, string);
+  cstr old_path = JS_GET_ARG(0, string);
+  cstr new_path = JS_GET_ARG(1, string);
   const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(2, function);
 
   jerry_value_t ret_value;
   if (!jerry_value_is_null(jcallback)) {
-    FS_ASYNC(env, rename, jcallback, iotjs_string_data(&old_path),
-             iotjs_string_data(&new_path));
+    FS_ASYNC(env, rename, jcallback, cstr_str_safe(&old_path),
+             cstr_str_safe(&new_path));
   } else {
-    FS_SYNC(env, rename, iotjs_string_data(&old_path),
-            iotjs_string_data(&new_path));
+    FS_SYNC(env, rename, cstr_str_safe(&old_path),
+            cstr_str_safe(&new_path));
   }
 
-  iotjs_string_destroy(&old_path);
-  iotjs_string_destroy(&new_path);
+  cstr_drop(&old_path);
+  cstr_drop(&new_path);
   return ret_value;
 }
 
@@ -433,16 +433,16 @@ JS_FUNCTION(fs_read_dir) {
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
   const iotjs_environment_t* env = iotjs_environment_get();
-  iotjs_string_t path = JS_GET_ARG(0, string);
+  cstr path = JS_GET_ARG(0, string);
   const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 
   jerry_value_t ret_value;
   if (!jerry_value_is_null(jcallback)) {
-    FS_ASYNC(env, scandir, jcallback, iotjs_string_data(&path), 0);
+    FS_ASYNC(env, scandir, jcallback, cstr_str_safe(&path), 0);
   } else {
-    FS_SYNC(env, scandir, iotjs_string_data(&path), 0);
+    FS_SYNC(env, scandir, cstr_str_safe(&path), 0);
   }
-  iotjs_string_destroy(&path);
+  cstr_drop(&path);
   return ret_value;
 }
 

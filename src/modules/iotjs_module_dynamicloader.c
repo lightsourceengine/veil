@@ -18,7 +18,7 @@
 #include "iotjs_def.h"
 
 JS_FUNCTION(open_native_module) {
-  iotjs_string_t location = JS_GET_ARG(0, string);
+  cstr location = JS_GET_ARG(0, string);
 
   if (!iotjs_environment_get()->config.enable_napi) {
     return jerry_throw_sz(JERRY_ERROR_COMMON, "--no-addon flag prevents loading of native addons");
@@ -28,7 +28,7 @@ JS_FUNCTION(open_native_module) {
   int status = -1;
   jerry_value_t exports = jerry_undefined();
 
-  if (uv_dlopen(iotjs_string_data(&location), &lib) == 0) {
+  if (uv_dlopen(cstr_str_safe(&location), &lib) == 0) {
     status = napi_module_init_pending(&exports);
   }
 
@@ -46,7 +46,7 @@ JS_FUNCTION(open_native_module) {
   }
 
   uv_dlclose(&lib);
-  iotjs_string_destroy(&location);
+  cstr_drop(&location);
 
   return exports;
 }

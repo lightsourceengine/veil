@@ -668,15 +668,14 @@ napi_status napi_get_value_string_utf16(napi_env env, napi_value value,
 
   size_t copied = veil_string_copy_utf8_to_utf16((const uint8_t*)utf8, utf8_size, buf, bufsize);
 
+  iotjs_buffer_release(utf8);
+
   if (copied != bufsize) {
-    iotjs_buffer_release(utf8);
     NAPI_ASSIGN(result, 0);
     NAPI_RETURN_WITH_MSG(napi_generic_failure, "Failed to convert internal UTF-8 to UTF-16.");
   }
 
-  iotjs_buffer_release(utf8);
   NAPI_ASSIGN(result, copied);
-
   NAPI_RETURN(napi_ok);
 }
 
@@ -714,15 +713,14 @@ NAPI_EXTERN napi_status napi_get_value_string_latin1(napi_env env,
 
   size_t copied = veil_string_copy_utf8_to_iso_8859_1((const uint8_t*)utf8, utf8_size, buf, bufsize);
 
+  iotjs_buffer_release(utf8);
+
   if (copied != bufsize) {
-    iotjs_buffer_release(utf8);
     NAPI_ASSIGN(result, 0);
     NAPI_RETURN_WITH_MSG(napi_generic_failure, "Failed to convert internal UTF-8 to ISO-8859-1.");
   }
 
-  iotjs_buffer_release(utf8);
   NAPI_ASSIGN(result, copied);
-
   NAPI_RETURN(napi_ok);
 }
 

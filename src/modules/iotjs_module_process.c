@@ -120,16 +120,16 @@ JS_FUNCTION(hrtime) {
 JS_FUNCTION(proc_chdir) {
   DJS_CHECK_ARGS(1, string);
 
-  iotjs_string_t path = JS_GET_ARG(0, string);
+  cstr path = JS_GET_ARG(0, string);
   jerry_value_t result;
 
-  if (uv_chdir(iotjs_string_data(&path)) == 0) {
+  if (uv_chdir(cstr_str_safe(&path)) == 0) {
     result = jerry_undefined();
   } else {
     result = JS_CREATE_ERROR(COMMON, "chdir error");
   }
 
-  iotjs_string_destroy(&path);
+  cstr_drop(&path);
 
   return result;
 }

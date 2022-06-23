@@ -13,11 +13,10 @@
 
 #include "veil_string.h"
 
-#include "iotjs_util.h"
+#include "iotjs_def.h"
 #include <libutf16/utf16_to_utf8.h>
 #include <libutf16/utf8_to_utf16.h>
 #include <libutf16/utf8_to_utf16_one.h>
-#include <stc/cstr.h>
 
 cstr veil_string_utf8_from_iso_8859_1(const char* iso_8859_1, size_t length) {
   size_t i;
@@ -145,4 +144,49 @@ char cstr_at(const cstr* str, size_t index) {
 
 bool cstr_eq_raw(const cstr* s1, const char* s2) {
   return strcmp(cstr_str_safe(s1), s2) == 0;
+}
+
+cstr cstr_from_file(const char* path) {
+  FILE* file = fopen(path, "rb");
+  if (file == NULL) {
+    DLOG("cstr_from_file: fopen: %s", path);
+    return cstr_init();
+  }
+
+  int fseek_ret = fseek(file, 0, SEEK_END);
+  IOTJS_ASSERT(fseek_ret == 0);
+  long ftell_ret = ftell(file);
+  IOTJS_ASSERT(ftell_ret >= 0);
+  size_t len = (size_t)ftell_ret;
+  fseek_ret = fseek(file, 0, SEEK_SET);
+  IOTJS_ASSERT(fseek_ret == 0);
+
+  if (ftell_ret < 0 || fseek_ret != 0) {
+    fclose(file);
+    DLOG("cstr_from_file: ftell: %s", path);
+    return cstr_init();
+  }
+
+  cstr buffer = cstr_with_size(len, 0);
+
+#if defined(__NUTTX__) || defined(__TIZENRT__)
+  char* ptr = cstr_data(&buffer);
+  unsigned nread = 0;
+  unsigned read = 0;
+
+  while ((nread = fread(ptr, 1, IOTJS_MAX_READ_BUFFER_SIZE, file)) > 0) {
+    read += nread;
+    ptr = buffer + read;
+  }
+#else
+  size_t read = fread(cstr_data(&buffer), 1, len, file);
+#endif
+  if (read != len) {
+    DLOG("cstr_from_file: fread: %s", path);
+  }
+  IOTJS_ASSERT(read == len);
+
+  fclose(file);
+
+  return buffer;
 }

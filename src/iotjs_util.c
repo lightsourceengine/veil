@@ -25,72 +25,11 @@
 #include <execinfo.h>
 #endif
 
-void force_terminate(void);
-
-iotjs_string_t iotjs_file_read(const char* path) {
-  FILE* file = fopen(path, "rb");
-  if (file == NULL) {
-    iotjs_string_t empty_content = iotjs_string_create();
-    return empty_content;
-  }
-
-  int fseek_ret = fseek(file, 0, SEEK_END);
-  IOTJS_ASSERT(fseek_ret == 0);
-  long ftell_ret = ftell(file);
-  IOTJS_ASSERT(ftell_ret >= 0);
-  size_t len = (size_t)ftell_ret;
-  fseek_ret = fseek(file, 0, SEEK_SET);
-  IOTJS_ASSERT(fseek_ret == 0);
-
-  if (ftell_ret < 0 || fseek_ret != 0) {
-    iotjs_string_t empty_content = iotjs_string_create();
-    fclose(file);
-    DLOG("iotjs_file_read error");
-    return empty_content;
-  }
-
-  char* buffer = iotjs_buffer_allocate(len + 1);
-
-#if defined(__NUTTX__) || defined(__TIZENRT__)
-  char* ptr = buffer;
-  unsigned nread = 0;
-  unsigned read = 0;
-
-  while ((nread = fread(ptr, 1, IOTJS_MAX_READ_BUFFER_SIZE, file)) > 0) {
-    read += nread;
-    ptr = buffer + read;
-  }
-#else
-  size_t read = fread(buffer, 1, len, file);
-#endif
-  IOTJS_ASSERT(read == len);
-
-  *(buffer + len) = 0;
-
-  fclose(file);
-
-  iotjs_string_t contents = iotjs_string_create_with_buffer(buffer, len);
-
-  return contents;
-}
-
 char* iotjs_buffer_allocate(size_t size) {
   char* buffer = (char*)(calloc(size, sizeof(char)));
   if (buffer == NULL) {
     DLOG("Out of memory");
     force_terminate();
-  }
-  return buffer;
-}
-
-
-char* iotjs_buffer_allocate_from_number_array(size_t size,
-                                              const jerry_value_t array) {
-  char* buffer = iotjs_buffer_allocate(size);
-  for (size_t i = 0; i < size; i++) {
-    jerry_value_t jdata = iotjs_jval_get_property_by_index(array, i);
-    buffer[i] = (char)iotjs_jval_as_number(jdata);
-    jerry_value_free(jdata);
   }
   return buffer;
 }
@@ -113,19 +52,6 @@ void iotjs_buffer_release(char* buffer) {
   }
 }
 
-char* iotjs_string_to_utf8(jerry_value_t str, char* buffer, size_t size) {
-  size_t copied;
-
-  copied = jerry_string_to_buffer(
-      str,
-      JERRY_ENCODING_UTF8,
-      (jerry_char_t*)buffer,
-      size);
-  buffer[copied] = '\0';
-
-  return buffer;
-}
-
 void iotjs_print_jval(jerry_value_t val) {
   jerry_value_t to_string;
   jerry_value_t stack;
@@ -145,24 +71,24 @@ void iotjs_print_jval(jerry_value_t val) {
   if (jerry_value_is_exception(to_string)) {
     printf("could not convert value to string\n");
   } else {
-    iotjs_string_t buffer = iotjs_jval_as_string(to_string);
+    cstr buffer = iotjs_jval_as_string(to_string);
 
-    printf("%s\n", iotjs_string_data(&buffer));
+    printf("%s\n", cstr_str_safe(&buffer));
 
     if (jerry_value_is_array(stack)) {
       jerry_length_t len = jerry_array_length(stack);
 
       for (jerry_length_t i = 0; i < len; i++) {
         jerry_value_t jline = jerry_object_get_index(stack, i);
-        iotjs_string_t line = iotjs_jval_as_string(jline);
+        cstr line = iotjs_jval_as_string(jline);
 
-        printf("    at  %s\n", iotjs_string_data(&line));
-        iotjs_string_destroy(&line);
+        printf("    at  %s\n", cstr_str_safe(&line));
+        cstr_drop(&line);
         jerry_value_free(jline);
       }
     }
 
-    iotjs_string_destroy(&buffer);
+    cstr_drop(&buffer);
   }
 
   jerry_value_free(to_string);

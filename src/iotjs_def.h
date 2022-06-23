@@ -33,8 +33,6 @@
 #ifdef NDEBUG
 #define IOTJS_ASSERT(x) ((void)(x))
 #else /* !NDEBUG */
-extern void print_stacktrace(void);
-extern void force_terminate(void);
 #define IOTJS_ASSERT(x)                                                      \
   do {                                                                       \
     if (!(x)) {                                                              \
@@ -120,9 +118,9 @@ extern void force_terminate(void);
 #include "iotjs_env.h"
 #include "iotjs_magic_strings.h"
 #include "iotjs_module.h"
-#include "iotjs_string.h"
 #include "iotjs_util.h"
 #include "veil_string.h"
+#include <stc/cstr.h>
 
 #if defined(__linux__)
 #include <linux/limits.h>

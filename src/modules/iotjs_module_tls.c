@@ -210,27 +210,27 @@ JS_FUNCTION(tls_tlscontext) {
   jerry_value_t jkey =
       iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_KEY);
 
-  iotjs_string_t cert_string;
-  iotjs_string_t key_string;
+  cstr cert_string;
+  cstr key_string;
 
   if (iotjs_jbuffer_as_string(jcert, &cert_string)) {
-    const char *cert_chars = iotjs_string_data(&cert_string);
+    const char *cert_chars = cstr_str_safe(&cert_string);
 
     ret = mbedtls_x509_crt_parse(&tls_context->own_cert,
                                  (const unsigned char *)cert_chars,
-                                 (size_t)iotjs_string_size(&cert_string) + 1);
+                                 cstr_size(cert_string) + 1);
 
-    iotjs_string_destroy(&cert_string);
+    cstr_drop(&cert_string);
 
     if (ret == 0 && iotjs_jbuffer_as_string(jkey, &key_string)) {
-      const char *key_chars = iotjs_string_data(&key_string);
+      const char *key_chars = cstr_str_safe(&key_string);
 
       ret = mbedtls_pk_parse_key(&tls_context->pkey,
                                  (const unsigned char *)key_chars,
-                                 (size_t)iotjs_string_size(&key_string) + 1,
+                                 cstr_size(key_string) + 1,
                                  NULL, 0);
 
-      iotjs_string_destroy(&key_string);
+      cstr_drop(&key_string);
 
       if (ret == 0) {
         // Both own_cert and pkey must be valid for setting this flag.
@@ -254,17 +254,16 @@ JS_FUNCTION(tls_tlscontext) {
   // User provided trusted certificates
   jerry_value_t jcert_auth =
       iotjs_jval_get_property(joptions, IOTJS_MAGIC_STRING_CA);
-  iotjs_string_t cert_auth_string;
+  cstr cert_auth_string;
 
   if (iotjs_jbuffer_as_string(jcert_auth, &cert_auth_string)) {
-    const char *cert_auth_chars = iotjs_string_data(&cert_auth_string);
+    const char *cert_auth_chars = cstr_str_safe(&cert_auth_string);
 
     ret = mbedtls_x509_crt_parse(&tls_context->cert_auth,
                                  (const unsigned char *)cert_auth_chars,
-                                 (size_t)iotjs_string_size(&cert_auth_string) +
-                                     1);
+                                 cstr_size(cert_auth_string) + 1);
 
-    iotjs_string_destroy(&cert_auth_string);
+    cstr_drop(&cert_auth_string);
   } else if (!jerry_value_is_undefined(jcert_auth)) {
     ret = -1;
   } else {
@@ -363,9 +362,9 @@ JS_FUNCTION(tls_connect) {
   DJS_CHECK_ARGS(1, string);
 
   if (tls_data->state == TLS_HANDSHAKE_READY) {
-    iotjs_string_t server_name = JS_GET_ARG(0, string);
-    mbedtls_ssl_set_hostname(&tls_data->ssl, iotjs_string_data(&server_name));
-    iotjs_string_destroy(&server_name);
+    cstr server_name = JS_GET_ARG(0, string);
+    mbedtls_ssl_set_hostname(&tls_data->ssl, cstr_str_safe(&server_name));
+    cstr_drop(&server_name);
   }
 
   return jerry_undefined();

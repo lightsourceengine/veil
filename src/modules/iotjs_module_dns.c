@@ -121,7 +121,7 @@ JS_FUNCTION(get_address_info) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(4, string, number, number, function);
 
-  iotjs_string_t hostname = JS_GET_ARG(0, string);
+  cstr hostname = JS_GET_ARG(0, string);
   int option = JS_GET_ARG(1, number);
   int flags = JS_GET_ARG(2, number);
   int error = 0;
@@ -139,13 +139,13 @@ JS_FUNCTION(get_address_info) {
   } else if (option == 6) {
     family = AF_INET6;
   } else {
-    iotjs_string_destroy(&hostname);
+    cstr_drop(&hostname);
     return JS_CREATE_ERROR(TYPE, "bad address family");
   }
 
 #if defined(__NUTTX__)
   char ip[INET6_ADDRSTRLEN] = "";
-  const char* hostname_data = iotjs_string_data(&hostname);
+  const char* hostname_data = cstr_str_safe(&hostname);
 
   if (strcmp(hostname_data, "localhost") == 0) {
     strncpy(ip, "127.0.0.1", strlen("127.0.0.1") + 1);
@@ -189,7 +189,7 @@ JS_FUNCTION(get_address_info) {
 
   error = uv_getaddrinfo(iotjs_environment_loop(iotjs_environment_get()),
                          (uv_getaddrinfo_t*)req_addr, after_get_addr_info,
-                         iotjs_string_data(&hostname), NULL, &hints);
+                         cstr_str(&hostname), NULL, &hints);
 
   if (error) {
     iotjs_uv_request_destroy(req_addr);
@@ -197,7 +197,7 @@ JS_FUNCTION(get_address_info) {
 #endif
 
 
-  iotjs_string_destroy(&hostname);
+  cstr_drop(&hostname);
 
   return jerry_number(error);
 }

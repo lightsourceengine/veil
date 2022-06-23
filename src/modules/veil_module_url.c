@@ -1292,7 +1292,7 @@ static int32_t set_cstr(cstr* str, jerry_value_t obj, const char* property, int3
 
   if (jerry_value_is_string(value)) {
     cstr_drop(str);
-    *str = iotjs_jval_as_cstr(value);
+    *str = iotjs_jval_as_string(value);
 
     if (empty_as_present || !cstr_empty(*str)) {
       result = flags;
@@ -1338,7 +1338,7 @@ static int32_t set_path(cvec_str* path, jerry_value_t value, int32_t flags) {
       jerry_value_t item = jerry_object_get_index(path_value, i);
 
       if (jerry_value_is_string(item)) {
-        cvec_str_push(path, iotjs_jval_as_cstr(item));
+        cvec_str_push(path, iotjs_jval_as_string(item));
       }
 
       jerry_value_free(item);
@@ -1413,7 +1413,7 @@ static bool harvest_context(jerry_value_t context_obj, veil_url_data* context) {
 
 JS_FUNCTION(js_domain_to) {
   DJS_CHECK_ARGS(2, string, boolean);
-  cstr input = JS_GET_ARG(0, cstr);
+  cstr input = JS_GET_ARG(0, string);
   bool unicode = JS_GET_ARG(1, boolean);
   veil_url_host host = veil_url_host_init();
   jerry_value_t result;
@@ -1432,7 +1432,7 @@ JS_FUNCTION(js_domain_to) {
 
 JS_FUNCTION(js_encode_auth) {
   DJS_CHECK_ARGS(1, string);
-  cstr input = JS_GET_ARG(0, cstr);
+  cstr input = JS_GET_ARG(0, string);
   const char* input_s = cstr_str_safe(&input);
   cstr output = cstr_with_capacity(cstr_size(input));
 
@@ -1451,7 +1451,7 @@ JS_FUNCTION(js_encode_auth) {
 JS_FUNCTION(js_parse) {
   JS_CHECK(jargc >= 5);
 
-  cstr input = JS_GET_ARG(0, cstr);
+  cstr input = JS_GET_ARG(0, string);
   int32_t state_override = jerry_value_as_int32(jargv[1]);
   veil_url_data base_context = veil_url_data_init();
   bool has_base_context;

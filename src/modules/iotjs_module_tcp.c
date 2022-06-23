@@ -94,17 +94,17 @@ JS_FUNCTION(tcp_bind) {
 
   DJS_CHECK_ARGS(2, string, number);
 
-  iotjs_string_t address = JS_GET_ARG(0, string);
+  cstr address = JS_GET_ARG(0, string);
   int port = JS_GET_ARG(1, number);
 
   sockaddr_in addr;
-  int err = uv_ip4_addr(iotjs_string_data(&address), port, &addr);
+  int err = uv_ip4_addr(cstr_str_safe(&address), port, &addr);
 
   if (err == 0) {
     err = uv_tcp_bind(tcp_handle, (const sockaddr*)(&addr), 0);
   }
 
-  iotjs_string_destroy(&address);
+  cstr_drop(&address);
 
   return jerry_number(err);
 }
@@ -124,12 +124,12 @@ JS_FUNCTION(tcp_connect) {
 
   DJS_CHECK_ARGS(3, string, number, function);
 
-  iotjs_string_t address = JS_GET_ARG(0, string);
+  cstr address = JS_GET_ARG(0, string);
   int port = JS_GET_ARG(1, number);
   jerry_value_t jcallback = JS_GET_ARG(2, function);
 
   sockaddr_in addr;
-  int err = uv_ip4_addr(iotjs_string_data(&address), port, &addr);
+  int err = uv_ip4_addr(cstr_str_safe(&address), port, &addr);
 
   if (err == 0) {
     // Create connection request and configure request data.
@@ -145,7 +145,7 @@ JS_FUNCTION(tcp_connect) {
     }
   }
 
-  iotjs_string_destroy(&address);
+  cstr_drop(&address);
 
   return jerry_number(err);
 }

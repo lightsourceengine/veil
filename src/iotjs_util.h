@@ -17,22 +17,16 @@
 #define IOTJS_UTIL_H
 
 
-#include "iotjs_string.h"
 #include "jerryscript.h"
 
-// Return value should be released with iotjs_string_destroy()
-iotjs_string_t iotjs_file_read(const char* path);
+void iotjs_print_jval(jerry_value_t val);
+
+void force_terminate(void);
+void print_stacktrace(void);
 
 char* iotjs_buffer_allocate(size_t size);
-char* iotjs_buffer_allocate_from_number_array(size_t size,
-                                              const jerry_value_t array);
 char* iotjs_buffer_reallocate(char* buffer, size_t size);
 void iotjs_buffer_release(char* buff);
-
-void iotjs_print_jval(jerry_value_t val);
-char* iotjs_string_to_utf8(jerry_value_t str, char* buffer, size_t size);
-
-void print_stacktrace(void);
 
 #define IOTJS_ALLOC(type) /* Allocate (type)-sized, (type*)-typed memory */ \
   (type*)iotjs_buffer_allocate(sizeof(type))

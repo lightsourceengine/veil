@@ -20,7 +20,6 @@
 #include "iotjs_uv_handle.h"
 #include "iotjs_uv_request.h"
 
-
 static const jerry_object_native_info_t this_module_native_info = { NULL, 0, 0 };
 
 
@@ -47,7 +46,7 @@ JS_FUNCTION(udp_bind) {
   JS_DECLARE_PTR(call_info_p->this_value, uv_udp_t, udp_handle);
   DJS_CHECK_ARGS(2, string, number);
 
-  iotjs_string_t address = JS_GET_ARG(0, string);
+  cstr address = JS_GET_ARG(0, string);
   const int port = JS_GET_ARG(1, number);
   jerry_value_t this_obj = JS_GET_THIS();
   jerry_value_t reuse_addr =
@@ -62,14 +61,14 @@ JS_FUNCTION(udp_bind) {
 
   char addr[sizeof(sockaddr_in6)];
   int err =
-      uv_ip4_addr(iotjs_string_data(&address), port, (sockaddr_in*)(&addr));
+      uv_ip4_addr(cstr_str_safe(&address), port, (sockaddr_in*)(&addr));
 
   if (err == 0) {
     err = uv_udp_bind(udp_handle, (const sockaddr*)(&addr), flags);
   }
 
   jerry_value_free(reuse_addr);
-  iotjs_string_destroy(&address);
+  cstr_drop(&address);
 
   return jerry_number(err);
 }
@@ -191,7 +190,7 @@ JS_FUNCTION(udp_send) {
 
   const jerry_value_t jbuffer = JS_GET_ARG(0, object);
   const unsigned short port = JS_GET_ARG(1, number);
-  iotjs_string_t address = JS_GET_ARG(2, string);
+  cstr address = JS_GET_ARG(2, string);
   jerry_value_t jcallback = JS_GET_ARG(3, object);
 
   iotjs_bufferwrap_t* buffer_wrap = iotjs_jbuffer_get_bufferwrap_ptr(jbuffer);
@@ -211,7 +210,7 @@ JS_FUNCTION(udp_send) {
 
   char addr[sizeof(sockaddr_in6)];
   int err =
-      uv_ip4_addr(iotjs_string_data(&address), port, (sockaddr_in*)(&addr));
+      uv_ip4_addr(cstr_str_safe(&address), port, (sockaddr_in*)(&addr));
 
   if (err == 0) {
     err = uv_udp_send((uv_udp_send_t*)req_send, udp_handle, &buf, 1,
@@ -222,7 +221,7 @@ JS_FUNCTION(udp_send) {
     iotjs_uv_request_destroy(req_send);
   }
 
-  iotjs_string_destroy(&address);
+  cstr_drop(&address);
 
   return jerry_number(err);
 }
@@ -305,26 +304,24 @@ static jerry_value_t set_membership(const jerry_value_t jthis,
   JS_DECLARE_PTR(jthis, uv_udp_t, udp_handle);
   DJS_CHECK_ARGS(1, string);
 
-  iotjs_string_t address = JS_GET_ARG(0, string);
-  bool is_undefined_or_null =
-      jerry_value_is_undefined(jargv[1]) || jerry_value_is_null(jargv[1]);
-  iotjs_string_t iface;
+  cstr address = JS_GET_ARG(0, string);
+  cstr iface;
 
-  const char* iface_cstr;
-  if (is_undefined_or_null) {
-    iface_cstr = NULL;
+  if (jerry_value_is_undefined(jargv[1]) || jerry_value_is_null(jargv[1])) {
+    iface = cstr_init();
   } else {
     iface = iotjs_jval_as_string(jargv[1]);
-    iface_cstr = iotjs_string_data(&iface);
   }
 
-  int err = uv_udp_set_membership(udp_handle, iotjs_string_data(&address),
-                                  iface_cstr, membership);
+  int err = uv_udp_set_membership(
+      udp_handle,
+      cstr_str_safe(&address),
+      cstr_str(&iface),
+      membership);
 
-  if (!is_undefined_or_null)
-    iotjs_string_destroy(&iface);
+  cstr_drop(&iface);
+  cstr_drop(&address);
 
-  iotjs_string_destroy(&address);
   return jerry_number(err);
 #else
   IOTJS_ASSERT(!"Not implemented");

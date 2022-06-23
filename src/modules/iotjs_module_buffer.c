@@ -420,7 +420,7 @@ JS_FUNCTION(buffer_write) {
   DJS_CHECK_ARGS(4, object, string, number, number);
   JS_DECLARE_OBJECT_PTR(0, bufferwrap, buffer_wrap);
 
-  iotjs_string_t src = JS_GET_ARG(1, string);
+  cstr src = JS_GET_ARG(1, string);
 
   size_t buffer_length = iotjs_bufferwrap_length(buffer_wrap);
   size_t offset = iotjs_convert_double_to_sizet(JS_GET_ARG(2, number));
@@ -428,13 +428,13 @@ JS_FUNCTION(buffer_write) {
 
   size_t length = iotjs_convert_double_to_sizet(JS_GET_ARG(3, number));
   length = bound_range(length, 0, buffer_length - offset);
-  length = bound_range(length, 0, iotjs_string_size(&src));
+  length = bound_range(length, 0, cstr_size(src));
 
-  const char* src_data = iotjs_string_data(&src);
+  const char* src_data = cstr_str_safe(&src);
   size_t copied =
       iotjs_bufferwrap_copy_internal(buffer_wrap, src_data, 0, length, offset);
 
-  iotjs_string_destroy(&src);
+  cstr_drop(&src);
 
   return jerry_number(copied);
 }
@@ -465,7 +465,7 @@ JS_FUNCTION(buffer_write_decode) {
   JS_DECLARE_OBJECT_PTR(0, bufferwrap, buffer_wrap);
 
   double type = JS_GET_ARG(1, number);
-  iotjs_string_t src = JS_GET_ARG(2, string);
+  cstr src = JS_GET_ARG(2, string);
 
   size_t buffer_length = iotjs_bufferwrap_length(buffer_wrap);
   size_t offset = iotjs_convert_double_to_sizet(JS_GET_ARG(3, number));
@@ -474,8 +474,8 @@ JS_FUNCTION(buffer_write_decode) {
   size_t length = iotjs_convert_double_to_sizet(JS_GET_ARG(4, number));
   length = bound_range(length, 0, buffer_length - offset);
 
-  const char* src_data = iotjs_string_data(&src);
-  unsigned src_length = iotjs_string_size(&src);
+  const char* src_data = cstr_str_safe(&src);
+  unsigned src_length = cstr_size(src);
 
   size_t nbytes;
   char* dst_data = buffer_wrap->buffer + offset;
@@ -489,7 +489,7 @@ JS_FUNCTION(buffer_write_decode) {
     error_msg = "Invalid base64 string";
   }
 
-  iotjs_string_destroy(&src);
+  cstr_drop(&src);
 
   if (nbytes == 0)
     return jerry_throw_sz(JERRY_ERROR_TYPE, error_msg);

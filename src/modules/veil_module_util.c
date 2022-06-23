@@ -21,12 +21,17 @@ static bool is_surrogate(uint32_t codepoint) {
 
 JS_FUNCTION(to_usv_string) {
   DJS_CHECK_ARGS(1, string);
-  iotjs_string_t value = JS_GET_ARG(0, string);
-  const uint8_t* bytes = (uint8_t*)value.data;
+  cstr value = JS_GET_ARG(0, string);
+  const uint8_t* bytes = (uint8_t*)cstr_str_safe(&value);
   char* target;
   utf8_decode_t state;
   bool replace_surrogates = false;
   jerry_value_t result;
+
+  if (cstr_empty(value)) {
+    cstr_drop(&value);
+    return jargv[0];
+  }
 
   while (*bytes) {
     bytes = utf8_next(&state, bytes);
@@ -38,8 +43,8 @@ JS_FUNCTION(to_usv_string) {
   }
 
   if (replace_surrogates) {
-    bytes = (uint8_t*)value.data;
-    target = value.data;
+    bytes = (uint8_t*)cstr_str_safe(&value);
+    target = cstr_data(&value);
 
     while (*bytes) {
       bytes = utf8_next(&state, bytes);
@@ -51,12 +56,12 @@ JS_FUNCTION(to_usv_string) {
       target += utf8_encode(target, state.codep);
     }
 
-    result = jerry_string((const jerry_char_t*)target, target - value.data, JERRY_ENCODING_UTF8);
+    result = jerry_string((const jerry_char_t*)target, target - cstr_data(&value), JERRY_ENCODING_UTF8);
   } else {
-    result = jerry_string((const jerry_char_t*)value.data, value.size, JERRY_ENCODING_UTF8);
+    result = jerry_string((const jerry_char_t*)cstr_data(&value), cstr_size(value), JERRY_ENCODING_UTF8);
   }
 
-  iotjs_string_destroy(&value);
+  cstr_drop(&value);
 
   return result;
 }

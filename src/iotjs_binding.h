@@ -25,7 +25,7 @@
 typedef const jerry_object_native_info_t JNativeInfoType;
 
 /* Constructors */
-jerry_value_t iotjs_jval_create_string(const iotjs_string_t* v);
+jerry_value_t iotjs_jval_create_string(const cstr* v);
 jerry_value_t iotjs_jval_create_byte_array(uint32_t len, const char* data);
 jerry_value_t iotjs_jval_create_function(jerry_external_handler_t handler);
 jerry_value_t iotjs_jval_create_error_without_error_flag(const char* msg);
@@ -33,27 +33,11 @@ jerry_value_t iotjs_jval_create_error_without_error_flag(const char* msg);
 /* Type Converters */
 bool iotjs_jval_as_boolean(jerry_value_t);
 double iotjs_jval_as_number(jerry_value_t);
-iotjs_string_t iotjs_jval_as_string(jerry_value_t);
-cstr iotjs_jval_as_cstr(jerry_value_t);
+cstr iotjs_jval_as_string(jerry_value_t);
 jerry_value_t iotjs_jval_as_object(jerry_value_t);
 jerry_value_t iotjs_jval_as_array(jerry_value_t);
 jerry_value_t iotjs_jval_as_function(jerry_value_t);
-bool iotjs_jbuffer_as_string(jerry_value_t jval, iotjs_string_t* out_string);
-
-/* Temporary Buffers for JavaScript Values */
-
-typedef struct {
-  jerry_value_t jval;
-  char* buffer;
-  size_t length;
-} iotjs_tmp_buffer_t;
-
-void iotjs_jval_as_tmp_buffer(jerry_value_t jval,
-                              iotjs_tmp_buffer_t* out_buffer);
-void iotjs_jval_get_jproperty_as_tmp_buffer(jerry_value_t jobj,
-                                            const char* name,
-                                            iotjs_tmp_buffer_t* out_buffer);
-void iotjs_free_tmp_buffer(iotjs_tmp_buffer_t* tmp_buffer);
+bool iotjs_jbuffer_as_string(jerry_value_t jval, cstr* out_string);
 
 /* Methods for General JavaScript Object */
 void iotjs_jval_set_method(jerry_value_t jobj, const char* name,
@@ -61,14 +45,12 @@ void iotjs_jval_set_method(jerry_value_t jobj, const char* name,
 bool iotjs_jval_set_prototype(jerry_value_t jobj, jerry_value_t jproto);
 void iotjs_jval_set_property_jval(jerry_value_t jobj, const char* name,
                                   jerry_value_t value);
-void iotjs_jval_set_property_null(jerry_value_t jobj, const char* name);
-void iotjs_jval_set_property_undefined(jerry_value_t jobj, const char* name);
 void iotjs_jval_set_property_boolean(jerry_value_t jobj, const char* name,
                                      bool v);
 void iotjs_jval_set_property_number(jerry_value_t jobj, const char* name,
                                     double v);
 void iotjs_jval_set_property_string(jerry_value_t jobj, const char* name,
-                                    const iotjs_string_t* v);
+                                    const cstr* v);
 void iotjs_jval_set_property_string_raw(jerry_value_t jobj, const char* name,
                                         const char* v);
 void iotjs_jval_set_getter(jerry_value_t obj, const char* name, jerry_external_handler_t getter);
@@ -80,14 +62,8 @@ void iotjs_jval_set_property_by_index(jerry_value_t jarr, uint32_t idx,
                                       jerry_value_t jval);
 jerry_value_t iotjs_jval_get_property_by_index(jerry_value_t jarr,
                                                uint32_t idx);
-iotjs_string_t iotjs_jval_get_property_as_string(jerry_value_t jobj, const char* name);
-cstr iotjs_jval_get_property_as_cstr(jerry_value_t jobj, const char* name);
+cstr iotjs_jval_get_property_as_string(jerry_value_t jobj, const char* name);
 int32_t iotjs_jval_get_property_as_int32(jerry_value_t jobj, const char* name, int32_t fallback);
-
-// Evaluates javascript source file.
-jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
-                                 const uint8_t* data, size_t size,
-                                 bool strict_mode);
 
 /* Note:
  *      Defines started with underscores should not be used

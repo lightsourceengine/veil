@@ -400,15 +400,16 @@ JS_FUNCTION(sha_encode) {
   uint8_t type = JS_GET_ARG(1, number);
 
   jerry_value_t jstring = JS_GET_ARG(0, any);
-  iotjs_string_t user_str = iotjs_string_create();
+  cstr user_str = cstr_init();
 
   if (!iotjs_jbuffer_as_string(jstring, &user_str)) {
+    cstr_drop(&user_str);
     return jerry_undefined();
   }
 
   const unsigned char *user_str_data =
-      (const unsigned char *)iotjs_string_data(&user_str);
-  size_t user_str_sz = iotjs_string_size(&user_str);
+      (const unsigned char *)cstr_str_safe(&user_str);
+  size_t user_str_sz = cstr_size(user_str);
 
   size_t sha_sz = 0;
 
@@ -429,12 +430,12 @@ JS_FUNCTION(sha_encode) {
 #endif /* !ENABLE_MODULE_TLS */
     }
     default: {
-      iotjs_string_destroy(&user_str);
+      cstr_drop(&user_str);
       return JS_CREATE_ERROR(COMMON, "Unknown SHA hashing algorithm");
     }
   }
 
-  iotjs_string_destroy(&user_str);
+  cstr_drop(&user_str);
 
   jerry_value_t ret_val;
   ret_val = iotjs_bufferwrap_create_buffer(sha_sz);
@@ -459,16 +460,16 @@ JS_FUNCTION(rsa_verify) {
   jerry_value_t jkey = JS_GET_ARG(2, any);
   jerry_value_t jsignature = JS_GET_ARG(3, any);
 
-  iotjs_string_t key = iotjs_string_create();
-  iotjs_string_t data = iotjs_string_create();
-  iotjs_string_t signature = iotjs_string_create();
+  cstr key = cstr_init();
+  cstr data = cstr_init();
+  cstr signature = cstr_init();
 
   if ((!iotjs_jbuffer_as_string(jkey, &key)) ||
       (!iotjs_jbuffer_as_string(jdata, &data)) ||
       (!iotjs_jbuffer_as_string(jsignature, &signature))) {
-    iotjs_string_destroy(&key);
-    iotjs_string_destroy(&data);
-    iotjs_string_destroy(&signature);
+    cstr_drop(&key);
+    cstr_drop(&data);
+    cstr_drop(&signature);
 
     return jerry_boolean(false);
   }
@@ -477,27 +478,27 @@ JS_FUNCTION(rsa_verify) {
 
   char *raw_signature = NULL;
   size_t raw_signature_sz =
-      iotjs_base64_decode(&raw_signature, iotjs_string_data(&signature),
-                          iotjs_string_size(&signature));
+      iotjs_base64_decode(&raw_signature, cstr_str_safe(&signature),
+                          cstr_size(signature));
   mbedtls_pk_init(&pk);
   int ret_val =
-      mbedtls_pk_parse_public_key(&pk, (const unsigned char *)iotjs_string_data(
+      mbedtls_pk_parse_public_key(&pk, (const unsigned char *)cstr_str_safe(
                                            &key),
-                                  iotjs_string_size(&key) + 1);
+                                  cstr_size(key) + 1);
 
 
   jerry_value_t js_ret_val = jerry_boolean(true);
   if ((ret_val =
            mbedtls_pk_verify(&pk, type,
-                             (const unsigned char *)iotjs_string_data(&data), 0,
+                             (const unsigned char *)cstr_str_safe(&data), 0,
                              (const unsigned char *)raw_signature,
                              raw_signature_sz))) {
     js_ret_val = jerry_boolean(false);
   }
 
-  iotjs_string_destroy(&key);
-  iotjs_string_destroy(&data);
-  iotjs_string_destroy(&signature);
+  cstr_drop(&key);
+  cstr_drop(&data);
+  cstr_drop(&signature);
   mbedtls_pk_free(&pk);
   IOTJS_RELEASE(raw_signature);
 
@@ -510,19 +511,20 @@ JS_FUNCTION(base64_encode) {
   DJS_CHECK_THIS();
 
   jerry_value_t jstring = JS_GET_ARG(0, any);
-  iotjs_string_t user_str = iotjs_string_create();
+  cstr user_str = cstr_init();
 
   if (!iotjs_jbuffer_as_string(jstring, &user_str)) {
+    cstr_drop(&user_str);
     return jerry_undefined();
   }
 
   unsigned char *out_buff = NULL;
   size_t out_size =
       iotjs_base64_encode(&out_buff,
-                          (const unsigned char *)iotjs_string_data(&user_str),
-                          iotjs_string_size(&user_str));
+                          (const unsigned char *)cstr_str_safe(&user_str),
+                          cstr_size(user_str));
 
-  iotjs_string_destroy(&user_str);
+  cstr_drop(&user_str);
   jerry_value_t ret_val = jerry_string(out_buff, out_size, JERRY_ENCODING_UTF8);
 
   IOTJS_RELEASE(out_buff);

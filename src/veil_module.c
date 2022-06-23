@@ -102,10 +102,10 @@ JS_FUNCTION(js_from_symbols) {
 
 JS_FUNCTION(js_from_builtin) {
   DJS_CHECK_ARGS(1, string);
-  iotjs_string_t id = JS_GET_ARG(0, string);
-  const iotjs_js_module_t* builtin = get_builtin_by_id(iotjs_string_data(&id));
+  cstr id = JS_GET_ARG(0, string);
+  const iotjs_js_module_t* builtin = get_builtin_by_id(cstr_str_safe(&id));
   jerry_value_t module;
-  jerry_value_t filename = string_format("%s.mjs", iotjs_string_data(&id));
+  jerry_value_t filename = string_format("%s.mjs", cstr_str_safe(&id));
 
   if (builtin) {
     jerry_parse_options_t opts = {
@@ -126,7 +126,7 @@ JS_FUNCTION(js_from_builtin) {
   }
 
   jerry_value_free(filename);
-  iotjs_string_destroy(&id);
+  cstr_drop(&id);
 
   return module;
 }
@@ -135,11 +135,11 @@ JS_FUNCTION(js_from_file) {
   DJS_CHECK_ARGS(1, string);
 
   jerry_value_t id = jargv[0];
-  iotjs_string_t filename = JS_GET_ARG(0, string);
-  iotjs_string_t source = iotjs_file_read(iotjs_string_data(&filename));
+  cstr filename = JS_GET_ARG(0, string);
+  cstr source = cstr_from_file(cstr_str_safe(&filename));
   jerry_value_t module;
 
-  if (source.size == 0) {
+  if (cstr_empty(source)) {
     return jerry_throw_sz(JERRY_ERROR_COMMON, "file not found");
   } else {
     // on_import (dynamic import) receives the user_value. this will be the way that on_import
@@ -153,8 +153,8 @@ JS_FUNCTION(js_from_file) {
     };
 
     module = jerry_parse(
-        (const jerry_char_t*)iotjs_string_data(&source),
-        source.size,
+        (const jerry_char_t*)cstr_str_safe(&source),
+        cstr_size(source),
         &opts);
 
     if (!jerry_value_is_exception(module)) {
@@ -164,27 +164,27 @@ JS_FUNCTION(js_from_file) {
     }
   }
 
-  iotjs_string_destroy(&filename);
-  iotjs_string_destroy(&source);
+  cstr_drop(&filename);
+  cstr_drop(&source);
 
   return module;
 }
 
 JS_FUNCTION(js_register_callback) {
   DJS_CHECK_ARGS(2, string, function);
-  iotjs_string_t event = JS_GET_ARG(0, string);
+  cstr event = JS_GET_ARG(0, string);
   bool unknown = false;
 
-  if (strcmp(iotjs_string_data(&event), IOTJS_MAGIC_STRING_IMPORT) == 0) {
+  if (cstr_eq_raw(&event, IOTJS_MAGIC_STRING_IMPORT)) {
     s_event_listener_import = jerry_value_copy(jargv[1]);
-  } else if (strcmp(iotjs_string_data(&event), IOTJS_MAGIC_STRING_DESTROY) == 0) {
+  } else if (cstr_eq_raw(&event, IOTJS_MAGIC_STRING_DESTROY)) {
     s_event_listener_destroy = jerry_value_copy(jargv[1]);
   } else {
     IOTJS_ASSERT(false && "Unknown module event name");
     unknown = true;
   }
 
-  iotjs_string_destroy(&event);
+  cstr_drop(&event);
 
   if (unknown) {
     return jerry_throw_sz(JERRY_ERROR_COMMON, "Unknown module event name");
@@ -201,25 +201,26 @@ JS_FUNCTION(js_run_cjs) {
 
 JS_FUNCTION(js_read_file_sync) {
   DJS_CHECK_ARGS(2, string, boolean);
-  iotjs_string_t filename = JS_GET_ARG(0, string);
+  cstr filename = JS_GET_ARG(0, string);
   bool strip_bom = JS_GET_ARG(1, boolean);
-  iotjs_string_t source = iotjs_file_read(iotjs_string_data(&filename));
+  cstr source = cstr_from_file(cstr_str_safe(&filename));
   jerry_value_t contents;
 
-  if (source.size == 0) {
+  if (cstr_empty(source)) {
     contents = jerry_throw_sz(JERRY_ERROR_COMMON, "Error reading file.");
   } else {
-    uint8_t* bytes = (uint8_t*)iotjs_string_data(&source);
+    uint8_t* bytes = (uint8_t*)cstr_str_safe(&source);
+    size_t source_size = cstr_size(source);
 
-    if (strip_bom && source.size > 3 && bytes[0] == 0xef && bytes[1] == 0xbb && bytes[2] == 0xbf) {
-      contents = jerry_string(bytes + 3, source.size - 3, JERRY_ENCODING_UTF8);
+    if (strip_bom && source_size > 3 && bytes[0] == 0xef && bytes[1] == 0xbb && bytes[2] == 0xbf) {
+      contents = jerry_string(bytes + 3, source_size - 3, JERRY_ENCODING_UTF8);
     } else {
-      contents = jerry_string_sz(iotjs_string_data(&source));
+      contents = jerry_string_sz(cstr_str_safe(&source));
     }
   }
 
-  iotjs_string_destroy(&filename);
-  iotjs_string_destroy(&source);
+  cstr_drop(&filename);
+  cstr_drop(&source);
 
   return contents;
 }
@@ -377,12 +378,12 @@ static void add_enums(jerry_value_t object) {
 // note: the ECMA ModuleRecord is passed in NOT a Module class instance. js forwards
 //       the onImportMeta call to the associated Module instance.
 static void on_import_meta(jerry_value_t module, jerry_value_t meta_object, void *user_p) {
-  iotjs_string_t id = iotjs_jval_get_property_as_string(module, IOTJS_MAGIC_STRING_ID);
+  cstr id = iotjs_jval_get_property_as_string(module, IOTJS_MAGIC_STRING_ID);
 
-  if (strcmp(iotjs_string_data(&id), "module") == 0) {
+  if (cstr_eq_raw(&id, "module")) {
     set_module_meta(meta_object);
   } else {
-    const iotjs_js_module_t* builtin = get_builtin_by_id(iotjs_string_data(&id));
+    const iotjs_js_module_t* builtin = get_builtin_by_id(cstr_str_safe(&id));
 
     if (builtin != NULL) {
       set_builtin_meta(meta_object, builtin);
@@ -394,7 +395,7 @@ static void on_import_meta(jerry_value_t module, jerry_value_t meta_object, void
   iotjs_jval_set_property_jval(meta_object, IOTJS_MAGIC_STRING_URL, url);
   jerry_value_free(url);
 
-  iotjs_string_destroy(&id);
+  cstr_drop(&id);
 }
 
 // Fills in import.meta.native for the first boot script that sets up the JS environments
@@ -545,13 +546,13 @@ static jerry_value_t run_cjs(jerry_value_t source, const jerry_value_t* argv, si
   if (jerry_value_is_string(source)) {
     parsed = jerry_parse_value(source, &opts);
   } else {
-    iotjs_string_t fn = iotjs_jval_as_string(argv[0]);
-    iotjs_string_t s = iotjs_file_read(iotjs_string_data(&fn));
+    cstr fn = iotjs_jval_as_string(argv[0]);
+    cstr s = cstr_from_file(cstr_str_safe(&fn));
 
-    parsed = jerry_parse((const jerry_char_t*)iotjs_string_data(&s), s.size, &opts);
+    parsed = jerry_parse((const jerry_char_t*)cstr_str_safe(&s), cstr_size(s), &opts);
 
-    iotjs_string_destroy(&fn);
-    iotjs_string_destroy(&s);
+    cstr_drop(&fn);
+    cstr_drop(&s);
   }
 
   jerry_value_t result;

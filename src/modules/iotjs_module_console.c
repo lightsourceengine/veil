@@ -21,9 +21,9 @@
 static jerry_value_t console_print(const jerry_value_t* jargv,
                                    const jerry_length_t jargc, FILE* out_fd) {
   DJS_CHECK_ARGS(1, string);
-  iotjs_string_t msg = JS_GET_ARG(0, string);
-  const char* str = iotjs_string_data(&msg);
-  unsigned str_len = iotjs_string_size(&msg);
+  cstr msg = JS_GET_ARG(0, string);
+  const char* str = cstr_str_safe(&msg);
+  unsigned str_len = cstr_size(msg);
   unsigned idx = 0;
 
   if (iotjs_console_out) {
@@ -40,7 +40,7 @@ static jerry_value_t console_print(const jerry_value_t* jargv,
     fprintf(out_fd, "\n");
   }
 
-  iotjs_string_destroy(&msg);
+  cstr_drop(&msg);
   return jerry_undefined();
 }
 

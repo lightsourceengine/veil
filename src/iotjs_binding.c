@@ -20,14 +20,12 @@
 #include "modules/iotjs_module_buffer.h"
 
 #include <string.h>
-#include <stc/cstr.h>
 
-
-jerry_value_t iotjs_jval_create_string(const iotjs_string_t* v) {
+jerry_value_t iotjs_jval_create_string(const cstr* v) {
   jerry_value_t jval;
 
-  const jerry_char_t* data = (const jerry_char_t*)(iotjs_string_data(v));
-  jerry_size_t size = iotjs_string_size(v);
+  const jerry_char_t* data = (const jerry_char_t*)(cstr_str_safe(v));
+  jerry_size_t size = (jerry_size_t)cstr_size(*v);
 
   if (jerry_validate_string(data, size, JERRY_ENCODING_UTF8)) {
     jval = jerry_string(data, size, JERRY_ENCODING_UTF8);
@@ -84,7 +82,7 @@ double iotjs_jval_as_number(jerry_value_t jval) {
 }
 
 
-bool iotjs_jbuffer_as_string(jerry_value_t jval, iotjs_string_t* out_string) {
+bool iotjs_jbuffer_as_string(jerry_value_t jval, cstr* out_string) {
   if (out_string == NULL) {
     return false;
   }
@@ -96,14 +94,15 @@ bool iotjs_jbuffer_as_string(jerry_value_t jval, iotjs_string_t* out_string) {
       return false;
     }
 
-    char* buffer = iotjs_buffer_allocate(size + 1);
+    cstr_drop(out_string);
+    *out_string = cstr_with_size(size, 0);
+
+    char* buffer = cstr_data(out_string);
     size_t check =
         jerry_string_to_buffer(jval, JERRY_ENCODING_UTF8, (jerry_char_t*)buffer, size);
 
     IOTJS_ASSERT(check == size);
 
-    buffer[size] = '\0';
-    *out_string = iotjs_string_create_with_buffer(buffer, size);
     return true;
   }
 
@@ -115,128 +114,14 @@ bool iotjs_jbuffer_as_string(jerry_value_t jval, iotjs_string_t* out_string) {
 
   size_t size = buffer_wrap->length;
 
-  char* buffer = iotjs_buffer_allocate(size + 1);
-  memcpy(buffer, buffer_wrap->buffer, size);
-  buffer[size] = '\0';
-  *out_string = iotjs_string_create_with_buffer(buffer, size);
+  cstr_drop(out_string);
+  *out_string = cstr_with_size(size, 0);
+  memcpy(cstr_data(out_string), buffer_wrap->buffer, size);
+
   return true;
 }
 
-
-void iotjs_jval_as_tmp_buffer(jerry_value_t jval,
-                              iotjs_tmp_buffer_t* out_buffer) {
-  out_buffer->jval = jerry_undefined();
-  out_buffer->buffer = NULL;
-  out_buffer->length = 0;
-
-  if (jerry_value_is_undefined(jval)) {
-    return;
-  }
-
-  iotjs_bufferwrap_t* buffer_wrap = iotjs_jbuffer_get_bufferwrap_ptr(jval);
-
-  if (buffer_wrap != NULL) {
-    IOTJS_ASSERT(buffer_wrap->jobject == jval);
-
-    // avoid unused result warning
-    (void)!jerry_value_copy(jval);
-    out_buffer->jval = buffer_wrap->jobject;
-    out_buffer->buffer = buffer_wrap->buffer;
-    out_buffer->length = buffer_wrap->length;
-    return;
-  }
-
-  bool was_string = true;
-
-  if (!jerry_value_is_string(jval)) {
-    jval = jerry_value_to_string(jval);
-
-    if (jerry_value_is_error(jval)) {
-      out_buffer->jval = jval;
-      return;
-    }
-
-    was_string = false;
-  }
-
-  jerry_size_t size = jerry_string_size(jval, JERRY_ENCODING_UTF8);
-
-  if (size == 0) {
-    if (!was_string) {
-      jerry_value_free(jval);
-    }
-    return;
-  }
-
-  char* buffer = iotjs_buffer_allocate(size);
-  size_t check = jerry_string_to_buffer(jval, JERRY_ENCODING_UTF8, (jerry_char_t*)buffer, size);
-
-  IOTJS_ASSERT(check == size);
-
-  out_buffer->buffer = buffer;
-  out_buffer->length = size;
-
-  if (!was_string) {
-    jerry_value_free(jval);
-  }
-}
-
-
-void iotjs_jval_get_jproperty_as_tmp_buffer(jerry_value_t jobj,
-                                            const char* name,
-                                            iotjs_tmp_buffer_t* out_buffer) {
-  jerry_value_t jproperty = iotjs_jval_get_property(jobj, name);
-
-  if (jerry_value_is_error(jproperty)) {
-    out_buffer->jval = jproperty;
-    out_buffer->buffer = NULL;
-    out_buffer->length = 0;
-    return;
-  }
-
-  iotjs_jval_as_tmp_buffer(jproperty, out_buffer);
-
-  jerry_value_free(jproperty);
-}
-
-
-void iotjs_free_tmp_buffer(iotjs_tmp_buffer_t* tmp_buffer) {
-  if (jerry_value_is_undefined(tmp_buffer->jval)) {
-    if (tmp_buffer->buffer != NULL) {
-      iotjs_buffer_release(tmp_buffer->buffer);
-    }
-    return;
-  }
-
-  IOTJS_ASSERT(!jerry_value_is_error(tmp_buffer->jval) ||
-               tmp_buffer->buffer == NULL);
-
-  jerry_value_free(tmp_buffer->jval);
-}
-
-
-iotjs_string_t iotjs_jval_as_string(jerry_value_t jval) {
-  IOTJS_ASSERT(jerry_value_is_string(jval));
-
-  jerry_size_t size = jerry_string_size(jval, JERRY_ENCODING_UTF8);
-
-  if (size == 0)
-    return iotjs_string_create();
-
-  char* buffer = iotjs_buffer_allocate(size + 1);
-  jerry_char_t* jerry_buffer = (jerry_char_t*)(buffer);
-
-  size_t check = jerry_string_to_buffer(jval, JERRY_ENCODING_UTF8, jerry_buffer, size);
-
-  IOTJS_ASSERT(check == size);
-  buffer[size] = '\0';
-
-  iotjs_string_t res = iotjs_string_create_with_buffer(buffer, size);
-
-  return res;
-}
-
-cstr iotjs_jval_as_cstr(jerry_value_t jval) {
+cstr iotjs_jval_as_string(jerry_value_t jval) {
   IOTJS_ASSERT(jerry_value_is_string(jval));
 
   jerry_size_t size = jerry_string_size(jval, JERRY_ENCODING_UTF8);
@@ -306,17 +191,6 @@ void iotjs_jval_set_property_jval(jerry_value_t jobj, const char* name,
   jerry_value_free(ret_val);
 }
 
-
-void iotjs_jval_set_property_null(jerry_value_t jobj, const char* name) {
-  iotjs_jval_set_property_jval(jobj, name, jerry_null());
-}
-
-
-void iotjs_jval_set_property_undefined(jerry_value_t jobj, const char* name) {
-  iotjs_jval_set_property_jval(jobj, name, jerry_undefined());
-}
-
-
 void iotjs_jval_set_property_boolean(jerry_value_t jobj, const char* name,
                                      bool v) {
   iotjs_jval_set_property_jval(jobj, name, jerry_boolean(v));
@@ -350,7 +224,7 @@ void iotjs_jval_set_property_number(jerry_value_t jobj, const char* name,
 
 
 void iotjs_jval_set_property_string(jerry_value_t jobj, const char* name,
-                                    const iotjs_string_t* v) {
+                                    const cstr* v) {
   jerry_value_t jval = iotjs_jval_create_string(v);
   iotjs_jval_set_property_jval(jobj, name, jval);
   jerry_value_free(jval);
@@ -421,27 +295,12 @@ jerry_value_t iotjs_jval_get_property_by_index(jerry_value_t jarr,
   return res;
 }
 
-iotjs_string_t iotjs_jval_get_property_as_string(jerry_value_t jobj, const char* name) {
-  jerry_value_t value = iotjs_jval_get_property(jobj, name);
-  iotjs_string_t as_string;
-
-  if (jerry_value_is_string(value)) {
-    as_string = iotjs_jval_as_string(value);
-  } else {
-    as_string = iotjs_string_create();
-  }
-
-  jerry_value_free(value);
-
-  return as_string;
-}
-
-cstr iotjs_jval_get_property_as_cstr(jerry_value_t jobj, const char* name) {
+cstr iotjs_jval_get_property_as_string(jerry_value_t jobj, const char* name) {
   jerry_value_t value = iotjs_jval_get_property(jobj, name);
   cstr as_string;
 
   if (jerry_value_is_string(value)) {
-    as_string = iotjs_jval_as_cstr(value);
+    as_string = iotjs_jval_as_string(value);
   } else {
     as_string = cstr_init();
   }
@@ -465,40 +324,6 @@ int32_t iotjs_jval_get_property_as_int32(jerry_value_t jobj, const char* name, i
 
   return result;
 }
-
-jerry_value_t iotjs_jhelper_eval(const char* name, size_t name_len,
-                                 const uint8_t* data, size_t size,
-                                 bool strict_mode) {
-  jerry_parse_options_t opts = {
-    .options = (strict_mode ? JERRY_PARSE_STRICT_MODE : JERRY_PARSE_NO_OPTS) | JERRY_PARSE_HAS_SOURCE_NAME,
-    .source_name = jerry_string((const jerry_char_t*)name, name_len, JERRY_ENCODING_UTF8),
-  };
-
-  jerry_value_t jres = jerry_parse((const jerry_char_t*)data, size, &opts);
-
-  if (!jerry_value_is_exception(jres)) {
-    jerry_value_t func = jres;
-    jres = jerry_run(func);
-
-    if (jerry_value_is_exception(jres)) {
-      char buffer[256];
-      jerry_value_t ex = jerry_exception_value(jres, false);
-      jerry_value_t ts = jerry_value_to_string(ex);
-      jerry_size_t copied_bytes = jerry_string_to_buffer (ts, JERRY_ENCODING_UTF8, (jerry_char_t*)buffer, sizeof (buffer) - 1);
-      buffer[copied_bytes] = '\0';
-      printf("%s\n", buffer);
-      jerry_value_free(ts);
-      jerry_value_free(ex);
-    }
-
-    jerry_value_free(func);
-  }
-
-  jerry_value_free(opts.source_name);
-
-  return jres;
-}
-
 
 jerry_value_t vm_exec_stop_callback(void* user_p) {
   State* state_p = (State*)user_p;
