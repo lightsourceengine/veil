@@ -104,7 +104,7 @@ extern const size_t {NAME}_l;
 MODULE_VARIABLES_C = '''
 #define SIZE_{NAME_UPPER} {SIZE}
 const size_t {NAME}_l = SIZE_{NAME_UPPER};
-const char {NAME}_n[] = "{NAME}";
+const char {NAME}_n[] = "{SPECIFIER}";
 const uint8_t {NAME}_s[] = {{
 {CODE}
 }};
@@ -288,6 +288,7 @@ def js2c(options, js_modules):
                 fout_h.write(MODULE_VARIABLES_H.format(NAME=name))
                 fout_c.write(MODULE_VARIABLES_C.format(NAME=name,
                                                        NAME_UPPER=name.upper(),
+                                                       SPECIFIER=name.replace("__", "/"),
                                                        SIZE=len(code),
                                                        CODE=code_string))
             modules_struct = [

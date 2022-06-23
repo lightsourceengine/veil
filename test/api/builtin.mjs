@@ -54,8 +54,25 @@ import fs, {
   statSync,
   stat,
   existsSync,
-  exists
+  exists,
+  promises
 } from 'node:fs'
+import {
+  readdir as fsp_readdir,
+  rename as fsp_rename,
+  unlink as fsp_unlink,
+  rmdir as fsp_rmdir,
+  mkdir as fsp_mkdir,
+  writeFile as fsp_writeFile,
+  readFile as fsp_readFile,
+  write as fsp_write,
+  read as fsp_read,
+  open as fsp_open,
+  close as fsp_close,
+  fstat as fsp_fstat,
+  stat as fsp_stat,
+  exists as fsp_exists,
+} from 'node:fs/promises'
 import http from 'node:http'
 import https from 'node:https'
 import module, {
@@ -104,6 +121,9 @@ import timers, {
 import tls from 'node:tls'
 import udp from 'node:udp'
 import url, {
+  URL as _URL,
+  URLSearchParams as _URLSearchParams,
+  urlToHttpOptions,
   fileURLToPath,
   pathToFileURL
 } from 'node:url'

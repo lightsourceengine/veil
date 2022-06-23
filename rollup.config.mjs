@@ -120,6 +120,8 @@ const ops = readdirSync('src/js')
   .filter(file => file.endsWith('.mjs'))
   .map(file => min(`src/js/${file}`, join(minifiedOutputPath, file)))
 
+ops.push(min(`src/js/fs/promises.mjs`, join(minifiedOutputPath, 'fs/promises.mjs')))
+
 ops.push(lexer())
 
 export default ops

@@ -22,6 +22,7 @@
         "constants",
         "events",
         "fs",
+        "fs__promises",
         "module",
         "napi",
         "os",
@@ -78,6 +79,10 @@
       "init": "iotjs_init_fs",
       "js_file": "$JS_GEN/fs.mjs",
       "import": ["constants", "util"]
+    },
+    "fs__promises": {
+      "js_file": "$JS_GEN/fs/promises.mjs",
+      "import": ["fs"]
     },
     "http": {
       "js_file": "$JS_GEN/http.mjs",
