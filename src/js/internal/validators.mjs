@@ -30,3 +30,8 @@ export const validateFunction = (value, name) => {
     throw new ERR_INVALID_ARG_TYPE(name, 'Function', value);
   }
 }
+
+export const validateBoolean = (value, name) => {
+  if (typeof value !== 'boolean')
+    throw new ERR_INVALID_ARG_TYPE(name, 'boolean', value);
+}

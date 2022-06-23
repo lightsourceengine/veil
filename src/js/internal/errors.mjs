@@ -100,7 +100,7 @@ export const ERR_INVALID_URL_SCHEME = ErrorClass(
 )
 
 export const ERR_MISSING_ARGS = ErrorClass(
-  '',
+  'ERR_MISSING_ARGS',
   TypeError,
   (self, ...args) => {
     const { length } = args
@@ -126,3 +126,49 @@ export const ERR_MISSING_ARGS = ErrorClass(
     return `${msg} must be specified`;
   }
 )
+
+export const ERR_UNHANDLED_ERROR = ErrorClass(
+  'ERR_UNHANDLED_ERROR',
+  Error,
+  (self, err = undefined) => {
+    const msg = 'Unhandled error.';
+    return (err === undefined) ? msg : `${msg} (${err})`;
+  }
+)
+
+export const ERR_OUT_OF_RANGE = ErrorClass(
+  'ERR_OUT_OF_RANGE',
+  RangeError,
+  (self, str, range, input, replaceDefaultBoolean = false) => {
+    if (!range) {
+      throw new ERR_MISSING_ARGS('range')
+    }
+    let msg = replaceDefaultBoolean ? str :
+      `The value of "${str}" is out of range.`;
+    let received;
+    if (Number.isInteger(input) && Math.abs(input) > 2 ** 32) {
+      received = addNumericalSeparator(String(input));
+    } else if (typeof input === 'bigint') {
+      received = String(input);
+      if (input > 2n ** 32n || input < -(2n ** 32n)) {
+        received = addNumericalSeparator(received);
+      }
+      received += 'n';
+    } else {
+      received = input;
+    }
+    msg += ` It must be ${range}. Received ${received}`;
+    return msg;
+  }
+)
+
+// Only use this for integers! Decimal numbers do not work with this function.
+const addNumericalSeparator = (val) => {
+  let res = '';
+  let i = val.length;
+  const start = val[0] === '-' ? 1 : 0;
+  for (; i >= start + 4; i -= 3) {
+    res = `_${val.slice(i - 3, i)}${res}`;
+  }
+  return `${val.slice(0, i)}${res}`;
+}

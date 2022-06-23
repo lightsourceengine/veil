@@ -59,6 +59,13 @@ class Process extends EventEmitter {
     this.removeAllListeners()
   };
 
+  emitWarning (message) {
+    console.warn(message)
+    if (!this._exiting) {
+      this.emit('warn', message);
+    }
+  }
+
   exit (code) {
     if (!this._exiting) {
       try {

@@ -6,7 +6,7 @@ return class extends e{code=t
 constructor(...t){super(),this.message=n(this,...t)}}},s=n('ERR_INVALID_URI',URIError,'URI malformed'),r=n('ERR_INVALID_ARG_TYPE',Error,((t,e,n,s)=>`The ${e} argument must be of type ${n}. Received ${typeof s}`)),i=n('ERR_ARG_NOT_ITERABLE',TypeError,((t,e)=>`${e} must be iterable`)),o=n('ERR_INVALID_ARG_VALUE',TypeError,((t,e,n,s='is invalid')=>`The ${e.includes('.')?'property':'argument'} '${e}' ${s}. Received ${typeof n}`)),l=n('ERR_INVALID_FILE_URL_HOST',TypeError,((t,e)=>`File URL host must be "localhost" or empty on ${e}`)),h=n('ERR_INVALID_FILE_URL_PATH',TypeError,((t,e)=>`File URL path ${e}`)),a=n('ERR_INVALID_THIS',TypeError,((t,e)=>`Value of "this" must be of type ${e}`)),f=n('ERR_INVALID_TUPLE',TypeError,((t,...e)=>`${e[0]} must be an iterable ${e[1]} tuple`)),c=n('ERR_INVALID_URL',TypeError,((t,e)=>(t.input=e,'Invalid URL'))),u=n('ERR_INVALID_URL_SCHEME',TypeError,((t,e)=>{if('string'===typeof e)e=[e]
 if(e.length>2)return'assert: expected.length <= 2'
 const n=2===e.length?`one of scheme ${e[0]} or ${e[1]}`:`of scheme ${e[0]}`
-return`The URL must be ${n}`})),p=n('',TypeError,((t,...e)=>{const{length:n}=e
+return`The URL must be ${n}`})),p=n('ERR_MISSING_ARGS',TypeError,((t,...e)=>{const{length:n}=e
 if(!n)return'assert: At least one arg needs to be specified'
 let s='The '
 const r=n,i=t=>`"${t}"`
@@ -38,7 +38,7 @@ while(r<n){if(o=t[r],43===o&&e){s[i++]=32,r++
 continue}if(37===o&&r<f)if(o=t.charCodeAt(++r),h=w[o],!(h>=0)){s[i++]=37
 continue}else if(l=t.charCodeAt(++r),a=w[l],!(a>=0))s[i++]=37,r--
 else c=true,o=16*h+a
-s[i++]=o,r++}return c?s.slice(0,i):s}function b(t,e=false){try{return decodeURIComponent(t)}catch{return y(t,e).toString()}}const _=97,R=122,S=47,A=92,$=38,L=61,U=37,E=43,v=(t,e)=>{if('object'!==typeof t||t.constructor!==Object)throw new r(e,'Object',t)},I=(t,e)=>{if('function'!==typeof t)throw new r(e,'Function',t)},T=Object.freeze({enumerable:true}),{platform:P}=process,O='win32'===P,{domainTo:j,encodeAuth:k,parse:C,URL_FLAGS_CANNOT_BE_BASE:N,URL_FLAGS_HAS_FRAGMENT:F,URL_FLAGS_HAS_HOST:H,URL_FLAGS_HAS_PASSWORD:q,URL_FLAGS_HAS_PATH:D,URL_FLAGS_HAS_QUERY:G,URL_FLAGS_HAS_USERNAME:V,URL_FLAGS_IS_DEFAULT_SCHEME_PORT:x,URL_FLAGS_SPECIAL:M,kFragment:B,kHost:Q,kHostname:W,kPathStart:J,kPort:Y,kQuery:z,kSchemeStart:K}=import.meta.native,X=Symbol('context'),Z=Symbol('cannot-be-base'),tt=Symbol('cannot-have-username-password-port'),et=Symbol('special'),nt=Symbol('query'),st=Symbol('format'),rt=Object.getPrototypeOf(Object.getPrototypeOf([][Symbol.iterator]())),it='null'
+s[i++]=o,r++}return c?s.slice(0,i):s}function _(t,e=false){try{return decodeURIComponent(t)}catch{return y(t,e).toString()}}const b=97,R=122,S=47,A=92,$=38,L=61,U=37,E=43,I=(t,e)=>{if('object'!==typeof t||t.constructor!==Object)throw new r(e,'Object',t)},v=(t,e)=>{if('function'!==typeof t)throw new r(e,'Function',t)},T=Object.freeze({enumerable:true}),{platform:P}=process,O='win32'===P,{domainTo:j,encodeAuth:k,parse:C,URL_FLAGS_CANNOT_BE_BASE:N,URL_FLAGS_HAS_FRAGMENT:F,URL_FLAGS_HAS_HOST:H,URL_FLAGS_HAS_PASSWORD:G,URL_FLAGS_HAS_PATH:q,URL_FLAGS_HAS_QUERY:D,URL_FLAGS_HAS_USERNAME:V,URL_FLAGS_IS_DEFAULT_SCHEME_PORT:x,URL_FLAGS_SPECIAL:M,kFragment:B,kHost:Q,kHostname:W,kPathStart:J,kPort:Y,kQuery:z,kSchemeStart:K}=import.meta.native,X=Symbol('context'),Z=Symbol('cannot-be-base'),tt=Symbol('cannot-have-username-password-port'),et=Symbol('special'),nt=Symbol('query'),st=Symbol('format'),rt=Object.getPrototypeOf(Object.getPrototypeOf([][Symbol.iterator]())),it='null'
 function ot(t,e,n){return`${t}//${e}${null===n?'':`:${n}`}`}class lt{flags=0
 scheme=':'
 username=''
@@ -102,10 +102,10 @@ t[r+2]=e,t[r+3]=s}else{const n=new Array(e),s=new Array(e)
 for(let r=2;r<e;r*=2)for(let i=0;i<e-2;i+=2*r){const o=i+r
 let l=o+r
 if(l=l<e?l:e,o>l)continue
-vt(t,i,o,l,n,s)}}Rt(this[X],this)}entries(){return ht(this),It(this,'key+value')}forEach(t,e=void 0){ht(this),I(t,'callback')
+It(t,i,o,l,n,s)}}Rt(this[X],this)}entries(){return ht(this),vt(this,'key+value')}forEach(t,e=void 0){ht(this),v(t,'callback')
 let n=this[nt],s=0
 while(s<n.length){const r=n[s],i=n[s+1]
-t.call(e,i,r,this),n=this[nt],s+=2}}keys(){return ht(this),It(this,'key')}values(){return ht(this),It(this,'value')}toString(){return ht(this),Ut(this[nt])}}function ft(t,e,n,s,r,i,o,l,h){const a=this[X]
+t.call(e,i,r,this),n=this[nt],s+=2}}keys(){return ht(this),vt(this,'key')}values(){return ht(this),vt(this,'value')}toString(){return ht(this),Ut(this[nt])}}function ft(t,e,n,s,r,i,o,l,h){const a=this[X]
 a.flags=t,a.scheme=e,a.username=n||'',a.password=s||'',a.port=i,a.path=o||[],a.query=l,a.fragment=h,a.host=r
 let f=this[nt]
 if(!f)f=this[nt]=new at,f[X]=this
@@ -115,14 +115,14 @@ else a.flags&=~M
 a.scheme=e,a.port=i}function pt(t,e,n,s,r,i,o,l,h){const a=this[X]
 if(0!==(t&H))a.host=r,a.flags|=H
 else a.host=null,a.flags&=~H}function gt(t,e,n,s,r,i,o,l,h){this[X].port=i}function mt(t,e,n,s,r,i,o,l,h){if(Reflect.apply(pt,this,arguments),null!==i||0!==(t&x))Reflect.apply(gt,this,arguments)}function dt(t,e,n,s,r,i,o,l,h){const a=this[X]
-if(0!==(t&D))a.path=o,a.flags|=D
-else a.path=[],a.flags&=~D
+if(0!==(t&q))a.path=o,a.flags|=q
+else a.path=[],a.flags&=~q
 if(0!==(t&H))a.host=r,a.flags|=H}function wt(t,e,n,s,r,i,o,l,h){this[X].query=l}function yt(t,e,n,s,r,i,o,l,h){this[X].fragment=h}Object.defineProperties(at.prototype,{append:T,delete:T,get:T,getAll:T,has:T,set:T,sort:T,entries:T,forEach:T,keys:T,values:T,toString:T,[Symbol.toStringTag]:{__proto__:null,configurable:true,value:'URLSearchParams'},[Symbol.iterator]:{__proto__:null,configurable:true,writable:true,value:at.prototype.entries}})
-const bt=t=>{if(!(t instanceof _t))throw new a('URL')}
-class _t{constructor(t,e=void 0){let n
-if(t=`${t}`,void 0!==e)n=new _t(e)[X]
+const _t=t=>{if(!(t instanceof bt))throw new a('URL')}
+class bt{constructor(t,e=void 0){let n
+if(t=`${t}`,void 0!==e)n=new bt(e)[X]
 this[X]=new lt,C(t,-1,n,void 0,ft.bind(this),ct.bind(this,t))}get[et](){return 0!==(this[X].flags&M)}get[Z](){return 0!==(this[X].flags&N)}get[tt](){const{host:t,scheme:e}=this[X]
-return null==t||''===t||this[Z]||'file:'===e}[st](t){if(t)v(t,'options')
+return null==t||''===t||this[Z]||'file:'===e}[st](t){if(t)I(t,'options')
 t={fragment:true,unicode:false,search:true,auth:true,...t}
 const e=this[X]
 let n=e.scheme
@@ -134,70 +134,70 @@ n+='@'}if(n+=t.unicode?Ot(e.host):e.host,null!==e.port)n+=`:${e.port}`}if(this[Z
 else{if(null===e.host&&e.path.length>1&&''===e.path[0])n+='/.'
 if(e.path.length)n+='/'+e.path.join('/')}if(t.search&&null!==e.query)n+=`?${e.query}`
 if(t.fragment&&null!==e.fragment)n+=`#${e.fragment}`
-return n}toString(){return this.href}get href(){return bt(this),this[st]({})}set href(t){bt(this),t=`${t}`,C(t,-1,void 0,void 0,ft.bind(this),ct.bind(this,t))}get origin(){bt(this)
+return n}toString(){return this.href}get href(){return _t(this),this[st]({})}set href(t){_t(this),t=`${t}`,C(t,-1,void 0,void 0,ft.bind(this),ct.bind(this,t))}get origin(){_t(this)
 const t=this[X]
-switch(t.scheme){case'blob:':if(t.path.length>0)try{return new _t(t.path[0]).origin}catch{}return it
-case'ftp:':case'http:':case'https:':case'ws:':case'wss:':return ot(t.scheme,t.host,t.port)}return it}get protocol(){return bt(this),this[X].scheme}set protocol(t){if(bt(this),t=`${t}`,!t.length)return
+switch(t.scheme){case'blob:':if(t.path.length>0)try{return new bt(t.path[0]).origin}catch{}return it
+case'ftp:':case'http:':case'https:':case'ws:':case'wss:':return ot(t.scheme,t.host,t.port)}return it}get protocol(){return _t(this),this[X].scheme}set protocol(t){if(_t(this),t=`${t}`,!t.length)return
 const e=this[X]
-C(t,K,null,e,ut.bind(this))}get username(){return bt(this),this[X].username}set username(t){if(bt(this),t=`${t}`,this[tt])return
+C(t,K,null,e,ut.bind(this))}get username(){return _t(this),this[X].username}set username(t){if(_t(this),t=`${t}`,this[tt])return
 const e=this[X]
 if(''===t)return e.username='',e.flags&=~V,void 0
-e.username=k(t),e.flags|=V}get password(){return bt(this),this[X].password}set password(t){if(bt(this),t=`${t}`,this[tt])return
+e.username=k(t),e.flags|=V}get password(){return _t(this),this[X].password}set password(t){if(_t(this),t=`${t}`,this[tt])return
 const e=this[X]
-if(''===t)return e.password='',e.flags&=~q,void 0
-e.password=k(t),e.flags|=q}get host(){bt(this)
+if(''===t)return e.password='',e.flags&=~G,void 0
+e.password=k(t),e.flags|=G}get host(){_t(this)
 const t=this[X]
 let e=t.host||''
 if(null!==t.port)e+=`:${t.port}`
-return e}set host(t){bt(this)
+return e}set host(t){_t(this)
 const e=this[X]
 if(t=`${t}`,this[Z])return
-C(t,Q,null,e,mt.bind(this))}get hostname(){return bt(this),this[X].host||''}set hostname(t){bt(this)
+C(t,Q,null,e,mt.bind(this))}get hostname(){return _t(this),this[X].host||''}set hostname(t){_t(this)
 const e=this[X]
 if(t=`${t}`,this[Z])return
-C(t,W,null,e,pt.bind(this))}get port(){bt(this)
+C(t,W,null,e,pt.bind(this))}get port(){_t(this)
 const t=this[X].port
-return null===t?'':String(t)}set port(t){if(bt(this),t=`${t}`,this[tt])return
+return null===t?'':String(t)}set port(t){if(_t(this),t=`${t}`,this[tt])return
 const e=this[X]
 if(''===t)return e.port=null,void 0
-C(t,Y,null,e,gt.bind(this))}get pathname(){bt(this)
+C(t,Y,null,e,gt.bind(this))}get pathname(){_t(this)
 const t=this[X]
 if(this[Z])return t.path[0]
 if(!t.path.length)return''
-return`/${t.path.join('/')}`}set pathname(t){if(bt(this),!this[Z])C(`${t}`,J,null,this[X],dt.bind(this))}get search(){bt(this)
+return`/${t.path.join('/')}`}set pathname(t){if(_t(this),!this[Z])C(`${t}`,J,null,this[X],dt.bind(this))}get search(){_t(this)
 const{query:t}=this[X]
-return t?`?${t}`:''}set search(t){bt(this)
+return t?`?${t}`:''}set search(t){_t(this)
 const n=this[X]
-if(t=e(t),''===t)n.query=null,n.flags&=~G
+if(t=e(t),''===t)n.query=null,n.flags&=~D
 else{if('?'===t[0])t=t.slice(1)
-if(n.query='',n.flags|=G,t)C(t,z,null,n,wt.bind(this))}St(this[nt],t)}get searchParams(){return bt(this),this[nt]}get hash(){bt(this)
+if(n.query='',n.flags|=D,t)C(t,z,null,n,wt.bind(this))}St(this[nt],t)}get searchParams(){return _t(this),this[nt]}get hash(){_t(this)
 const{fragment:t}=this[X]
-return t?`#${t}`:''}set hash(t){bt(this)
+return t?`#${t}`:''}set hash(t){_t(this)
 const e=this[X]
 if(t=`${t}`,!t)return e.fragment=null,e.flags&=~F,void 0
 if('#'===t[0])t=t.slice(1)
-e.fragment='',e.flags|=F,C(t,B,null,e,yt.bind(this))}toJSON(){return bt(this),this[st]({})}}function Rt(t,e){if(!t)return
+e.fragment='',e.flags|=F,C(t,B,null,e,yt.bind(this))}toJSON(){return _t(this),this[st]({})}}function Rt(t,e){if(!t)return
 const n=t[X],s=e.toString()
-if(s)n.query=s,n.flags|=G
-else n.query=null,n.flags&=~G}function St(t,e){if(!e)return t[nt]=[],void 0
+if(s)n.query=s,n.flags|=D
+else n.query=null,n.flags&=~D}function St(t,e){if(!e)return t[nt]=[],void 0
 t[nt]=At(e)}function At(t){const e=[]
 let n=0,s=0,r=false,i='',o=false,l=0,h
 for(h=0;h<t.length;++h){const a=t.charCodeAt(h)
 if(a===$){if(n===h){s=n=h+1
 continue}if(s<h)i+=t.slice(s,h)
-if(o)i=b(i)
+if(o)i=_(i)
 if(e.push(i),!r)e.push('')
 r=false,i='',o=false,l=0,s=n=h+1
 continue}if(!r&&a===L){if(s<h)i+=t.slice(s,h)
-if(o)i=b(i)
+if(o)i=_(i)
 e.push(i),r=true,i='',o=false,l=0,s=h+1
 continue}if(a===E){if(s<h)i+=t.slice(s,h)
 i+=' ',s=h+1}else if(!o)if(a===U)l=1
 else if(l>0)if(1===m[a]){if(3===++l)o=true}else l=0}if(n===h)return e
 if(s<h)i+=t.slice(s,h)
-if(o)i=b(i)
+if(o)i=_(i)
 if(e.push(i),!r)e.push('')
-return e}Object.defineProperties(_t.prototype,{[st]:{__proto__:null,configurable:false,writable:false},[Symbol.toStringTag]:{__proto__:null,configurable:true,value:'URL'},toString:T,href:T,origin:T,protocol:T,username:T,password:T,host:T,hostname:T,port:T,pathname:T,search:T,searchParams:T,hash:T,toJSON:T})
+return e}Object.defineProperties(bt.prototype,{[st]:{__proto__:null,configurable:false,writable:false},[Symbol.toStringTag]:{__proto__:null,configurable:true,value:'URL'},toString:T,href:T,origin:T,protocol:T,username:T,password:T,host:T,hostname:T,port:T,pathname:T,search:T,searchParams:T,hash:T,toJSON:T})
 const $t=new Int8Array([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,1,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0]),Lt=g.slice()
 function Ut(t){const{length:e}=t
 if(!e)return''
@@ -206,7 +206,7 @@ let r=`${n}=${s}`
 for(let n=2;n<e;n+=2){const e=d(t[n],$t,Lt),s=d(t[n+1],$t,Lt)
 r+=`&${e}=${s}`}return r}function Et(t,e,n){Object.defineProperty(t,Symbol.toStringTag,{__proto__:null,writable:false,enumerable:false,configurable:true,value:e})
 for(const e of Object.keys(n))Object.defineProperty(t,e,{__proto__:null,writable:true,enumerable:true,configurable:true,value:n[e]})
-for(const e of Object.getOwnPropertySymbols(n))Object.defineProperty(t,e,{__proto__:null,writable:true,enumerable:false,configurable:true,value:n[e]})}function vt(t,e,n,s,r,i){const o=n-e,l=s-n
+for(const e of Object.getOwnPropertySymbols(n))Object.defineProperty(t,e,{__proto__:null,writable:true,enumerable:false,configurable:true,value:n[e]})}function It(t,e,n,s,r,i){const o=n-e,l=s-n
 let h,a,f
 for(h=0;h<o;h++)r[h]=t[e+h]
 for(a=0;a<l;a++)i[a]=t[n+a]
@@ -214,7 +214,7 @@ h=0,a=0,f=e
 while(h<o&&a<l)if(r[h]<=i[a])t[f++]=r[h++],t[f++]=r[h++]
 else t[f++]=i[a++],t[f++]=i[a++]
 while(h<o)t[f++]=r[h++]
-while(a<l)t[f++]=i[a++]}function It(t,e){const n=Object.create(Tt)
+while(a<l)t[f++]=i[a++]}function vt(t,e){const n=Object.create(Tt)
 return n[X]={target:t,kind:e,index:0},n}Lt[32]='+'
 const Tt=Object.create(rt)
 Et(Tt,'URLSearchParams Iterator',{next(){if(!this||Object.getPrototypeOf(this)!==Tt)throw new a('URLSearchParamsIterator')
@@ -238,20 +238,20 @@ const{length:s}=n
 for(let t=0;t<s;t++)if('%'===n[t]){const e=32|n.codePointAt(t+2)
 if('2'===n[t+1]&&102===e||'5'===n[t+1]&&99===e)throw new h('must not include encoded \\ or / characters')}if(n=n.replace(kt,'\\'),n=decodeURIComponent(n),''!==e)return`\\\\${Ot(e)}${n}`
 const r=32|n.codePointAt(1),i=n[2]
-if(r<_||r>R||':'!==i)throw new h('must be absolute')
+if(r<b||r>R||':'!==i)throw new h('must be absolute')
 return n.slice(1)}function Nt(t){if(''!==t.hostname)throw new l(P)
 const{pathname:e}=t,{length:n}=e
 for(let t=0;t<n;t++)if('%'===e[t]){const n=32|e.codePointAt(t+2)
-if('2'===e[t+1]&&102===n)throw new h('must not include encoded / characters')}return decodeURIComponent(e)}function Ft(t){if('string'===typeof t)t=new _t(t)
-else if(!(t instanceof _t))throw new r('path',['string','URL'],t)
+if('2'===e[t+1]&&102===n)throw new h('must not include encoded / characters')}return decodeURIComponent(e)}function Ft(t){if('string'===typeof t)t=new bt(t)
+else if(!(t instanceof bt))throw new r('path',['string','URL'],t)
 if('file:'!==t.protocol)throw new u('file')
-return O?Ct(t):Nt(t)}const Ht=/%/g,qt=/\\/g,Dt=/\n/g,Gt=/\r/g,Vt=/\t/g
+return O?Ct(t):Nt(t)}const Ht=/%/g,Gt=/\\/g,qt=/\n/g,Dt=/\r/g,Vt=/\t/g
 function xt(t){if(t.includes('%'))t=t.replace(Ht,'%25')
-if(!O&&t.includes('\\'))t=t.replace(qt,'%5C')
-if(t.includes('\n'))t=t.replace(Dt,'%0A')
-if(t.includes('\r'))t=t.replace(Gt,'%0D')
+if(!O&&t.includes('\\'))t=t.replace(Gt,'%5C')
+if(t.includes('\n'))t=t.replace(qt,'%0A')
+if(t.includes('\r'))t=t.replace(Dt,'%0D')
 if(t.includes('\t'))t=t.replace(Vt,'%09')
-return t}function Mt(e){const n=new _t('file://')
+return t}function Mt(e){const n=new bt('file://')
 if(O&&e.startsWith('\\\\')){const t=e.split('\\')
 if(t.length<=3)throw new o('filepath',e,'Missing UNC resource path')
 const s=t[2]
@@ -259,6 +259,6 @@ if(!s.length)throw new o('filepath',e,'Empty UNC servername')
 n.hostname=Pt(s),n.pathname=xt(t.slice(3).join('/'))}else{let s=t.resolve(e)
 const r=e.charCodeAt(e.length-1)
 if((r===S||O&&r===A)&&s[s.length-1]!==t.sep)s+='/'
-n.pathname=xt(s)}return n}const Bt={URL:_t,URLSearchParams:at,domainToASCII:Pt,domainToUnicode:Ot,pathToFileURL:Mt,fileURLToPath:Ft,urlToHttpOptions:jt}
-Object.assign(global,{URL:_t,URLSearchParams:at})
-export{_t as URL,at as URLSearchParams,Bt as default,Pt as domainToASCII,Ot as domainToUnicode,Ft as fileURLToPath,Mt as pathToFileURL,jt as urlToHttpOptions}
+n.pathname=xt(s)}return n}const Bt={URL:bt,URLSearchParams:at,domainToASCII:Pt,domainToUnicode:Ot,pathToFileURL:Mt,fileURLToPath:Ft,urlToHttpOptions:jt}
+Object.assign(global,{URL:bt,URLSearchParams:at})
+export{bt as URL,at as URLSearchParams,Bt as default,Pt as domainToASCII,Ot as domainToUnicode,Ft as fileURLToPath,Mt as pathToFileURL,jt as urlToHttpOptions}
