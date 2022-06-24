@@ -143,7 +143,7 @@ def init_options():
         help='Specify the target architecture (default: %(default)s).')
     iotjs_group.add_argument('--target-board',
         choices=[None, 'artik10', 'stm32f4dis', 'stm32f7nucleo',
-                 'rpi2', 'rpi3', 'artik05x'],
+                 'rpiv6', 'rpiv7', 'artik05x'],
         default=None, help='Specify the target board (default: %(default)s).')
     iotjs_group.add_argument('--target-os',
         choices=['linux', 'darwin', 'osx', 'mock', 'nuttx', 'tizen', 'tizenrt',
@@ -216,12 +216,16 @@ def adjust_options(options):
     if options.target_os == 'darwin':
         options.no_check_valgrind = True
 
-    if options.target_board in ['rpi2', 'rpi3', 'artik10', 'artik05x']:
+    if options.target_board in ['rpiv6', 'rpiv7', 'artik10', 'artik05x']:
         options.no_check_valgrind = True
 
     # Then add calculated options.
     options.host_tuple = '%s-%s' % (platform.arch(), platform.os())
-    options.target_tuple = '%s-%s' % (options.target_arch, options.target_os)
+
+    if options.target_board in ['rpiv6', 'rpiv7']:
+        options.target_tuple = '%s-%s-%s' % (options.target_arch, options.target_os, 'rpi')
+    else:
+        options.target_tuple = '%s-%s' % (options.target_arch, options.target_os)
 
     # Normalize the path of build directory.
     options.builddir = fs.normpath(options.builddir)
