@@ -16,17 +16,20 @@ runs:
   
         case "${{ inputs.toolchain }}" in
           arm-rpi)
+            TOOLCHAIN=arm-rpi-linux-gnueabihf
             TOOLCHAIN_VERSION=${INPUT_VERSION:-6.5.0}
             wget https://github.com/lightsourceengine/ci/releases/download/v2.0.0/x64-gcc-${TOOLCHAIN_VERSION}.tar.xz
             tar -xJf x64-gcc-${TOOLCHAIN_VERSION}.tar.xz
-            echo "${GITHUB_WORKSPACE}/x64-gcc-${TOOLCHAIN_VERSION}/arm-rpi-linux-gnueabihf/bin" >> $GITHUB_PATH
+            echo "${GITHUB_WORKSPACE}/x64-gcc-${TOOLCHAIN_VERSION}/${TOOLCHAIN}/bin" >> $GITHUB_PATH
           ;;
           aarch64)
+            TOOLCHAIN=aarch64-linux-gnu
+  
             sudo apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
             sudo apt-get update
         
             if [[ -z "${INPUT_VERSION}" ]]; then
-              sudo apt-get install -y g++-${TOOLCHAIN}      
+              sudo apt-get install -y g++-${TOOLCHAIN}
             else
               sudo apt-get install -y g++-${INPUT_VERSION}-${TOOLCHAIN}
             fi
