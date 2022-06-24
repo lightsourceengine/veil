@@ -227,7 +227,7 @@ def adjust_options(options):
         options.target_tuple = '%s-%s-%s' % (options.target_arch, options.target_os, 'rpi')
     elif options.target_board in ['rpiv8']:
         cmake_path = fs.join(path.PROJECT_ROOT, 'cmake', 'config', 'cross', '%s.cmake')
-        options.target_tuple = '%s-%s' % (options.target_arch, options.target_os)
+        options.target_tuple = '%s-%s-%s' % (options.target_arch, options.target_os, 'rpi')
     else:
         cmake_path = fs.join(path.PROJECT_ROOT, 'cmake', 'config', '%s.cmake')
         options.target_tuple = '%s-%s' % (options.target_arch, options.target_os)

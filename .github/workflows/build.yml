@@ -32,7 +32,7 @@ jobs:
           - os: ubuntu-18.04
             args: --jerry-heaplimit=8192 --target-os=linux --target-arch=arm --target-board=rpiv6
             build_tag: arm-linux-rpi
-            package_tag: rpi-armv6l
+            package_tag: pi-armv6l
             toolchain: arm-rpi
             toolchain_version: 8.3.0
           - os: ubuntu-18.04
@@ -43,7 +43,7 @@ jobs:
             toolchain_version: 8.3.0
           - os: ubuntu-18.04
             args: --jerry-heaplimit=8192 --target-os=linux --target-arch=aarch64 --target-board=rpiv8
-            build_tag: aarch64
+            build_tag: aarch64-linux-rpi
             package_tag: pi-arm64
             toolchain: aarch64
 
