@@ -143,7 +143,7 @@ def init_options():
         help='Specify the target architecture (default: %(default)s).')
     iotjs_group.add_argument('--target-board',
         choices=[None, 'artik10', 'stm32f4dis', 'stm32f7nucleo',
-                 'rpiv6', 'rpiv7', 'artik05x'],
+                 'rpiv6', 'rpiv7', 'rpiv8', 'artik05x'],
         default=None, help='Specify the target board (default: %(default)s).')
     iotjs_group.add_argument('--target-os',
         choices=['linux', 'darwin', 'osx', 'mock', 'nuttx', 'tizen', 'tizenrt',
@@ -216,16 +216,24 @@ def adjust_options(options):
     if options.target_os == 'darwin':
         options.no_check_valgrind = True
 
-    if options.target_board in ['rpiv6', 'rpiv7', 'artik10', 'artik05x']:
+    if options.target_board in ['rpiv6', 'rpiv7', 'rpiv8', 'artik10', 'artik05x']:
         options.no_check_valgrind = True
 
     # Then add calculated options.
     options.host_tuple = '%s-%s' % (platform.arch(), platform.os())
 
+    cmake_path = fs.join(path.PROJECT_ROOT, 'cmake', 'config', '%s.cmake')
+
     if options.target_board in ['rpiv6', 'rpiv7']:
+        cmake_path = fs.join(cmake_path, 'cross')
         options.target_tuple = '%s-%s-%s' % (options.target_arch, options.target_os, 'rpi')
+    elif options.target_board in ['rpiv8']:
+        cmake_path = fs.join(cmake_path, 'cross')
+        options.target_tuple = '%s-%s' % (options.target_arch, options.target_os)
     else:
         options.target_tuple = '%s-%s' % (options.target_arch, options.target_os)
+
+    options.cmake_toolchain_file = cmake_path % options.target_tuple
 
     # Normalize the path of build directory.
     options.builddir = fs.normpath(options.builddir)
@@ -234,9 +242,6 @@ def adjust_options(options):
                                  options.builddir,
                                  options.target_tuple,
                                  options.buildtype)
-
-    cmake_path = fs.join(path.PROJECT_ROOT, 'cmake', 'config', '%s.cmake')
-    options.cmake_toolchain_file = cmake_path % options.target_tuple
 
     # Set the default value of '--js-backtrace' if it is not defined.
     if not options.js_backtrace:

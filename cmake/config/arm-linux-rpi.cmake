@@ -1,5 +1,0 @@
-set(CMAKE_SYSTEM_NAME Linux)
-set(CMAKE_SYSTEM_PROCESSOR arm)
-
-set(CMAKE_C_COMPILER arm-rpi-linux-gnueabihf-gcc)
-set(CMAKE_C_COMPILER_WORKS TRUE)
