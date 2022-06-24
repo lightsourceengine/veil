@@ -15,11 +15,33 @@ jobs:
       matrix:
         include:
           - os: macos-10.15
-            os_alias: macos
+            args: --jerry-heaplimit=8192 --jerry-lto
+            build_tag: x86_64-darwin
+            package_tag: macos-x64
+            test: enabled
           - os: ubuntu-18.04
-            os_alias: linux
+            args: --jerry-heaplimit=8192 --jerry-lto
+            build_tag: x86_64-linux
+            package_tag: linux-x64
+            test: enabled
           - os: windows-2019
-            os_alias: windows
+            args: --jerry-heaplimit=8192
+            build_tag: x86_64-windows
+            package_tag: windows-x64
+            test: enabled
+          - os: ubuntu-18.04
+            args: --jerry-heaplimit=8192 --target-os=linux --target-arch=arm --target-board=rpiv7
+            build_tag: arm-linux-rpi
+            package_tag: pi-armv7l
+            toolchain: arm-rpi-linux-gnueabihf
+            toolchain_version: 8.3.0
+          - os: ubuntu-18.04
+            args: --jerry-heaplimit=8192 --target-os=linux --target-arch=arm --target-board=rpiv6
+            build_tag: arm-linux-rpi
+            package_tag: rpi-armv6l
+            toolchain: arm-rpi-linux-gnueabihf
+            toolchain_version: 8.3.0
+
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
@@ -30,19 +52,22 @@ jobs:
       - name: Yarn Cache
         uses: egordm/gha-yarn-node-cache@v1
 
-      - name: Build
-        if: contains(matrix.os, 'windows') == false
-        run: ./tools/build.py --n-api --no-init-submodule --jerry-heaplimit=8192 --buildtype=release --js-backtrace=ON --jerry-lto
+      - name: Install GCC Toolchain
+        if: matrix.toolchain
+        uses: ./.github/actions/gcc-toolchain
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          version: ${{ matrix.toolchain_version }}
 
-      - name: Build (Windows)
-        if: contains(matrix.os, 'windows') == true
-        run: ./tools/build.py --n-api --no-init-submodule --jerry-heaplimit=8192 --buildtype=release --js-backtrace=ON
+      - name: Build
+        run: ./tools/build.py --n-api --no-init-submodule --buildtype=release --js-backtrace=ON ${{ matrix.args }}
 
       - name: Test
+        if: matrix.test == 'enabled'
         run: ./test/runner.sh
 
       - name: Package
-        run: ./tools/create-package.sh
+        run: ./tools/create-package.sh ${{ matrix.build_tag }} ${{ matrix.package_tag }}
 
       - name: Upload Runtime
         uses: actions/upload-artifact@v3

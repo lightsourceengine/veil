@@ -1,0 +1,34 @@
+name: 'gcc-toolchain'
+description: 'Installs an x64 host gcc toolchain for cross compilation to arm. This action assumes the build is running on x64 Ubuntu 18.0.4.'
+inputs:
+  toolchain:
+    description: 'Values: arm-rpi-linux-gnueabihf, aarch64-linux-gnu, host'
+    required: true
+  version:
+    description: 'Values by arch: arm-rpi-linux-gnueabihf [4.9.4, 6.5.0, 8.3.0], aarch64-linux-gnu [8], host [5,6,7,8]'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - run: |
+        case "${{ inputs.toolchain }}" in
+          arm-rpi-linux-gnueabihf)
+            wget https://github.com/lightsourceengine/ci/releases/download/v2.0.0/x64-gcc-${{ inputs.version }}.tar.xz
+            tar -xJf x64-gcc-${{ inputs.version }}.tar.xz
+            echo "${GITHUB_WORKSPACE}/x64-gcc-${{ inputs.version }}/${{ inputs.toolchain }}/bin" >> $GITHUB_PATH
+            echo "CROSS_TOOLCHAIN_PREFIX=${{ inputs.toolchain }}" >> $GITHUB_ENV
+          ;;
+          aarch64-linux-gnu)
+            sudo apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
+            sudo apt-get update
+            sudo apt-get install -y g++-${{ inputs.version }}-${{ inputs.toolchain }}
+            echo "CROSS_TOOLCHAIN_VERSION=8" >> $GITHUB_ENV
+            echo "CROSS_TOOLCHAIN_PREFIX=${{ inputs.toolchain }}" >> $GITHUB_ENV
+          ;;
+          host)
+            sudo apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
+            sudo apt-get update
+            sudo apt-get install -y g++-${{ inputs.version }}
+          ;;
+        esac
+      shell: bash
