@@ -225,14 +225,15 @@ def adjust_options(options):
     if options.target_board in ['rpiv6', 'rpiv7']:
         cmake_path = fs.join(path.PROJECT_ROOT, 'cmake', 'config', 'cross', '%s.cmake')
         options.target_tuple = '%s-%s-%s' % (options.target_arch, options.target_os, 'rpi')
+        options.cmake_toolchain_file = cmake_path % options.target_tuple
     elif options.target_board in ['rpiv8']:
-        cmake_path = fs.join(path.PROJECT_ROOT, 'cmake', 'config', 'cross', '%s.cmake')
+        cmake_path = fs.join(path.PROJECT_ROOT, 'cmake', 'config', 'cross', '%s-%s.cmake')
         options.target_tuple = '%s-%s-%s' % (options.target_arch, options.target_os, 'rpi')
+        options.cmake_toolchain_file = cmake_path % (options.target_arch, options.target_os)
     else:
         cmake_path = fs.join(path.PROJECT_ROOT, 'cmake', 'config', '%s.cmake')
         options.target_tuple = '%s-%s' % (options.target_arch, options.target_os)
-
-    options.cmake_toolchain_file = cmake_path % options.target_tuple
+        options.cmake_toolchain_file = cmake_path % options.target_tuple
 
     # Normalize the path of build directory.
     options.builddir = fs.normpath(options.builddir)
