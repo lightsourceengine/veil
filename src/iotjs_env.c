@@ -193,11 +193,6 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
   while (i < argc && argv[i][0] == '-') {
     cur_opt = NULL;
 
-    if (strcmp(argv[i], "--version") == 0) {
-      print_version();
-      exit(0);
-    }
-
     // check if the known option is given.
     for (uint32_t k = 0; k < opts_length; k++) {
       if ((opts[k].opt && !strcmp(&argv[i][1], opts[k].opt)) ||
@@ -238,6 +233,10 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
       case OPT_NO_ADDON: {
         env->config.enable_napi = false;
       } break;
+      case OPT_VERSION_OP:
+        print_version();
+        exit(0);
+        break;
 #ifdef JERRY_DEBUGGER
       case OPT_DEBUGGER_WAIT_SOURCE:
       case OPT_DEBUG_SERVER: {

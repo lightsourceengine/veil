@@ -1,22 +1,8 @@
 {
   "modules": {
-    "iotjs_basic_modules": {
+    "veil_core_modules": {
       "import": [
         "assert",
-        "dns",
-        "http",
-        "https",
-        "http_signature",
-        "napi",
-        "net",
-        "stream",
-        "dgram",
-        "udp",
-        "module"
-      ]
-    },
-    "iotjs_core_modules": {
-      "import": [
         "buffer",
         "console",
         "constants",
@@ -24,14 +10,32 @@
         "fs",
         "fs__promises",
         "module",
-        "napi",
         "os",
         "path",
         "perf_hooks",
         "process",
+        "stream",
         "timers",
-        "tls",
         "util"
+      ]
+    },
+    "veil_napi_modules": {
+      "import": [
+        "napi"
+      ]
+    },
+    "veil_network_modules": {
+      "import": [
+        "crypto",
+        "dgram",
+        "dns",
+        "http",
+        "http_signature",
+        "https",
+        "net",
+        "dgram",
+        "udp",
+        "tls"
       ]
     },
     "assert": {
@@ -127,16 +131,18 @@
     },
     "napi": {
       "js_file": "$JS_GEN/napi.mjs",
-      "native_files": ["modules/iotjs_module_dynamicloader.c",
-                       "napi/node_api.c",
-                       "napi/node_api_async.c",
-                       "napi/node_api_env.c",
-                       "napi/node_api_function.c",
-                       "napi/node_api_lifetime.c",
-                       "napi/node_api_module.c",
-                       "napi/node_api_object_wrap.c",
-                       "napi/node_api_property.c",
-                       "napi/node_api_value.c"],
+      "native_files": [
+        "modules/iotjs_module_dynamicloader.c",
+        "napi/node_api.c",
+        "napi/node_api_async.c",
+        "napi/node_api_env.c",
+        "napi/node_api_function.c",
+        "napi/node_api_lifetime.c",
+        "napi/node_api_module.c",
+        "napi/node_api_object_wrap.c",
+        "napi/node_api_property.c",
+        "napi/node_api_value.c"
+      ],
       "init": "iotjs_init_dynamicloader"
     },
     "net": {
@@ -164,8 +170,7 @@
     },
     "stream": {
       "js_file": "$JS_GEN/stream.mjs",
-      "import": ["stream_duplex", "stream_internal", "stream_readable",
-                  "stream_writable", "util"]
+      "import": ["stream_duplex", "stream_internal", "stream_readable", "stream_writable", "util"]
     },
     "stream_duplex": {
       "js_file": "$JS_GEN/stream_duplex.mjs",

@@ -534,8 +534,7 @@ else()
     endif()
 
     foreach(NODE_SYMBOL ${NODE_SYMBOLS})
-      set(NODE_SYMBOLS_LINK_FLAGS
-          "${NODE_SYMBOLS_LINK_FLAGS}${NODE_SYMBOL_SEPARATOR}${NODE_SYMBOL}")
+      set(NODE_SYMBOLS_LINK_FLAGS "${NODE_SYMBOLS_LINK_FLAGS}${NODE_SYMBOL_SEPARATOR}${NODE_SYMBOL}")
     endforeach()
 
     iotjs_add_link_flags(${NODE_SYMBOLS_LINK_FLAGS})
