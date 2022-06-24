@@ -30,17 +30,22 @@ jobs:
             package_tag: windows-x64
             test: enabled
           - os: ubuntu-18.04
-            args: --jerry-heaplimit=8192 --target-os=linux --target-arch=arm --target-board=rpiv7
-            build_tag: arm-linux-rpi
-            package_tag: pi-armv7l
-            toolchain: arm-rpi-linux-gnueabihf
-            toolchain_version: 8.3.0
-          - os: ubuntu-18.04
             args: --jerry-heaplimit=8192 --target-os=linux --target-arch=arm --target-board=rpiv6
             build_tag: arm-linux-rpi
             package_tag: rpi-armv6l
-            toolchain: arm-rpi-linux-gnueabihf
+            toolchain: arm-rpi
             toolchain_version: 8.3.0
+          - os: ubuntu-18.04
+            args: --jerry-heaplimit=8192 --target-os=linux --target-arch=arm --target-board=rpiv7
+            build_tag: arm-linux-rpi
+            package_tag: pi-armv7l
+            toolchain: arm-rpi
+            toolchain_version: 8.3.0
+          - os: ubuntu-18.04
+            args: --jerry-heaplimit=8192 --target-os=linux --target-arch=aarch64 --target-board=rpiv8
+            build_tag: aarch64
+            package_tag: pi-arm64
+            toolchain: aarch64
 
     runs-on: ${{ matrix.os }}
     steps:
