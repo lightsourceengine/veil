@@ -13,9 +13,13 @@
 
 import { ERR_INVALID_ARG_TYPE } from './errors.mjs'
 
-export const validateObject = (value, name) => {
-  if (typeof value !== 'object' || value.constructor !== Object) {
-    throw new ERR_INVALID_ARG_TYPE(name, 'Object', value)
+export const validateObject = (value, name, options = undefined) => {
+  if ((!options?.nullable && value === null) ||
+    (!options?.allowArray && Array.isArray(value)) ||
+    (typeof value !== 'object' && (
+      !options?.allowFunction || typeof value !== 'function'
+    ))) {
+    throw new ERR_INVALID_ARG_TYPE(name, 'Object', value);
   }
 }
 

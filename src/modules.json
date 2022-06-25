@@ -9,6 +9,7 @@
         "events",
         "fs",
         "fs__promises",
+        "internal__event_target",
         "module",
         "os",
         "path",
@@ -77,6 +78,10 @@
     "events": {
       "js_file": "$JS_GEN/events.mjs",
       "import": ["util"]
+    },
+    "internal__event_target": {
+      "js_file": "$JS_GEN/internal/event_target.mjs",
+      "import": ["events"]
     },
     "fs": {
       "native_files": ["modules/iotjs_module_fs.c"],

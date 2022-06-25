@@ -30,6 +30,8 @@ const ErrorClass = (code, base, messageOrFunc) => {
 
 export const ERR_INVALID_URI = ErrorClass('ERR_INVALID_URI', URIError, 'URI malformed')
 
+export const ERR_EVENT_RECURSION = ErrorClass('ERR_EVENT_RECURSION', Error, (self, arg) => `The event "${arg}" is already being dispatched`)
+
 export const ERR_INVALID_ARG_TYPE = ErrorClass(
   'ERR_INVALID_ARG_TYPE',
   Error,

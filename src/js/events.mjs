@@ -12,14 +12,25 @@
  */
 
 import { validateFunction, validateBoolean } from './internal/validators.mjs'
-import { ERR_UNHANDLED_ERROR, ERR_OUT_OF_RANGE } from './internal/errors.mjs'
+import {
+  ERR_UNHANDLED_ERROR,
+  ERR_OUT_OF_RANGE,
+  ERR_INVALID_ARG_TYPE
+} from './internal/errors.mjs'
 
 const kCapture = Symbol('kCapture');
 const kErrorMonitor = Symbol('events.errorMonitor');
 const kRejection = Symbol.for('nodejs.rejection');
+
+const kIsEventTarget = Symbol.for('nodejs.event_target');
+const kMaxEventTargetListeners = Symbol('events.maxEventTargetListeners');
+const kMaxEventTargetListenersWarned = Symbol('events.maxEventTargetListenersWarned');
+
 const emptyObject = Object.freeze({})
 
 let defaultMaxListeners = 10;
+
+const isEventTarget = (obj) => obj?.constructor?.[kIsEventTarget]
 
 class EventEmitter {
   static defaultMaxListeners = defaultMaxListeners;
@@ -36,6 +47,29 @@ class EventEmitter {
     if (captureRejections) {
       validateBoolean(captureRejections, 'options.captureRejections');
       this[kCapture] = Boolean(captureRejections);
+    }
+  }
+
+  static setMaxListeners(n = defaultMaxListeners, ...eventTargets) {
+    if (typeof n !== 'number' || n < 0 || Number.isNaN(n))
+      throw new ERR_OUT_OF_RANGE('n', 'a non-negative number', n);
+    if (eventTargets.length === 0) {
+      defaultMaxListeners = n;
+    } else {
+      for (let i = 0; i < eventTargets.length; i++) {
+        const target = eventTargets[i];
+        if (isEventTarget(target)) {
+          target[kMaxEventTargetListeners] = n;
+          target[kMaxEventTargetListenersWarned] = false;
+        } else if (typeof target.setMaxListeners === 'function') {
+          target.setMaxListeners(n);
+        } else {
+          throw new ERR_INVALID_ARG_TYPE(
+            'eventTargets',
+            ['EventEmitter', 'EventTarget'],
+            target);
+        }
+      }
     }
   }
 

@@ -75,6 +75,7 @@ import {
 } from 'node:fs/promises'
 import http from 'node:http'
 import https from 'node:https'
+import eventTarget from 'node:internal/event_target'
 import module, {
   createRequire,
   builtinModules
@@ -150,6 +151,7 @@ const survey = {
     dgram: Object.keys(dgram),
     dns: Object.keys(dns),
     events: typeof events,
+    even_target: Object.keys(eventTarget),
     fs: Object.keys(fs),
     http: Object.keys(http),
     https: Object.keys(https),

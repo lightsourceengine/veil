@@ -32,6 +32,8 @@ const globalSpec = {
   clearTimeout: functionExists,
   clearInterval: functionExists,
   queueMicrotask: functionExists,
+  Event: functionExists,
+  EventTarget: functionExists,
   console: {
     log: functionExists,
     info: functionExists,

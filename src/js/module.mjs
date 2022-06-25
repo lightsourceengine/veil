@@ -39,7 +39,7 @@ const PRIVATE_BUILTIN_IDS = new Set(['napi', 'lexer'])
 // builtin ids importable by import statements
 const PUBLIC_BUILTIN_IDS = new Set(import.meta.native.builtins.filter(id => !PRIVATE_BUILTIN_IDS.has(id)))
 // builtin modules with known side effects to the global namespace
-const GLOBAL_POLLUTERS = [ 'buffer', 'console', 'process', 'timers' ]
+const GLOBAL_POLLUTERS = [ 'buffer', 'console', 'process', 'timers', 'internal/event_target' ]
 
 // id -> Module, where id is the absolute path to the module js file or the builtin id
 const cache = new Map()
