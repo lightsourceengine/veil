@@ -1,23 +1,21 @@
-/* Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
+/*
+ * Copyright (c) 2022 Light Source Software, LLC. All rights reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  */
 
 import StreamInternal from 'stream_internal'
 import { Duplex } from 'stream'
 import { Writable } from 'stream_writable'
-import util from 'util'
 
+const kConstructor = Symbol.for('constructor')
 
 function ReadableState(options) {
   options = options || {};
@@ -41,16 +39,20 @@ function ReadableState(options) {
 }
 
 class Readable extends StreamInternal {
+  static [kConstructor](instance, options) {
+    instance._readableState = new ReadableState(options);
+  }
+
   constructor (options) {
     super()
-    this._readableState = new ReadableState(options);
+    Readable[kConstructor](this, options)
   }
 
   read (n) {
     var state = this._readableState;
     var res;
 
-    if (!util.isNumber(n) || n > state.length) {
+    if (typeof n !== 'number' || n > state.length) {
       n = state.length;
     } else if (n < 0) {
       n = 0;
@@ -66,7 +68,7 @@ class Readable extends StreamInternal {
   }
 
   on (ev, cb) {
-    var res = super.on(this, ev, cb);
+    var res = super.on(ev, cb);
     if (ev === 'data') {
       this.resume();
     }
@@ -104,13 +106,12 @@ class Readable extends StreamInternal {
 
     if (chunk === null) {
       onEof(this);
-    } else if (!util.isString(chunk) &&
-      !Buffer.isBuffer(chunk)) {
+    } else if (typeof chunk !== 'string' && !Buffer.isBuffer(chunk)) {
       this.error(TypeError('Invalid chunk'));
     } else if (state.ended) {
       this.error(Error('stream.push() after EOF'));
     } else {
-      if (util.isString(chunk)) {
+      if (typeof chunk === 'string') {
         encoding = encoding || state.defaultEncoding;
         chunk = new Buffer(chunk, encoding);
       }
@@ -254,3 +255,16 @@ function onEof(stream) {
 
 export default Readable
 export { Readable }
+
+/*
+ * Contains code from the following projects:
+ *
+ * https://github.com/jerryscript-project/iotjs
+ * Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
+ *
+ * https://github.com/nodejs/node
+ * Copyright Node.js contributors. All rights reserved.
+ * Copyright Joyent, Inc. and other Node contributors.
+ *
+ * See the veil LICENSE file for more information.
+ */

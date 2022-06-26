@@ -1,7 +1,8 @@
-import t from'util'
-import{Readable as r}from'stream_readable'
-import{Writable as e}from'stream_writable'
-function o(t){if(!(this instanceof o))return new o(t)
-r.call(this,t),t=t||{},t._isDuplex=true,e.call(this,t)}t.inherits(o,r)
-for(var i=Object.keys(e.prototype),p=0;p<i.length;++p){var a=i[p]
-if(!o.prototype[a])o.prototype[a]=e.prototype[a]}export{o as Duplex,o as default}
+import{Readable as t}from'stream_readable'
+import{Writable as o}from'stream_writable'
+import{EventEmitter as e}from'events'
+const r=Symbol.for('constructor')
+class p extends e{constructor(e){super(),t[r](this,e),e=e||{},e._isDuplex=true,o[r](this,e)}}Object.setPrototypeOf(p.prototype,t.prototype),Object.setPrototypeOf(p,t)
+{const t=Object.keys(o.prototype)
+for(let e=0;e<t.length;e++){const r=t[e]
+if(!p.prototype[r])p.prototype[r]=o.prototype[r]}}export{p as Duplex,p as default}

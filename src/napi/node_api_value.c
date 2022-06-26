@@ -18,7 +18,7 @@
 #include "jerryscript.h"
 #include <stdlib.h>
 #include "internal/node_api_internal.h"
-#include "modules/iotjs_module_buffer.h"
+#include "modules/veil_module_buffer.h"
 
 #include <math.h>
 #include <stc/cstr.h>

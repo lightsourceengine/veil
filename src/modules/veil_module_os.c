@@ -51,10 +51,22 @@ JS_FUNCTION(os_hostname) {
 jerry_value_t veil_init_os(void) {
   jerry_value_t os = jerry_object();
 
-
   iotjs_jval_set_method(os, IOTJS_MAGIC_STRING_HOMEDIR, os_homedir);
   iotjs_jval_set_method(os, IOTJS_MAGIC_STRING_HOSTNAME, os_hostname);
   iotjs_jval_set_method(os, IOTJS_MAGIC_STRING_TMPDIR, os_tmpdir);
 
   return os;
 }
+
+/*
+ * Contains code from the following projects:
+ *
+ * https://github.com/jerryscript-project/iotjs
+ * Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
+ *
+ * https://github.com/nodejs/node
+ * Copyright Node.js contributors. All rights reserved.
+ * Copyright Joyent, Inc. and other Node contributors.
+ *
+ * See the veil LICENSE file for more information.
+ */

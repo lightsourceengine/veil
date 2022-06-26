@@ -1,22 +1,20 @@
-/* Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
+/*
+ * Copyright (c) 2022 Light Source Software, LLC. All rights reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  */
 
-import util from 'util'
 import StreamInternal from 'stream_internal'
 
-var defaultHighWaterMark = 128;
+const defaultHighWaterMark = 128;
+const kConstructor = Symbol.for('constructor')
 
 
 function WriteReq(chunk, callback) {
@@ -34,7 +32,7 @@ function WritableState(options) {
 
   // high water mark.
   // The point where write() starts returning false.
-  this.highWaterMark = (options && util.isNumber(options.highWaterMark)) ?
+  this.highWaterMark = (options && typeof options.highWaterMark === 'number') ?
     options.highWaterMark : defaultHighWaterMark;
 
   // 'true' if stream is ready to write.
@@ -58,9 +56,13 @@ function WritableState(options) {
 }
 
 class Writable extends StreamInternal {
+  static [kConstructor](instance, options) {
+    instance._writableState = new WritableState(options);
+  }
+
   constructor(options) {
     super()
-    this._writableState = new WritableState(options);
+    Writable[kConstructor](this, options)
   }
 
 // Write chunk of data to underlying system stream.
@@ -102,7 +104,7 @@ class Writable extends StreamInternal {
     if (process.platform === 'nuttx') {
       if (!state.ending) {
         var eof = '\\e\\n\\d';
-        if (util.isNullOrUndefined(chunk)) {
+        if (chunk === undefined || chunk === null) {
           chunk = eof;
         } else if (Buffer.isBuffer(chunk)) {
           chunk = Buffer.concat([chunk, new Buffer(eof)]);
@@ -112,7 +114,7 @@ class Writable extends StreamInternal {
       }
     }
 
-    if (!util.isNullOrUndefined(chunk)) {
+    if (chunk !== undefined && chunk !== null) {
       this.write(chunk);
     }
 
@@ -149,7 +151,7 @@ class Writable extends StreamInternal {
 function writeAfterEnd(stream, callback) {
   var err = new Error('write after end');
   stream.emit('error', err);
-  if (util.isFunction(callback)) {
+  if (typeof callback === 'function') {
     process.nextTick(callback.bind(undefined, err));
   }
 }
@@ -158,7 +160,7 @@ function writeAfterEnd(stream, callback) {
 function writeOrBuffer(stream, chunk, callback) {
   var state = stream._writableState;
 
-  if (util.isString(chunk)) {
+  if (typeof chunk === 'string') {
     chunk = new Buffer(chunk);
   }
 
@@ -259,3 +261,16 @@ function emitFinish(stream) {
 
 export { Writable }
 export default Writable
+
+/*
+ * Contains code from the following projects:
+ *
+ * https://github.com/jerryscript-project/iotjs
+ * Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
+ *
+ * https://github.com/nodejs/node
+ * Copyright Node.js contributors. All rights reserved.
+ * Copyright Joyent, Inc. and other Node contributors.
+ *
+ * See the veil LICENSE file for more information.
+ */

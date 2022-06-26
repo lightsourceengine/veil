@@ -22,3 +22,13 @@ const uint8_t VEIL_URL_PATH_ENCODE_SET[32];
 const uint8_t VEIL_URL_FRAGMENT_ENCODE_SET[32];
 const uint8_t VEIL_URL_C0_CONTROL_ENCODE_SET[32];
 const char VEIL_URL_HEX[1024];
+
+/*
+ * Contains code from the following projects:
+ *
+ * https://github.com/nodejs/node
+ * Copyright Node.js contributors. All rights reserved.
+ * Copyright Joyent, Inc. and other Node contributors.
+ *
+ * See the veil LICENSE file for more information.
+ */

@@ -21,9 +21,6 @@
 // https://url.spec.whatwg.org/#eof-code-point
 #define kEOL -1
 
-#define VEIL_DEFINE_CONSTANT(target, name) \
-  iotjs_jval_set_property_number(target, STRINGIFY(name), name)
-
 #define CHAR_TEST(bits, name, expr)                                           \
   static bool name(char ch) {                                                 \
     return (expr);                                                            \
@@ -1571,3 +1568,13 @@ jerry_value_t veil_init_url(void) {
 
   return url;
 }
+
+/*
+ * Contains code from the following projects:
+ *
+ * https://github.com/nodejs/node
+ * Copyright Node.js contributors. All rights reserved.
+ * Copyright Joyent, Inc. and other Node contributors.
+ *
+ * See the veil LICENSE file for more information.
+ */

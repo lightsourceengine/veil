@@ -18,11 +18,6 @@
 #include "iotjs_binding_helper.h"
 #include <stdlib.h>
 
-#define SET_CONSTANT(object, constant)                           \
-  do {                                                           \
-    iotjs_jval_set_property_number(object, #constant, constant); \
-  } while (0)
-
 typedef enum format_type_t {
   FORMAT_MODULE = 1,
   FORMAT_COMMONJS = 2,
@@ -358,11 +353,11 @@ static jerry_value_t get_builtins() {
 
 static void add_enums(jerry_value_t object) {
   // format constants
-  SET_CONSTANT(object, FORMAT_MODULE);
-  SET_CONSTANT(object, FORMAT_COMMONJS);
-  SET_CONSTANT(object, FORMAT_BUILTIN);
-  SET_CONSTANT(object, FORMAT_JSON);
-  SET_CONSTANT(object, FORMAT_ADDON);
+  VEIL_DEFINE_CONSTANT(object, FORMAT_MODULE);
+  VEIL_DEFINE_CONSTANT(object, FORMAT_COMMONJS);
+  VEIL_DEFINE_CONSTANT(object, FORMAT_BUILTIN);
+  VEIL_DEFINE_CONSTANT(object, FORMAT_JSON);
+  VEIL_DEFINE_CONSTANT(object, FORMAT_ADDON);
 
   // module state constants
   iotjs_jval_set_property_number(object, "STATE_INVALID", JERRY_MODULE_STATE_INVALID);

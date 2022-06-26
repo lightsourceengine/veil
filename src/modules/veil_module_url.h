@@ -104,3 +104,13 @@ typedef struct veil_url_host {
 
 veil_url_host veil_url_host_init();
 void veil_url_host_reset(veil_url_host* host);
+
+/*
+ * Contains code from the following projects:
+ *
+ * https://github.com/nodejs/node
+ * Copyright Node.js contributors. All rights reserved.
+ * Copyright Joyent, Inc. and other Node contributors.
+ *
+ * See the veil LICENSE file for more information.
+ */

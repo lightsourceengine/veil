@@ -32,10 +32,8 @@ uv_handle_t* iotjs_uv_handle_create(size_t handle_size,
   uv_handle_t* uv_handle = (uv_handle_t*)request_memory;
   uv_handle->data = request_memory + aligned_request_size;
 
-  IOTJS_UV_HANDLE_DATA(uv_handle)->jobject = jobject;
+  IOTJS_UV_HANDLE_DATA(uv_handle)->jobject = jerry_value_copy(jobject);
   IOTJS_UV_HANDLE_DATA(uv_handle)->on_close_cb = NULL;
-  // avoid unused result warning
-  (void)!jerry_value_copy(jobject);
 
   jerry_object_set_native_ptr(jobject, native_info, uv_handle);
 
@@ -60,6 +58,11 @@ static void iotjs_uv_handle_close_processor(uv_handle_t* handle) {
 void iotjs_uv_handle_close(uv_handle_t* handle, OnCloseHandler close_handler) {
   if (handle == NULL || uv_is_closing(handle)) {
     DDLOG("Attempt to close uninitialized or already closed handle");
+    return;
+  }
+
+  // skip any process handles, as they are handled by process_wrap
+  if (handle->type == UV_PROCESS) {
     return;
   }
 

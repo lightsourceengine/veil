@@ -1,28 +1,24 @@
-/* Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
+/*
+ * Copyright (c) 2022 Light Source Software, LLC. All rights reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  */
 
-
 import EventEmitter from 'events'
-import stream from 'stream'
-import util from 'util'
+import { Duplex } from 'stream'
 import { assert } from 'assert'
-import Tcp from 'tcp'
+import TCP from 'tcp'
+import { lookup } from 'dns'
 
-function createTCP() {
-  return new Tcp();
-}
+const { errname } = TCP
+const createTCP = () => new TCP()
 
 // Expected end message on nuttx platform.
 var expectedEnding;
@@ -48,237 +44,201 @@ function SocketState(options) {
   this.allowHalfOpen = options && options.allowHalfOpen || false;
 }
 
+class Socket extends Duplex {
+  constructor (options) {
+    super()
 
-function Socket(options) {
-  if (!(this instanceof Socket)) {
-    return new Socket(options);
-  }
+    this._timer = null;
+    this._timeout = 0;
 
-  if (options === undefined) {
-    options = {};
-  }
+    this._socketState = new SocketState(options);
 
-  stream.Duplex.call(this, options);
-
-  this._timer = null;
-  this._timeout = 0;
-
-  this._socketState = new SocketState(options);
-
-  if (options.handle) {
-    this._handle = options.handle;
-    this._handle.owner = this;
-  }
-
-  this.on('finish', onSocketFinish);
-  this.on('end', onSocketEnd);
-}
-
-
-// Socket inherits Duplex.
-util.inherits(Socket, stream.Duplex);
-
-
-Socket.prototype.connect = function() {
-  var self = this;
-  var state = self._socketState;
-
-  var args = normalizeConnectArgs(arguments);
-  var options = args[0];
-  var callback = args[1];
-
-  if (state.connecting || state.connected) {
-    return self;
-  }
-
-  if (!self._handle) {
-    self._handle = createTCP();
-    self._handle.owner = self;
-  }
-
-  if (util.isFunction(callback)) {
-    self.once('connect', callback);
-  }
-
-  resetSocketTimeout(self);
-
-  state.connecting = true;
-
-  var dns = require('dns');
-  var host = options.host ? options.host : 'localhost';
-  var port = options.port;
-  var dnsopts = {
-    family: options.family >>> 0,
-    hints: 0,
-  };
-
-  if (!util.isNumber(port) || port < 0 || port > 65535)
-    throw new RangeError('port should be >= 0 and < 65536: ' + options.port);
-
-  if (dnsopts.family !== 0 && dnsopts.family !== 4 && dnsopts.family !== 6)
-    throw new RangeError('family should be 4 or 6: ' + dnsopts.family);
-
-  self._host = host;
-  dns.lookup(host, dnsopts, function(err, ip, family) {
-    if (self._socketState.destroyed) {
-      return;
+    if (options.handle) {
+      this._handle = options.handle;
+      this._handle.owner = this;
     }
-    self.emit('lookup', err, ip, family);
 
-    if (err) {
-      process.nextTick(function() {
-        self.emit('error', err);
-        self.destroy();
-      });
-    } else {
-      resetSocketTimeout(self);
-      connect(self, ip, port);
-    }
-  });
-
-  return self;
-};
-
-
-Socket.prototype.write = function(data, callback) {
-  if (!util.isString(data) && !util.isBuffer(data)) {
-    throw new TypeError('invalid argument');
+    this.on('finish', onSocketFinish);
+    this.on('end', onSocketEnd);
   }
-  return stream.Duplex.prototype.write.call(this, data, callback);
-};
 
+  connect () {
+    var state = this._socketState;
 
-Socket.prototype._write = function(chunk, callback, afterWrite) {
-  assert(util.isBuffer(chunk));
-  assert(util.isFunction(afterWrite));
+    var args = normalizeConnectArgs(arguments);
+    var options = args[0];
+    var callback = args[1];
 
-  var self = this;
-
-  if (self.errored) {
-    process.nextTick(afterWrite, 1);
-    if (util.isFunction(callback)) {
-      process.nextTick(function(self, status) {
-        callback.call(self, status);
-      }, self, 1);
+    if (state.connecting || state.connected) {
+      return this;
     }
-  } else {
-    resetSocketTimeout(self);
 
-    self._handle.owner = self;
+    if (!this._handle) {
+      this._handle = createTCP();
+      this._handle.owner = this;
+    }
 
-    self._handle.write(chunk, function(status) {
-      afterWrite(status);
-      if (util.isFunction(callback)) {
-        callback.call(self, status);
+    if (typeof callback === 'function') {
+      this.once('connect', callback);
+    }
+
+    resetSocketTimeout(this);
+
+    state.connecting = true;
+
+    var host = options.host ? options.host : 'localhost';
+    var port = options.port;
+    var dnsopts = {
+      family: options.family >>> 0,
+      hints: 0,
+    };
+
+    if (typeof port !== 'number' || port < 0 || port > 65535)
+      throw new RangeError('port should be >= 0 and < 65536: ' + options.port);
+
+    if (dnsopts.family !== 0 && dnsopts.family !== 4 && dnsopts.family !== 6)
+      throw new RangeError('family should be 4 or 6: ' + dnsopts.family);
+
+    this._host = host;
+    lookup(host, dnsopts, (err, ip, family) => {
+      if (this._socketState.destroyed) {
+        return;
+      }
+      this.emit('lookup', err, ip, family);
+
+      if (err) {
+        process.nextTick(() => {
+          this.emit('error', err);
+          this.destroy();
+        });
+      } else {
+        resetSocketTimeout(this);
+        connect(this, ip, port);
       }
     });
-  }
-};
 
-
-Socket.prototype.end = function(data, callback) {
-  var self = this;
-  var state = self._socketState;
-
-  // end of writable stream.
-  stream.Writable.prototype.end.call(self, data, callback);
-
-  // this socket is no longer writable.
-  state.writable = false;
-};
-
-
-// Destroy this socket as fast as possible.
-Socket.prototype.destroy = function() {
-  var self = this;
-  var state = self._socketState;
-
-  if (state.destroyed) {
-    return;
+    return this;
   }
 
-  if (state.writable) {
-    self.end();
-  }
-
-  // unset timeout
-  clearSocketTimeout(self);
-
-  if (self._writableState.ended && self._handle) {
-    close(self);
-    state.destroyed = true;
-  } else {
-    self.once('finish', function() {
-      self.destroy();
-    });
-  }
-};
-
-
-// Destroy this socket as fast as possible if this socket is no longer readable.
-Socket.prototype.destroySoon = function() {
-  var self = this;
-  var state = self._socketState;
-
-  if (state.writable) {
-    self.end();
-  }
-
-  if (self._writableState.finished) {
-    self.destroy();
-  } else {
-    self.once('finish', self.destroy);
-  }
-};
-
-
-Socket.prototype.setKeepAlive = function(enable, delay) {
-  var self = this;
-  enable = +Boolean(enable);
-  if (self._handle && self._handle.setKeepAlive) {
-    self._handle.setKeepAlive(enable, ~~(delay / 1000));
-  }
-};
-
-
-Socket.prototype.address = function() {
-  if (!this._handle || !this._handle.getsockname) {
-    return {};
-  }
-  if (!this._sockname) {
-    var out = {};
-    var err = this._handle.getsockname(out);
-    if (err) return {}; // FIXME(bnoordhuis) Throw?
-    this._sockname = out;
-  }
-  return this._sockname;
-};
-
-
-Socket.prototype.setTimeout = function(msecs, callback) {
-  var self = this;
-
-  self._timeout = msecs;
-  clearSocketTimeout(self);
-
-  if (msecs === 0) {
-    if (callback) {
-      self.removeListener('timeout', callback);
+  write (data, callback) {
+    if (typeof data !== 'string' && !Buffer.isBuffer(data)) {
+      throw new TypeError('invalid argument');
     }
-  } else {
-    self._timer = setTimeout(function() {
-      self.emit('timeout');
-      clearSocketTimeout(self);
-    }, msecs);
-    if (callback) {
-      self.once('timeout', callback);
+    return super.write(data, callback);
+  }
+
+  _write (chunk, callback, afterWrite) {
+    // TODO: validate* functions?
+    assert(Buffer.isBuffer(chunk));
+    assert(typeof afterWrite === 'function');
+
+    if (this.errored) {
+      process.nextTick(afterWrite, 1);
+      if (typeof callback === 'function') {
+        process.nextTick(() => callback.call(this, 1));
+      }
+    } else {
+      resetSocketTimeout(this);
+
+      this._handle.owner = this;
+
+      this._handle.write(chunk, (status) => {
+        afterWrite(status);
+        if (typeof callback === 'function') {
+          callback.call(this, status);
+        }
+      });
     }
   }
-};
 
+  end (data, callback) {
+    var state = this._socketState;
+
+    // end of writable stream.
+    super.end(data, callback)
+
+    // this socket is no longer writable.
+    state.writable = false;
+  }
+
+  destroy () {
+    var state = this._socketState;
+
+    if (state.destroyed) {
+      return;
+    }
+
+    if (state.writable) {
+      this.end();
+    }
+
+    // unset timeout
+    clearSocketTimeout(this);
+
+    if (this._writableState.ended && this._handle) {
+      close(this);
+      state.destroyed = true;
+    } else {
+      this.once('finish', () => this.destroy());
+    }
+  }
+
+  destroySoon () {
+    var state = this._socketState;
+
+    if (state.writable) {
+      this.end();
+    }
+
+    if (this._writableState.finished) {
+      this.destroy();
+    } else {
+      this.once('finish', () => this.destroy());
+    }
+  }
+
+  setKeepAlive (enable, delay) {
+    enable = Boolean(enable);
+    if (this._handle && this._handle.setKeepAlive) {
+      this._handle.setKeepAlive(enable, ~~(delay / 1000));
+    }
+  }
+
+  address () {
+    if (!this._handle || !this._handle.getsockname) {
+      return {};
+    }
+    if (!this._sockname) {
+      var out = {};
+      var err = this._handle.getsockname(out);
+      if (err) return {}; // FIXME(bnoordhuis) Throw?
+      this._sockname = out;
+    }
+    return this._sockname;
+  }
+
+  setTimeout (msecs, callback) {
+    this._timeout = msecs;
+    clearSocketTimeout(this);
+
+    if (msecs === 0) {
+      if (callback) {
+        this.removeListener('timeout', callback);
+      }
+    } else {
+      this._timer = setTimeout(() => {
+        this.emit('timeout');
+        clearSocketTimeout(this);
+      }, msecs);
+      if (callback) {
+        this.once('timeout', callback);
+      }
+    }
+  }
+}
 
 function connect(socket, ip, port) {
-  var afterConnect = function(status) {
+  var afterConnect = (status) => {
     var state = socket._socketState;
     state.connecting = false;
 
@@ -291,24 +251,20 @@ function connect(socket, ip, port) {
       socket.emit('connect');
     } else {
       socket.destroy();
-      emitError(socket, new Error('connect failed - status: ' +
-        Tcp.errname(status)));
+      emitError(socket, Error(`connect failed - status: ${errname(status)}`));
     }
   };
 
   var err = socket._handle.connect(ip, port, afterConnect);
   if (err) {
-    emitError(socket, new Error('connect failed - status: ' +
-      Tcp.errname(err)));
+    emitError(socket, Error(`connect failed - status: ${errname(err)}`));
   }
 }
 
 
 function close(socket) {
   socket._handle.owner = socket;
-  socket._handle.onclose = function() {
-    socket.emit('close');
-  };
+  socket._handle.onclose = () => socket.emit('close')
 
   var handle = socket._handle;
   socket._handle = null;
@@ -329,7 +285,7 @@ function resetSocketTimeout(socket) {
   if (!state.destroyed) {
     // start timeout over again
     clearSocketTimeout(socket);
-    socket._timer = setTimeout(function() {
+    socket._timer = setTimeout(() => {
       socket.emit('timeout');
       clearSocketTimeout(socket);
     }, socket._timeout);
@@ -347,9 +303,7 @@ function clearSocketTimeout(socket) {
 
 function emitError(socket, err) {
   socket.errored = true;
-  stream.Duplex.prototype.end.call(socket, '', function() {
-    socket.destroy();
-  });
+  socket.end('', () => socket.destroy());
   socket._readyToWrite();
   socket.emit('error', err);
 }
@@ -377,7 +331,7 @@ function onSocketConnect(socket) {
   socket._readyToWrite();
 
   // `readStart` on next tick, after connection event handled.
-  process.nextTick(function() {
+  process.nextTick(() => {
     socket._handle.owner = socket;
     socket._handle.onread = onread;
     socket._handle.readStart();
@@ -392,7 +346,7 @@ function onread(socket, nread, isEOF, buffer) {
 
   if (isEOF) {
     // pushing readable stream null means EOF.
-    stream.Readable.prototype.push.call(socket, null);
+    socket.push(null)
 
     if (socket._readableState.length === 0) {
       // this socket is no longer readable.
@@ -402,10 +356,10 @@ function onread(socket, nread, isEOF, buffer) {
     }
   } else if (nread < 0) {
     var err = new Error('read error: ' + nread);
-    stream.Readable.prototype.error.call(socket, err);
+    socket.error(err)
   } else if (nread > 0) {
     if (process.platform !== 'nuttx') {
-      stream.Readable.prototype.push.call(socket, buffer);
+      socket.push(buffer)
       return;
     }
 
@@ -425,7 +379,7 @@ function onread(socket, nread, isEOF, buffer) {
     if (bufferLength === eofLength && eofNeeded) {
       // Socket.prototype.end with no argument
     } else {
-      stream.Readable.prototype.push.call(socket, buffer);
+      socket.push(buffer)
     }
 
     if (eofNeeded) {
@@ -445,7 +399,7 @@ function onSocketFinish() {
     return self.destroy();
   } else {
     // Readable stream alive, shutdown only outgoing stream.
-    self._handle.shutdown(function() {
+    self._handle.shutdown(() => {
       if (self._readableState.ended) {
         self.destroy();
       }
@@ -465,134 +419,115 @@ function onSocketEnd() {
   }
 }
 
-
-function Server(options, connectionListener) {
-  if (!(this instanceof Server)) {
-    return new Server(options, connectionListener);
-  }
-
-  EventEmitter.call(this);
-
-  if (util.isFunction(options)) {
-    connectionListener = options;
-    options = {};
-  } else {
-    options = options || {};
-  }
-
-  if (util.isFunction(connectionListener)) {
-    this.on('connection', connectionListener);
-  }
-
-  this._handle = null;
-  this._socketCount = 0;
-
-  this.allowHalfOpen = options.allowHalfOpen || false;
-}
-
-// Server inherits EventEmitter.
-util.inherits(Server, EventEmitter);
-
-
-// listen
-Server.prototype.listen = function() {
-  var self = this;
-
-  var args = normalizeListenArgs(arguments);
-
-  var options = args[0];
-  var callback = args[1];
-
-  var port = options.port;
-  var host = util.isString(options.host) ? options.host : '0.0.0.0';
-  var backlog = util.isNumber(options.backlog) ? options.backlog : 511;
-
-  if (!util.isNumber(port)) {
-    throw new Error('invalid argument - need port number');
-  }
-
-  // register listening event listener.
-  if (util.isFunction(callback)) {
-    self.once('listening', callback);
-  }
-
-  // Create server handle.
-  if (!self._handle) {
-    self._handle = createTCP();
-  }
-
-  // bind port
-  var err = self._handle.bind(host, port);
-  if (err) {
-    self._handle.close();
-    return self.emit('error', err);
-  }
-
-  // listen
-  self._handle.onconnection = onconnection;
-  self._handle.createTCP = createTCP;
-  self._handle.owner = self;
-
-  err = self._handle.listen(backlog);
-
-  if (err) {
-    self._handle.close();
-    return self.emit('error', err);
-  }
-
-  process.nextTick(function() {
-    if (self._handle) {
-      self.emit('listening');
-    }
-  });
-
-  return this;
-};
-
-
-Server.prototype.address = function() {
-  if (this._handle && this._handle.getsockname) {
-    var out = {};
-    this._handle.getsockname(out);
-    // TODO(bnoordhuis) Check err and throw?
-    return out;
-  }
-
-  return null;
-};
-
-
-Server.prototype.close = function(callback) {
-  if (util.isFunction(callback)) {
-    if (!this._handle) {
-      this.once('close', function() {
-        callback(new Error('Not running'));
-      });
+class Server extends EventEmitter {
+  constructor (options, connectionListener) {
+    super()
+    if (typeof options === 'function') {
+      connectionListener = options;
+      options = {};
     } else {
-      this.once('close', callback);
+      options = options || {};
     }
-  }
-  if (this._handle) {
-    this._handle.close();
+
+    if (typeof connectionListener === 'function') {
+      this.on('connection', connectionListener);
+    }
+
     this._handle = null;
-  }
-  this._emitCloseIfDrained();
-  return this;
-};
+    this._socketCount = 0;
 
-
-Server.prototype._emitCloseIfDrained = function() {
-  var self = this;
-
-  if (self._handle || self._socketCount > 0) {
-    return;
+    this.allowHalfOpen = options.allowHalfOpen || false;
   }
 
-  process.nextTick(function() {
-    self.emit('close');
-  });
-};
+  listen() {
+    var args = normalizeListenArgs(arguments);
 
+    var options = args[0];
+    var callback = args[1];
+
+    var port = options.port;
+    var host = typeof options.host === 'string' ? options.host : '0.0.0.0';
+    var backlog = typeof options.backlog === 'number' ? options.backlog : 511;
+
+    if (typeof port !== 'number') {
+      throw new Error('invalid argument - need port number');
+    }
+
+    // register listening event listener.
+    if (typeof callback === 'function') {
+      this.once('listening', callback);
+    }
+
+    // Create server handle.
+    if (!this._handle) {
+      this._handle = createTCP();
+    }
+
+    // bind port
+    var err = this._handle.bind(host, port);
+    if (err) {
+      this._handle.close();
+      return this.emit('error', err);
+    }
+
+    // listen
+    this._handle.onconnection = onconnection;
+    this._handle.createTCP = createTCP;
+    this._handle.owner = this;
+
+    err = this._handle.listen(backlog);
+
+    if (err) {
+      this._handle.close();
+      return this.emit('error', err);
+    }
+
+    process.nextTick(() => {
+      if (this._handle) {
+        this.emit('listening');
+      }
+    });
+
+    return this;
+  }
+
+  address() {
+    if (this._handle && this._handle.getsockname) {
+      var out = {};
+      this._handle.getsockname(out);
+      // TODO(bnoordhuis) Check err and throw?
+      return out;
+    }
+
+    return null;
+  }
+
+  close (callback) {
+    if (typeof callback === 'function') {
+      if (!this._handle) {
+        this.once('close', () => callback(Error('Not running')));
+      } else {
+        this.once('close', callback);
+      }
+    }
+    if (this._handle) {
+      this._handle.close();
+      this._handle = null;
+    }
+    this._emitCloseIfDrained();
+    return this;
+  }
+
+  _emitCloseIfDrained() {
+    var self = this;
+
+    if (self._handle || self._socketCount > 0) {
+      return;
+    }
+
+    process.nextTick(() => self.emit('close'));
+  }
+}
 
 // This function is called after server accepted connection request
 // from a client.
@@ -605,7 +540,7 @@ function onconnection(status, clientHandle) {
   var server = this.owner;
 
   if (status) {
-    server.emit('error', new Error('accept error: ' + Tcp.errname(status)));
+    server.emit('error', Error(`accept error: ${errname(status)}`));
     return;
   }
 
@@ -627,46 +562,43 @@ function onconnection(status, clientHandle) {
 function normalizeListenArgs(args) {
   var options = {};
 
-  if (util.isObject(args[0])) {
+  if (args[0] !== null && typeof args[0] === 'object') {
     options = args[0];
   } else {
     var idx = 0;
     options.port = args[idx++];
-    if (util.isString(args[idx])) {
+    if (typeof args[idx] === 'string') {
       options.host = args[idx++];
-    }
-    if (util.isNumber(args[idx])) {
+    } else if (typeof args[idx] === 'number') {
       options.backlog = args[idx++];
     }
   }
 
   var cb = args[args.length - 1];
 
-  return util.isFunction(cb) ? [options, cb] : [options];
+  return typeof cb === 'function' ? [options, cb] : [options];
 }
 
 
 function normalizeConnectArgs(args) {
   var options = {};
 
-  if (util.isObject(args[0])) {
+  if (args[0] !== null && typeof args[0] === 'object') {
     options = args[0];
   } else {
     options.port = args[0];
-    if (util.isString(args[1])) {
+    if (typeof args[1] === 'string') {
       options.host = args[1];
     }
   }
 
   var cb = args[args.length - 1];
 
-  return util.isFunction(cb) ? [options, cb] : [options];
+  return typeof cb === 'function' ? [options, cb] : [options];
 }
 
 
-const createServer = (options, callback) => {
-  return new Server(options, callback);
-};
+const createServer = (options, callback) => new Server(options, callback)
 
 
 // net.connect(options[, connectListener])
@@ -692,3 +624,16 @@ export default {
   Socket,
   Server
 }
+
+/*
+ * Contains code from the following projects:
+ *
+ * https://github.com/jerryscript-project/iotjs
+ * Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
+ *
+ * https://github.com/nodejs/node
+ * Copyright Node.js contributors. All rights reserved.
+ * Copyright Joyent, Inc. and other Node contributors.
+ *
+ * See the veil LICENSE file for more information.
+ */

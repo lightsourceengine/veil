@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import { ERR_INVALID_ARG_TYPE } from './errors.mjs'
+import { ERR_INVALID_ARG_TYPE, ERR_INVALID_ARG_VALUE } from './errors.mjs'
 
 export const validateObject = (value, name, options = undefined) => {
   if ((!options?.nullable && value === null) ||
@@ -39,3 +39,35 @@ export const validateBoolean = (value, name) => {
   if (typeof value !== 'boolean')
     throw new ERR_INVALID_ARG_TYPE(name, 'boolean', value);
 }
+
+export const validateOneOf = (value, name, oneOf) => {
+  if (!oneOf.includes(value)) {
+    const allowed = oneOf.map((v) => (typeof v === 'string' ? `'${v}'` : String(v))).join(', ');
+    throw new ERR_INVALID_ARG_VALUE(name, value, `'must be one of: ${allowed}`);
+  }
+}
+
+export const validateArray = (value, name, minLength = 0) => {
+  if (!Array.isArray(value)) {
+    throw new ERR_INVALID_ARG_TYPE(name, 'Array', value);
+  }
+  if (value.length < minLength) {
+    throw new ERR_INVALID_ARG_VALUE(name, value, `must be longer than ${minLength}`);
+  }
+}
+
+export const validateAbortSignal = (signal, name) => {
+  if (signal !== undefined && (signal === null || typeof signal !== 'object' || !('aborted' in signal))) {
+    throw new ERR_INVALID_ARG_TYPE(name, 'AbortSignal', signal);
+  }
+}
+
+/*
+ * Contains code from the following projects:
+ *
+ * https://github.com/nodejs/node
+ * Copyright Node.js contributors. All rights reserved.
+ * Copyright Joyent, Inc. and other Node contributors.
+ *
+ * See the veil LICENSE file for more information.
+ */

@@ -133,4 +133,7 @@
 #define PATH_MAX_BYTES (MAX_PATH * 4)
 #endif
 
+#define VEIL_DEFINE_CONSTANT(target, name) \
+  iotjs_jval_set_property_number(target, #name, name)
+
 #endif /* IOTJS_DEF_H */

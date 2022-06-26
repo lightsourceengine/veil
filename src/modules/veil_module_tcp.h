@@ -11,32 +11,24 @@
  * specific language governing permissions and limitations under the License.
  */
 
-const { homedir, hostname, tmpdir } = import.meta.native
+#pragma once
 
-const platform = () => process.platform
-const arch = () => process.arch
-const EOL = process.platform === 'win32' ? '\r\n' : '\n'
+#include "iotjs_binding.h"
 
-export default {
-  EOL,
-  arch,
-  homedir,
-  hostname,
-  platform,
-  tmpdir
-}
 
-export {
-  EOL,
-  arch,
-  homedir,
-  hostname,
-  platform,
-  tmpdir
-}
+typedef struct sockaddr sockaddr;
+typedef struct sockaddr_in sockaddr_in;
+typedef struct sockaddr_in6 sockaddr_in6;
+typedef struct sockaddr_storage sockaddr_storage;
+
+
+void address_to_js(jerry_value_t obj, const sockaddr* addr);
 
 /*
  * Contains code from the following projects:
+ *
+ * https://github.com/jerryscript-project/iotjs
+ * Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
  *
  * https://github.com/nodejs/node
  * Copyright Node.js contributors. All rights reserved.

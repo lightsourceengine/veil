@@ -11,36 +11,10 @@
  * specific language governing permissions and limitations under the License.
  */
 
-const { homedir, hostname, tmpdir } = import.meta.native
+import { spawn } from 'child_process'
+import { fail } from 'assert'
 
-const platform = () => process.platform
-const arch = () => process.arch
-const EOL = process.platform === 'win32' ? '\r\n' : '\n'
+const child = spawn(process.execPath, ['--version'], { stdio: 'inherit' });
 
-export default {
-  EOL,
-  arch,
-  homedir,
-  hostname,
-  platform,
-  tmpdir
-}
-
-export {
-  EOL,
-  arch,
-  homedir,
-  hostname,
-  platform,
-  tmpdir
-}
-
-/*
- * Contains code from the following projects:
- *
- * https://github.com/nodejs/node
- * Copyright Node.js contributors. All rights reserved.
- * Copyright Joyent, Inc. and other Node contributors.
- *
- * See the veil LICENSE file for more information.
- */
+child.on('error', (err) => fail(`Failed with ${err}`))
+child.on('exit', (exitCode) => console.log(`Child exited with code: ${exitCode}`));

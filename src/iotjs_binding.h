@@ -64,6 +64,7 @@ jerry_value_t iotjs_jval_get_property_by_index(jerry_value_t jarr,
                                                uint32_t idx);
 cstr iotjs_jval_get_property_as_string(jerry_value_t jobj, const char* name);
 int32_t iotjs_jval_get_property_as_int32(jerry_value_t jobj, const char* name, int32_t fallback);
+bool iotjs_jval_get_property_as_bool(jerry_value_t jobj, const char* name);
 
 /* Note:
  *      Defines started with underscores should not be used

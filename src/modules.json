@@ -4,18 +4,22 @@
       "import": [
         "assert",
         "buffer",
+        "child_process",
         "console",
         "constants",
+        "dns",
         "events",
         "fs",
         "fs__promises",
         "internal__event_target",
         "module",
+        "net",
         "os",
         "path",
         "perf_hooks",
         "process",
         "stream",
+        "tcp",
         "timers",
         "util"
       ]
@@ -29,11 +33,9 @@
       "import": [
         "crypto",
         "dgram",
-        "dns",
         "http",
         "http_signature",
         "https",
-        "net",
         "dgram",
         "udp",
         "tls"
@@ -44,34 +46,40 @@
       "import": ["util"]
     },
     "buffer": {
-      "native_files": ["modules/iotjs_module_buffer.c"],
-      "init": "iotjs_init_buffer",
+      "native_files": ["modules/veil_module_buffer.c"],
+      "init": "veil_init_buffer",
       "js_file": "$JS_GEN/buffer.mjs",
       "import": ["util"]
     },
     "console": {
-      "native_files": ["modules/iotjs_module_console.c"],
-      "init": "iotjs_init_console",
+      "native_files": ["modules/veil_module_console.c"],
+      "init": "veil_init_console",
       "js_file": "$JS_GEN/console.mjs",
       "import": ["util"]
     },
+    "child_process": {
+      "import": ["net", "events", "constants", "url"],
+      "native_files": ["modules/veil_module_child_process.c"],
+      "init": "veil_init_child_process",
+      "js_file": "$JS_GEN/child_process.mjs"
+    },
     "constants": {
       "js_file": "$JS_GEN/constants.mjs",
-      "native_files": ["modules/iotjs_module_constants.c"],
-      "init": "iotjs_init_constants"
+      "native_files": ["modules/veil_module_constants.c"],
+      "init": "veil_init_constants"
     },
     "crypto": {
       "js_file": "$JS_GEN/crypto.mjs",
-      "native_files": ["modules/iotjs_module_crypto.c"],
-      "init": "iotjs_init_crypto"
+      "native_files": ["modules/veil_module_crypto.c"],
+      "init": "veil_init_crypto"
     },
     "dgram": {
       "js_file": "$JS_GEN/dgram.mjs",
       "import": ["events", "udp", "util"]
     },
     "dns": {
-      "native_files": ["modules/iotjs_module_dns.c"],
-      "init": "iotjs_init_dns",
+      "native_files": ["modules/veil_module_dns.c"],
+      "init": "veil_init_dns",
       "js_file": "$JS_GEN/dns.mjs",
       "import": ["util"]
     },
@@ -84,8 +92,8 @@
       "import": ["events"]
     },
     "fs": {
-      "native_files": ["modules/iotjs_module_fs.c"],
-      "init": "iotjs_init_fs",
+      "native_files": ["modules/veil_module_fs.c"],
+      "init": "veil_init_fs",
       "js_file": "$JS_GEN/fs.mjs",
       "import": ["constants", "util"]
     },
@@ -123,8 +131,8 @@
     },
     "http_parser": {
       "js_file": "$JS_GEN/http_parser.mjs",
-      "native_files": ["modules/iotjs_module_http_parser.c"],
-      "init": "iotjs_init_http_parser"
+      "native_files": ["modules/veil_module_http_parser.c"],
+      "init": "veil_init_http_parser"
     },
     "https": {
       "js_file": "$JS_GEN/https.mjs",
@@ -137,7 +145,7 @@
     "napi": {
       "js_file": "$JS_GEN/napi.mjs",
       "native_files": [
-        "modules/iotjs_module_dynamicloader.c",
+        "modules/veil_module_dynamicloader.c",
         "napi/node_api.c",
         "napi/node_api_async.c",
         "napi/node_api_env.c",
@@ -148,7 +156,7 @@
         "napi/node_api_property.c",
         "napi/node_api_value.c"
       ],
-      "init": "iotjs_init_dynamicloader"
+      "init": "veil_init_dynamicloader"
     },
     "net": {
       "js_file": "$JS_GEN/net.mjs",
@@ -170,8 +178,8 @@
     },
     "process": {
       "js_file": "$JS_GEN/process.mjs",
-      "native_files": ["modules/iotjs_module_process.c"],
-      "init": "iotjs_init_process"
+      "native_files": ["modules/veil_module_process.c"],
+      "init": "veil_init_process"
     },
     "stream": {
       "js_file": "$JS_GEN/stream.mjs",
@@ -195,25 +203,25 @@
     },
     "tcp": {
       "js_file": "$JS_GEN/tcp.mjs",
-      "native_files": ["modules/iotjs_module_tcp.c"],
-      "init": "iotjs_init_tcp"
+      "native_files": ["modules/veil_module_tcp.c"],
+      "init": "veil_init_tcp"
     },
     "timers": {
-      "native_files": ["modules/iotjs_module_timer.c"],
-      "init": "iotjs_init_timer",
+      "native_files": ["modules/veil_module_timer.c"],
+      "init": "veil_init_timer",
       "js_file": "$JS_GEN/timers.mjs",
       "import": ["util"]
     },
     "tls": {
-      "native_files": ["modules/iotjs_module_tls.c"],
-      "init": "iotjs_init_tls",
+      "native_files": ["modules/veil_module_tls.c"],
+      "init": "veil_init_tls",
       "js_file": "$JS_GEN/tls.mjs",
       "cmakefile": "../cmake/mbedtls.cmake",
       "import": ["net", "util"]
     },
     "udp": {
-      "native_files": ["modules/iotjs_module_udp.c"],
-      "init": "iotjs_init_udp",
+      "native_files": ["modules/veil_module_udp.c"],
+      "init": "veil_init_udp",
       "js_file": "$JS_GEN/udp.mjs"
     },
     "url": {

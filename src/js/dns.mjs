@@ -1,19 +1,15 @@
-/* Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
+/*
+ * Copyright (c) 2022 Light Source Software, LLC. All rights reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  */
-
-import util from 'util'
 
 const { native } = import.meta
 // uv_getaddrinfo flags
@@ -25,22 +21,22 @@ const lookup = (hostname, options, callback) => {
   var family = -1;
 
   // Parse arguments
-  if (!util.isString(hostname)) {
+  if (typeof hostname !== 'string') {
     throw TypeError('invalid argument: hostname must be a string');
   }
-  if (util.isFunction(options)) {
+  if (typeof options === 'string') {
     callback = options;
     family = 0;
-  } else if (!util.isFunction(callback)) {
+  } else if (typeof callback !== 'function') {
     throw TypeError('invalid argument: callback must be passed');
-  } else if (util.isObject(options)) {
+  } else if (options !== null && typeof options === 'object') {
     hints = options.hints >>> 0;
     family = options.family >>> 0;
 
     if (hints < 0 || hints > (ADDRCONFIG | V4MAPPED)) {
       throw new TypeError('invalid argument: invalid hints flags');
     }
-  } else if (util.isNumber(options)) {
+  } else if (typeof options === 'number') {
     family = ~~options;
   } else {
     throw TypeError(
@@ -70,3 +66,16 @@ export default {
   ADDRCONFIG,
   V4MAPPED
 }
+
+/*
+ * Contains code from the following projects:
+ *
+ * https://github.com/jerryscript-project/iotjs
+ * Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
+ *
+ * https://github.com/nodejs/node
+ * Copyright Node.js contributors. All rights reserved.
+ * Copyright Joyent, Inc. and other Node contributors.
+ *
+ * See the veil LICENSE file for more information.
+ */

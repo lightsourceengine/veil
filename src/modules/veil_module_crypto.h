@@ -11,32 +11,18 @@
  * specific language governing permissions and limitations under the License.
  */
 
-const { homedir, hostname, tmpdir } = import.meta.native
+#pragma once
 
-const platform = () => process.platform
-const arch = () => process.arch
-const EOL = process.platform === 'win32' ? '\r\n' : '\n'
-
-export default {
-  EOL,
-  arch,
-  homedir,
-  hostname,
-  platform,
-  tmpdir
-}
-
-export {
-  EOL,
-  arch,
-  homedir,
-  hostname,
-  platform,
-  tmpdir
-}
+size_t iotjs_sha1_encode(unsigned char **out_buff, const unsigned char *in_buff,
+                         size_t buff_len);
+size_t iotjs_sha256_encode(unsigned char **out_buff,
+                           const unsigned char *in_buff, size_t buff_len);
 
 /*
  * Contains code from the following projects:
+ *
+ * https://github.com/jerryscript-project/iotjs
+ * Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
  *
  * https://github.com/nodejs/node
  * Copyright Node.js contributors. All rights reserved.

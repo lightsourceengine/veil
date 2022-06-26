@@ -193,3 +193,13 @@ function unescape(s, decodeSpaces = false) {
 }
 
 export { encodeStr, hexTable, isHexTable, unescape }
+
+/*
+ * Contains code from the following projects:
+ *
+ * https://github.com/nodejs/node
+ * Copyright Node.js contributors. All rights reserved.
+ * Copyright Joyent, Inc. and other Node contributors.
+ *
+ * See the veil LICENSE file for more information.
+ */

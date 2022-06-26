@@ -449,3 +449,13 @@ const uint8_t VEIL_URL_QUERY_ENCODE_SET_SPECIAL[32] = {
   // F8     F9     FA     FB     FC     FD     FE     FF
   0x01 | 0x02 | 0x04 | 0x08 | 0x10 | 0x20 | 0x40 | 0x80
 };
+
+/*
+ * Contains code from the following projects:
+ *
+ * https://github.com/nodejs/node
+ * Copyright Node.js contributors. All rights reserved.
+ * Copyright Joyent, Inc. and other Node contributors.
+ *
+ * See the veil LICENSE file for more information.
+ */

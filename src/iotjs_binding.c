@@ -17,7 +17,7 @@
 #include "iotjs_def.h"
 #include "iotjs_binding.h"
 #include "iotjs_js.h"
-#include "modules/iotjs_module_buffer.h"
+#include "modules/veil_module_buffer.h"
 
 #include <string.h>
 
@@ -161,7 +161,7 @@ jerry_value_t iotjs_jval_as_function(jerry_value_t jval) {
 
 
 bool iotjs_jval_set_prototype(jerry_value_t jobj, jerry_value_t jproto) {
-  jerry_value_t ret = jerry_object_set_proto(jobj, jproto);
+  jerry_value_t ret = jerry_object_set_sz(jobj, "prototype", jproto);
   bool error_found = jerry_value_is_error(ret);
   jerry_value_free(ret);
 
@@ -319,6 +319,15 @@ int32_t iotjs_jval_get_property_as_int32(jerry_value_t jobj, const char* name, i
   } else {
     result = fallback;
   }
+
+  jerry_value_free(value);
+
+  return result;
+}
+
+bool iotjs_jval_get_property_as_bool(jerry_value_t jobj, const char* name) {
+  jerry_value_t value = iotjs_jval_get_property(jobj, name);
+  bool result = jerry_value_to_boolean(value);
 
   jerry_value_free(value);
 

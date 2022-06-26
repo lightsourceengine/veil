@@ -11,18 +11,32 @@
 * specific language governing permissions and limitations under the License.
 */
 
+import { assert } from 'assert'
+
 // Dumps the global variables and their values to JSON. Can be run on node as well.
 
 const functionExists = (name, value) => {
-  return typeof value === 'function'
+  return assert(
+    typeof value === 'function',
+    `Expected ${name} in global namespace to be a function got ${typeof value}`)
+}
+
+const classExists = (name, value) => {
+  return assert(
+    typeof value === 'function',
+    `Expected ${name} in global namespace to be a class got ${typeof value}`)
 }
 
 const exists = (name, value) => {
-  return typeof value !== 'undefined'
+  return assert(
+    typeof value !== 'undefined',
+    `Expected ${name} in global namespace to be present got undefined`)
 }
 
 const stringValue = (name, value) => {
-  return typeof value === 'string'
+  return assert(
+    typeof value === 'string',
+    `Expected ${name} in global namespace to be a string got ${typeof value}`)
 }
 
 const globalSpec = {
@@ -32,8 +46,10 @@ const globalSpec = {
   clearTimeout: functionExists,
   clearInterval: functionExists,
   queueMicrotask: functionExists,
-  Event: functionExists,
-  EventTarget: functionExists,
+  Event: classExists,
+  EventTarget: classExists,
+  URL: classExists,
+  URLSearchParams: classExists,
   console: {
     log: functionExists,
     info: functionExists,
@@ -60,9 +76,6 @@ const globalSpec = {
     nextTick: functionExists,
     pid: exists,
     platform: stringValue,
-    stdin: exists,
-    stdout: exists,
-    stderr: exists,
     version: stringValue,
     versions: exists,
   }
@@ -79,5 +92,3 @@ const evaluate = (object, objectName, objectSpec) => {
 }
 
 evaluate(global, 'global', globalSpec)
-
-console.log(JSON.stringify(globalSpec, null, 2))

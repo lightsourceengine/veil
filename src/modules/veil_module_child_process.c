@@ -11,28 +11,17 @@
  * specific language governing permissions and limitations under the License.
  */
 
-const { homedir, hostname, tmpdir } = import.meta.native
+#include "iotjs_def.h"
+#include "veil_handle_wrap.h"
+#include "veil_pipe_wrap.h"
 
-const platform = () => process.platform
-const arch = () => process.arch
-const EOL = process.platform === 'win32' ? '\r\n' : '\n'
+jerry_value_t veil_init_child_process(void) {
+  jerry_value_t child_process = jerry_object();
 
-export default {
-  EOL,
-  arch,
-  homedir,
-  hostname,
-  platform,
-  tmpdir
-}
+  iotjs_jval_set_property_jval(child_process, "Process", veil_process_wrap_constructor());
+  iotjs_jval_set_property_jval(child_process, "Pipe", veil_pipe_wrap_constructor());
 
-export {
-  EOL,
-  arch,
-  homedir,
-  hostname,
-  platform,
-  tmpdir
+  return child_process;
 }
 
 /*

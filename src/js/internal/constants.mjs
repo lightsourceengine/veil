@@ -24,3 +24,13 @@ export const CHAR_AMPERSAND = 38
 export const CHAR_EQUAL = 61
 export const CHAR_PERCENT = 37
 export const CHAR_PLUS = 43
+
+/*
+ * Contains code from the following projects:
+ *
+ * https://github.com/nodejs/node
+ * Copyright Node.js contributors. All rights reserved.
+ * Copyright Joyent, Inc. and other Node contributors.
+ *
+ * See the veil LICENSE file for more information.
+ */

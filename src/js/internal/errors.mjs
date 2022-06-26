@@ -32,6 +32,10 @@ export const ERR_INVALID_URI = ErrorClass('ERR_INVALID_URI', URIError, 'URI malf
 
 export const ERR_EVENT_RECURSION = ErrorClass('ERR_EVENT_RECURSION', Error, (self, arg) => `The event "${arg}" is already being dispatched`)
 
+export const ERR_IPC_ONE_PIPE = ErrorClass('ERR_IPC_ONE_PIPE', Error, 'Child process can have only one IPC pipe');
+
+export const ERR_IPC_SYNC_FORK = ErrorClass('ERR_IPC_SYNC_FORK', Error, 'IPC cannot be used with synchronous forks');
+
 export const ERR_INVALID_ARG_TYPE = ErrorClass(
   'ERR_INVALID_ARG_TYPE',
   Error,
@@ -164,6 +168,40 @@ export const ERR_OUT_OF_RANGE = ErrorClass(
   }
 )
 
+export const ERR_INVALID_SYNC_FORK_INPUT = ErrorClass(
+  'ERR_INVALID_SYNC_FORK_INPUT',
+  TypeError,
+  (self, arg) => `Asynchronous forks do not support Buffer, TypedArray, DataView or string input: ${arg}`
+)
+
+export const ERR_UNKNOWN_SIGNAL = ErrorClass(
+  'ERR_UNKNOWN_SIGNAL',
+  TypeError,
+  (self, arg) => `Unknown signal: ${arg}`
+);
+
+// TODO: this is a quick and dirty impl. NodeJS has a native map of error code -> messages
+export const errnoException = (err, syscall, original) => {
+  const ex = new Error(`${syscall} (${err}): ${original}`);
+
+  ex.errno = err;
+  ex.code = err.toString();
+  ex.syscall = syscall;
+
+  return ex;
+}
+
+// Node uses an AbortError that isn't exactly the same as the DOMException
+// to make usage of the error in userland and readable-stream easier.
+// It is a regular error with `.code` and `.name`.
+export class AbortError extends Error {
+  constructor(message = 'The operation was aborted') {
+    super(message);
+    this.code = 'ABORT_ERR';
+    this.name = 'AbortError';
+  }
+}
+
 // Only use this for integers! Decimal numbers do not work with this function.
 const addNumericalSeparator = (val) => {
   let res = '';
@@ -174,3 +212,13 @@ const addNumericalSeparator = (val) => {
   }
   return `${val.slice(0, i)}${res}`;
 }
+
+/*
+ * Contains code from the following projects:
+ *
+ * https://github.com/nodejs/node
+ * Copyright Node.js contributors. All rights reserved.
+ * Copyright Joyent, Inc. and other Node contributors.
+ *
+ * See the veil LICENSE file for more information.
+ */
