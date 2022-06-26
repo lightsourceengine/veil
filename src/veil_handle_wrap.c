@@ -22,8 +22,8 @@
 #define STATE_CLOSED 3
 
 static void finalize(void *native_p, struct jerry_object_native_info_t *info_p);
-static void on_close(uv_handle_t* handle);
-static void on_exit(uv_process_t* handle, int64_t exit_status, int term_signal);
+static void on_handle_close(uv_handle_t* handle);
+static void on_process_exit(uv_process_t* handle, int64_t exit_status, int term_signal);
 static const char* signo_string(int32_t signo);
 static char** to_cstring_array(jerry_value_t string_array);
 static void free_cstring_array(char** cstring_array);
@@ -60,7 +60,7 @@ int32_t veil_process_wrap_kill(veil_process_wrap* p, int32_t signal) {
 
 void veil_process_wrap_close(veil_process_wrap* p) {
   if (p->state == STATE_INITIALIZED) {
-    uv_close(GET_UV_HANDLE(p), &on_close);
+    uv_close(GET_UV_HANDLE(p), &on_handle_close);
     p->state = STATE_CLOSING;
   }
 }
@@ -89,7 +89,7 @@ static void finalize(void* native_p, jerry_object_native_info_t* info_p) {
   free(p);
 }
 
-static void on_close(uv_handle_t* handle) {
+static void on_handle_close(uv_handle_t* handle) {
   veil_process_wrap* p = (veil_process_wrap*)handle;
 
   IOTJS_ASSERT(p != NULL);
@@ -103,7 +103,7 @@ static void on_close(uv_handle_t* handle) {
   jerry_value_free(self);
 }
 
-static void on_exit(uv_process_t* handle, int64_t exit_status, int term_signal) {
+static void on_process_exit(uv_process_t* handle, int64_t exit_status, int term_signal) {
   veil_process_wrap* p = (veil_process_wrap*)handle;
   jerry_value_t callback = iotjs_jval_get_property(p->self, "onexit");
 
@@ -309,7 +309,7 @@ JS_FUNCTION(js_spawn) {
 
   memset(&options, 0, sizeof(uv_process_options_t));
 
-  options.exit_cb = on_exit;
+  options.exit_cb = on_process_exit;
 
   // options.uid
   ivalue = iotjs_jval_get_property_as_int32(joptions, "uid", 0);
