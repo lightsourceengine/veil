@@ -34,6 +34,7 @@ typedef struct veil_process_wrap {
   uv_process_t handle;
   int32_t state;
   jerry_value_t self;
+  int32_t user_refs;
 } veil_process_wrap;
 
 veil_process_wrap* veil_process_wrap_new() {
@@ -49,6 +50,7 @@ int32_t veil_process_wrap_spawn(veil_process_wrap* p, uv_loop_t* loop, jerry_val
   int32_t err = uv_spawn(loop, &p->handle, options);
 
   p->self = jerry_value_copy(self);
+  p->user_refs = 1;
   p->state = STATE_INITIALIZED;
 
   return err;
@@ -66,17 +68,21 @@ void veil_process_wrap_close(veil_process_wrap* p) {
 }
 
 bool veil_process_wrap_has_ref(veil_process_wrap* p) {
-  return true; // p->state != STATE_CLOSED && uv_has_ref((uv_handle_t*)&p->handle);
+  return p->state != STATE_CLOSED && p->user_refs > 0;
+  // TODO: uv_has_ref() not implemented in libtuv
+  // p->state != STATE_CLOSED && uv_has_ref((uv_handle_t*)&p->handle);
 }
 
 void veil_process_wrap_ref(veil_process_wrap* p) {
   if (p->state == STATE_INITIALIZED) {
+    p->user_refs++;
     uv_ref((uv_handle_t*)&p->handle);
   }
 }
 
 void veil_process_wrap_unref(veil_process_wrap* p) {
   if (p->state == STATE_INITIALIZED) {
+    p->user_refs--;
     uv_unref(GET_UV_HANDLE(p));
   }
 }

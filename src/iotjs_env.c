@@ -27,6 +27,7 @@ typedef enum {
   OPT_EXPOSE_GC,
   OPT_NO_ADDON,
   OPT_VERSION_OP,
+  OPT_EXPOSE_INTERNALS_OP,
 #ifdef JERRY_DEBUGGER
   OPT_DEBUG_SERVER,
   OPT_DEBUGGER_WAIT_SOURCE,
@@ -134,6 +135,11 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
         .longopt = "version",
         .help = "print veil version",
     },
+    {
+        .id = OPT_EXPOSE_INTERNALS_OP,
+        .longopt = "expose-internals",
+        .help = "enable importing of internal builtin modules"
+    }
 #if defined(JERRY_MEM_STATS)
     {
         .id = OPT_MEM_STATS,
@@ -237,6 +243,11 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
         print_version();
         exit(0);
         break;
+      case OPT_EXPOSE_INTERNALS_OP: {
+        // internal builtins, such as internal/event_target are always exposed. the are is
+        // accepted to maintain a CL compatibility with node
+        break;
+      }
 #ifdef JERRY_DEBUGGER
       case OPT_DEBUGGER_WAIT_SOURCE:
       case OPT_DEBUG_SERVER: {

@@ -111,11 +111,19 @@ function clearTimeoutBase(timeoutType, timeout) {
   }
 }
 
-const setTimeout = global.setTimeout = timeoutConfigurator.bind(undefined, TIMER_TYPES.setTimeout)
-const setInterval = global.setInterval = timeoutConfigurator.bind(undefined, TIMER_TYPES.setInterval)
-const setImmediate = global.setImmediate = timeoutConfigurator.bind(undefined, TIMER_TYPES.setImmediate)
-const clearTimeout = global.clearTimeout = clearTimeoutBase.bind(undefined, 'clearTimeout')
-const clearInterval = global.clearInterval = clearTimeoutBase.bind(undefined, 'clearInterval')
+const setTimeout = timeoutConfigurator.bind(undefined, TIMER_TYPES.setTimeout)
+const setInterval = timeoutConfigurator.bind(undefined, TIMER_TYPES.setInterval)
+const setImmediate = timeoutConfigurator.bind(undefined, TIMER_TYPES.setImmediate)
+const clearTimeout = clearTimeoutBase.bind(undefined, 'clearTimeout')
+const clearInterval = clearTimeoutBase.bind(undefined, 'clearInterval')
+
+Object.assign(global, {
+  setTimeout,
+  setInterval,
+  setImmediate,
+  clearTimeout,
+  clearInterval
+})
 
 export {
   setTimeout,

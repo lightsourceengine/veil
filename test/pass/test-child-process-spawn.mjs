@@ -12,9 +12,21 @@
  */
 
 import { spawn } from 'child_process'
-import { fail } from 'assert'
+import { fail, assert } from 'assert'
 
-const child = spawn(process.execPath, ['--version'], { stdio: 'inherit' });
+const testSpawn = (command, args, options = undefined) => {
+  const child = spawn(command, args, options);
 
-child.on('error', (err) => fail(`Failed with ${err}`))
-child.on('exit', (exitCode) => console.log(`Child exited with code: ${exitCode}`));
+  child.on('error', (err) => fail(`Failed with ${err}`))
+  child.on('exit', (exitCode) => assert(exitCode === 1));
+}
+
+testSpawn(process.execPath, ['--version'], { stdio: 'inherit' });
+
+testSpawn(process.execPath, ['--version'], { stdio: [ 0, 1, 2 ] });
+
+testSpawn(process.execPath, ['--version'], { stdio: [ 'inherit', 'inherit', 'inherit' ] });
+
+testSpawn(process.execPath, ['--version'], { stdio: 'ignore' });
+
+testSpawn(process.execPath, ['--version'], { stdio: [ 'ignore', 'ignore', 'ignore' ] });
