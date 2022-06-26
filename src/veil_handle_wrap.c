@@ -11,8 +11,9 @@
 * specific language governing permissions and limitations under the License.
  */
 
-#include "veil_handle_wrap.h"
 #include "iotjs_def.h"
+
+#include "veil_handle_wrap.h"
 
 #define GET_UV_HANDLE(PROCESS) (uv_handle_t*)&(PROCESS)->handle
 
