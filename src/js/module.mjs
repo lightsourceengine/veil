@@ -297,7 +297,7 @@ const bootstrap = () => {
   path = loadBuiltin('path').default
   url = loadBuiltin('url').default
 
-  on('import', (specifier, referrerId) => exports(load(specifier, cache.get(referrerId), resolve)))
+  on('import', (specifier, referrerId) => load(specifier, cache.get(referrerId), resolve))
 
   on('destroy', () => {
     cache.clear()

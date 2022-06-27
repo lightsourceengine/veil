@@ -35,7 +35,9 @@ const main = async () => {
   try {
     await import(test)
   } catch (e) {
-    // TODO: import is throwing a spurious error, but the code is evaluating.. needs investigation
+    console.error(`Fatal Error: import('${test}')`)
+    console.error(e)
+    process.exit(1)
   }
 
   console.log(testName)

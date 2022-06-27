@@ -37,5 +37,5 @@ if(!t)return process._uncaughtException(Error('missing main script file argument
 const{isAbsolute:r,sep:i}=e
 if(!r(t)&&!t.startsWith('.'))t=`.${i}${t}`
 try{M(t,null,b)}catch(e){process._onUncaughtException(e)}},L=()=>{const{emitReady:r,on:i}=import.meta.native
-_(),y.forEach(R),e=R('path').default,t=R('url').default,i('import',((e,t)=>F(M(e,S.get(t),b)))),i('destroy',(()=>{S.clear(),A.clear(),e=t=null})),r()}
+_(),y.forEach(R),e=R('path').default,t=R('url').default,i('import',((e,t)=>M(e,S.get(t),b))),i('destroy',(()=>{S.clear(),A.clear(),e=t=null})),r()}
 L(),J()
