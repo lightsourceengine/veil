@@ -69,7 +69,7 @@ jobs:
 
       - name: Test
         if: matrix.host_veil
-        run: ${{matrix.host_veil}} tools/test/test-runner.mjs
+        run: ${{matrix.host_veil}} tools/js/test-runner.mjs
 
       - name: Package
         run: ./tools/create-package.sh ${{ matrix.build_tag }} ${{ matrix.package_tag }}

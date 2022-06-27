@@ -17,7 +17,7 @@ import { normalize, join, extname } from 'node:path'
 import { spawn } from 'node:child_process'
 
 const sourceRoot = normalize(join(fileURLToPath(import.meta.url), '..', '..', '..'))
-const container = join(sourceRoot, 'tools', 'test', 'lib', 'test-container.mjs')
+const container = join(sourceRoot, 'tools', 'js', 'lib', 'test-container.mjs')
 
 const veil = async (args, options) => {
   const child = spawn(process.execPath, args, options)

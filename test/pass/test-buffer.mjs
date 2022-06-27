@@ -29,5 +29,5 @@ test('has static byteLength()', () => {
 })
 
 test('has static concat()', () => {
-  assert(typeof BufferClass.byteLength === 'function')
+  assert(typeof BufferClass.concat === 'function')
 })
