@@ -17,19 +17,19 @@ import { builtinModules } from 'node:module'
 
 const testDir = dirname(fileURLToPath(import.meta.url))
 
-test('load all builtin modules by id', { skip: true}, async () => {
+test('load all builtin modules by id', { skip: true }, async () => {
   return Promise.all(builtinModules.map(id => import(id)))
 })
 
-test('load all builtin modules by node:id', { skip: true}, async () => {
+test('load all builtin modules by node:id', { skip: true }, async () => {
   return Promise.all(builtinModules.map(id => import(`node:${id}`)))
 })
 
-test('import from relative path (relative to parent)', { skip: true}, async () => {
+test('import from relative path (relative to parent)', { skip: true }, async () => {
   return import('./assets/TestModule.mjs')
 })
 
-test('import from absolute path', { skip: true}, async () => {
+test('import from absolute path', { skip: true }, async () => {
   return import(join(testDir, 'assets', 'TestModule.mjs'))
 })
 

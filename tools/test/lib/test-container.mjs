@@ -66,7 +66,7 @@ const main = async () => {
       status = 'SKIP'
     }
 
-    console.log(`  ${status} - ${t.description}`)
+    console.log(`  [${status}] ${t.description}`)
 
     if (caught) {
       failures++

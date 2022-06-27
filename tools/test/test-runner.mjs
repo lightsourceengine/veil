@@ -53,7 +53,6 @@ const main = async () => {
     process.exit(1)
   } else {
     console.log('TEST RUN SUCCEEDED')
-    process.exit(0)
   }
 }
 

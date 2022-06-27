@@ -54,13 +54,13 @@ test('has class URLSearchParams', () => {
 })
 
 test('has class Buffer', () => {
-  assert(typeof global.URLSearchParams === 'function')
+  assert(typeof global.Buffer === 'function')
 })
 
 test('has console', () => {
   assert(global.console)
 })
 
-test('has console', () => {
+test('has process', () => {
   assert(global.process)
 })
