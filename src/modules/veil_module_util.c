@@ -19,7 +19,37 @@ static bool is_surrogate(uint32_t codepoint) {
   return (codepoint - 0xD800) <= (0xDFFF - 0xD800);
 }
 
-JS_FUNCTION(to_usv_string) {
+static const char* errname(int32_t code) {
+  switch (code) {
+    #define XX(name, _) case UV_ ## name: return STRINGIFY(UV_ ## name);
+    UV_ERRNO_MAP(XX)
+    #undef XX
+    default: return "error";
+  }
+}
+
+static const char* errmessage(int32_t code) {
+  switch (code) {
+    #define XX(name, message) case UV_ ## name: return message;
+    UV_ERRNO_MAP(XX)
+    #undef XX
+    default: return "error";
+  }
+}
+
+JS_FUNCTION(js_errname) {
+  DJS_CHECK_ARGS(1, number);
+
+  return jerry_string_sz(errname(JS_GET_ARG(0, number)));
+}
+
+JS_FUNCTION(js_errmessage) {
+  DJS_CHECK_ARGS(1, number);
+
+  return jerry_string_sz(errmessage(JS_GET_ARG(0, number)));
+}
+
+JS_FUNCTION(js_to_usv_string) {
   DJS_CHECK_ARGS(1, string);
   cstr value = JS_GET_ARG(0, string);
   const uint8_t* bytes = (uint8_t*)cstr_str_safe(&value);
@@ -69,7 +99,9 @@ JS_FUNCTION(to_usv_string) {
 jerry_value_t veil_init_util(void) {
   jerry_value_t util = jerry_object();
 
-  iotjs_jval_set_method(util, IOTJS_MAGIC_STRING_TOUSVSTRING, to_usv_string);
+  iotjs_jval_set_method(util, IOTJS_MAGIC_STRING_TOUSVSTRING, js_to_usv_string);
+  iotjs_jval_set_method(util, "errname", js_errname);
+  iotjs_jval_set_method(util, "errmessage", js_errmessage);
 
   return util;
 }

@@ -13,7 +13,7 @@
 
 import { validateFunction } from './internal/validators.mjs'
 
-const { toUSVString } = import.meta.native
+const { errname, errmessage, toUSVString } = import.meta.native
 
 const isNull = (arg) => {
   return arg === null;
@@ -251,12 +251,12 @@ const stringToNumber = (value, default_value) => {
 
 
 const errnoException = (err, syscall, original) => {
-  const errname = 'error'; // uv.errname(err);
-  const message = `${syscall} ${errname}`;
+  const name = errname(err);
+  const message = errmessage(err);
   const e = Error(original ? `${message} ${original}` : message);
 
-  e.code = errname;
-  e.errno = errname;
+  e.code = name;
+  e.errno = name;
   e.syscall = syscall;
 
   return e;
@@ -264,7 +264,7 @@ const errnoException = (err, syscall, original) => {
 
 
 const exceptionWithHostPort = (err, syscall, address, port, additional) => {
-  const hasPort = (port >>> 0) > 0
+  const hasPort = (port | 0) > 0
   const details = hasPort ? `${address}:${port}`: address
   const ex = errnoException(err, syscall, additional ? `${details} - Local (${additional})` : details);
 
