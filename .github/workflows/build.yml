@@ -67,9 +67,13 @@ jobs:
       - name: Build
         run: ./tools/build.py --n-api --no-init-submodule --buildtype=release --js-backtrace=ON ${{ matrix.args }}
 
+      - name: Test (Windows)
+        if: startsWith(matrix.os, 'windows') == true && matrix.test == 'enabled'
+        run: ./build/*/release/bin/Release/veil.exe tools/test/test-runner.mjs
+
       - name: Test
-        if: matrix.test == 'enabled'
-        run: ./test/runner.sh
+        if: startsWith(matrix.os, 'windows') == false && matrix.test == 'enabled'
+        run: ./build/*/release/bin/veil tools/test/test-runner.mjs
 
       - name: Package
         run: ./tools/create-package.sh ${{ matrix.build_tag }} ${{ matrix.package_tag }}

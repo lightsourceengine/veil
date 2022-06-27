@@ -11,11 +11,17 @@
 * specific language governing permissions and limitations under the License.
 */
 
-const something = {}
+import assert from 'node:assert'
+import lib from 'node:perf_hooks'
 
-// Syntax error in jerryscript. Ok on node. Babel, terser and other tools produce exports like this.
-// This has been patched in the LSE fork of jerryscript.
+test('has performance', () => {
+  assert(lib.performance !== undefined)
+})
 
-export { something as default }
+test('has performance.now()', () => {
+  assert(typeof lib.performance.now === 'function')
+})
 
-test('export symbol as default', () => {})
+test('performance.now() returns a number', () => {
+  assert(typeof lib.performance.now() === 'number')
+})

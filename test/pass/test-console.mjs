@@ -11,11 +11,21 @@
 * specific language governing permissions and limitations under the License.
 */
 
-const something = {}
+import assert from 'node:assert'
+import consoleInstance from 'node:console'
 
-// Syntax error in jerryscript. Ok on node. Babel, terser and other tools produce exports like this.
-// This has been patched in the LSE fork of jerryscript.
+test('has log()', () => {
+  assert(typeof consoleInstance.log === 'function')
+})
 
-export { something as default }
+test('has warn()', () => {
+  assert(typeof consoleInstance.log === 'function')
+})
 
-test('export symbol as default', () => {})
+test('has info()', () => {
+  assert(typeof consoleInstance.log === 'function')
+})
+
+test('has error()', () => {
+  assert(typeof consoleInstance.error === 'function')
+})

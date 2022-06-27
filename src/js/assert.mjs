@@ -34,22 +34,20 @@
  * limitations under the License.
  */
 
-import util from 'util'
-
-
-function AssertionError(options) {
-  this.name = 'AssertionError';
-  this.actual = options.actual;
-  this.expected = options.expected;
-  this.operator = options.operator;
-  if (options.message) {
-    this.message = options.message;
-  } else {
-    this.message = getMessage(this);
+class AssertionError extends Error {
+  constructor (options) {
+    super()
+    this.name = 'AssertionError';
+    this.actual = options.actual;
+    this.expected = options.expected;
+    this.operator = options.operator;
+    if (options.message) {
+      this.message = options.message;
+    } else {
+      this.message = getMessage(this);
+    }
   }
 }
-
-util.inherits(AssertionError, Error);
 
 
 function getMessage(assertion) {
@@ -139,9 +137,18 @@ function doesNotThrow(block, message) {
   }
 }
 
+Object.assign(assert, {
+  fail,
+  equal,
+  notEqual,
+  strictEqual,
+  notStrictEqual,
+  throws,
+  doesNotThrow
+})
+
 export {
   AssertionError,
-  assert,
   fail,
   equal,
   notEqual,
@@ -151,14 +158,4 @@ export {
   doesNotThrow,
 }
 
-export default {
-  AssertionError,
-  assert,
-  fail,
-  equal,
-  notEqual,
-  strictEqual,
-  notStrictEqual,
-  throws,
-  doesNotThrow,
-}
+export default assert

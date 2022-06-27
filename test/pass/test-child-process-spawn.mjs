@@ -12,21 +12,36 @@
  */
 
 import { spawn } from 'child_process'
-import { fail, assert } from 'assert'
 
-const testSpawn = (command, args, options = undefined) => {
-  const child = spawn(command, args, options);
+const veil = async (args, options) => {
+  const child = spawn(process.execPath, args, options)
 
-  child.on('error', (err) => fail(`Failed with ${err}`))
-  child.on('exit', (exitCode) => assert(exitCode === 1));
+  return new Promise((resolve, reject) => {
+    child.on('exit', (exitCode) => {
+      resolve(exitCode)
+    })
+    child.on('error', (err) => {
+      reject(err)
+    })
+  })
 }
 
-testSpawn(process.execPath, ['--version'], { stdio: 'inherit' });
+test('spawn stdio = inherit', async () => {
+  await veil(['--version'], { stdio: 'inherit' })
+})
 
-testSpawn(process.execPath, ['--version'], { stdio: [ 0, 1, 2 ] });
+test('spawn stdio = [ inherit, inherit, inherit ]', async () => {
+  await veil(['--version'], { stdio: [ 'inherit', 'inherit', 'inherit' ] })
+})
 
-testSpawn(process.execPath, ['--version'], { stdio: [ 'inherit', 'inherit', 'inherit' ] });
+test('spawn stdio = ignore', async () => {
+  await veil(['--version'], { stdio: 'ignore' })
+})
 
-testSpawn(process.execPath, ['--version'], { stdio: 'ignore' });
+test('spawn stdio = [ ignore, ignore, ignore ]', async () => {
+  await veil(['--version'], { stdio: [ 'ignore', 'ignore', 'ignore' ] })
+})
 
-testSpawn(process.execPath, ['--version'], { stdio: [ 'ignore', 'ignore', 'ignore' ] });
+test('spawn stdio = [ 0, 1, 2 ]', async () => {
+  await veil(['--version'], { stdio: [ 0, 1, 2 ] })
+})

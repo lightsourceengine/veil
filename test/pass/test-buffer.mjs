@@ -11,11 +11,23 @@
 * specific language governing permissions and limitations under the License.
 */
 
-const something = {}
+import assert from 'node:assert'
+import BufferClass from 'node:buffer'
 
-// Syntax error in jerryscript. Ok on node. Babel, terser and other tools produce exports like this.
-// This has been patched in the LSE fork of jerryscript.
+// check all static methods exposed by veil
 
-export { something as default }
+test('has static from()', () => {
+  assert(typeof BufferClass.from === 'function')
+})
 
-test('export symbol as default', () => {})
+test('has static isBuffer()', () => {
+  assert(typeof BufferClass.isBuffer === 'function')
+})
+
+test('has static byteLength()', () => {
+  assert(typeof BufferClass.byteLength === 'function')
+})
+
+test('has static concat()', () => {
+  assert(typeof BufferClass.byteLength === 'function')
+})

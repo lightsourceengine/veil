@@ -11,78 +11,39 @@
 * specific language governing permissions and limitations under the License.
 */
 
-import { assert, fail } from 'node:assert'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { builtinModules } from 'node:module'
 
 const testDir = dirname(fileURLToPath(import.meta.url))
 
-// should import from relative path (relative to parent)
-import('./assets/TestModule.mjs')
-  .then((testModule) => {
-    assert(testModule.default === 'TestModule')
-  })
-  .catch((e) => {
-    fail('expected to dynamically load TestModule.mjs: ' + e.message)
-  })
+test('load all builtin modules by id', { skip: true}, async () => {
+  return Promise.all(builtinModules.map(id => import(id)))
+})
 
+test('load all builtin modules by node:id', { skip: true}, async () => {
+  return Promise.all(builtinModules.map(id => import(`node:${id}`)))
+})
 
-// should import from absolute path
-import(join(testDir, 'assets', 'TestModule.mjs'))
-  .then((testModule) => {
-    assert(testModule.default === 'TestModule')
-  })
-  .catch((e) => {
-    fail('expected to dynamically load TestModule.mjs: Error: ' + e.message)
-  })
+test('import from relative path (relative to parent)', { skip: true}, async () => {
+  return import('./assets/TestModule.mjs')
+})
 
+test('import from absolute path', { skip: true}, async () => {
+  return import(join(testDir, 'assets', 'TestModule.mjs'))
+})
 
 // TODO: not implemented in veil, yet
-// should import from package
-// import('test-package')
-//   .then((exports) => {
-//     assert(exports.default === 'test-package')
-//   })
-//   .catch(() => {
-//     fail('expected to dynamically load test-package')
-//   })
-
+test('import from a package', { skip: true }, async () => {
+  return import('test-package')
+})
 
 // TODO: not implemented in veil, yet
-// should import from a namespaced package
-// import('@namespace/test')
-//   .then((exports) => {
-//     assert(exports.default === 'test-package')
-//   })
-//   .catch(() => {
-//     fail('expected to dynamically load test-package')
-//   })
-
+test('import from a namespaced package', { skip: true }, async () => {
+  return import('@namespace/test')
+})
 
 // TODO: not implemented in veil, yet
-// should import from package with exports in package.json
-// import('test-package/child')
-//   .then((exports) => {
-//     assert(exports.default === 'test-package')
-//   })
-//   .catch(() => {
-//     fail('expected to dynamically load test-package')
-//   })
-
-
-// should load all builtin modules by id or with node: prefix
-assert(builtinModules.length > 1)
-const importList = builtinModules.reduce((list, id) => {
-  list.push(import(id))
-  list.push(import(`node:${id}`))
-  return list
-}, [])
-
-Promise.all(importList)
-  .then((builtins) => {
-    assert(builtins.length === builtinModules.length * 2)
-  })
-  .catch((e) => {
-    fail('failed to load a builtin module' + e.message)
-  })
+test('import from package with exports in package.json', { skip: true }, async () => {
+  return import('test-package/child')
+})

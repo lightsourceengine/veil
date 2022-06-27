@@ -13,7 +13,7 @@
 
 import EventEmitter from 'events'
 import { Duplex } from 'stream'
-import { assert } from 'assert'
+import assert from 'assert'
 import TCP from 'tcp'
 import { lookup } from 'dns'
 

@@ -11,84 +11,56 @@
 * specific language governing permissions and limitations under the License.
 */
 
-import { assert } from 'assert'
+import assert from 'node:assert'
 
-// Dumps the global variables and their values to JSON. Can be run on node as well.
+test('has setTimeout', () => {
+  assert(typeof global.setTimeout === 'function')
+})
 
-const functionExists = (name, value) => {
-  return assert(
-    typeof value === 'function',
-    `Expected ${name} in global namespace to be a function got ${typeof value}`)
-}
+test('has setInterval()', () => {
+  assert(typeof global.setInterval === 'function')
+})
 
-const classExists = (name, value) => {
-  return assert(
-    typeof value === 'function',
-    `Expected ${name} in global namespace to be a class got ${typeof value}`)
-}
+test('has setImmediate()', () => {
+  assert(typeof global.setImmediate === 'function')
+})
 
-const exists = (name, value) => {
-  return assert(
-    typeof value !== 'undefined',
-    `Expected ${name} in global namespace to be present got undefined`)
-}
+test('has clearTimeout()', () => {
+  assert(typeof global.clearTimeout === 'function')
+})
 
-const stringValue = (name, value) => {
-  return assert(
-    typeof value === 'string',
-    `Expected ${name} in global namespace to be a string got ${typeof value}`)
-}
+test('has clearInterval()', () => {
+  assert(typeof global.clearInterval === 'function')
+})
 
-const globalSpec = {
-  setTimeout: functionExists,
-  setInterval: functionExists,
-  setImmediate: functionExists,
-  clearTimeout: functionExists,
-  clearInterval: functionExists,
-  queueMicrotask: functionExists,
-  Event: classExists,
-  EventTarget: classExists,
-  URL: classExists,
-  URLSearchParams: classExists,
-  console: {
-    log: functionExists,
-    info: functionExists,
-    warn: functionExists,
-    error: functionExists,
-  },
-  Buffer: {
-    from: functionExists,
-    isBuffer: functionExists,
-    byteLength: functionExists,
-    concat: functionExists
-  },
-  process: {
-    argv: exists,
-    arch: stringValue,
-    argv0: exists,
-    chdir: functionExists,
-    cwd: functionExists,
-    env: exists,
-    execPath: exists,
-    exit: functionExists,
-    exitCode: exists,
-    hrtime: functionExists,
-    nextTick: functionExists,
-    pid: exists,
-    platform: stringValue,
-    version: stringValue,
-    versions: exists,
-  }
-}
+test('has queueMicrotask()', () => {
+  assert(typeof global.queueMicrotask === 'function')
+})
 
-const evaluate = (object, objectName, objectSpec) => {
-  for (const [key, value] of Object.entries(objectSpec)) {
-    if (typeof value === 'function') {
-      objectSpec[key] = value(key, object[key])
-    } else {
-      evaluate(object[key], key, value)
-    }
-  }
-}
+test('has class Event', () => {
+  assert(typeof global.Event === 'function')
+})
 
-evaluate(global, 'global', globalSpec)
+test('has class EventTarget', () => {
+  assert(typeof global.EventTarget === 'function')
+})
+
+test('has class URL', () => {
+  assert(typeof global.URL === 'function')
+})
+
+test('has class URLSearchParams', () => {
+  assert(typeof global.URLSearchParams === 'function')
+})
+
+test('has class Buffer', () => {
+  assert(typeof global.URLSearchParams === 'function')
+})
+
+test('has console', () => {
+  assert(global.console)
+})
+
+test('has console', () => {
+  assert(global.process)
+})

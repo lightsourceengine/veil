@@ -1,6 +1,6 @@
 import e from'events'
 import{Duplex as t}from'stream'
-import{assert as i}from'assert'
+import i from'assert'
 import n from'tcp'
 import{lookup as r}from'dns'
 const{errname:s}=n,o=()=>new n
