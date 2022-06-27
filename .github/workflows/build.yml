@@ -18,17 +18,17 @@ jobs:
             args: --jerry-heaplimit=8192 --jerry-lto
             build_tag: x86_64-darwin
             package_tag: macos-x64
-            test: enabled
+            host_veil: ./build/x86_64-darwin/release/bin/veil
           - os: ubuntu-18.04
             args: --jerry-heaplimit=8192 --jerry-lto
             build_tag: x86_64-linux
             package_tag: linux-x64
-            test: enabled
+            host_veil: ./build/x86_64-linux/release/bin/veil
           - os: windows-2019
             args: --jerry-heaplimit=8192
             build_tag: x86_64-windows
             package_tag: windows-x64
-            test: enabled
+            host_veil: ./build/x86_64-windows/release/bin/Release/veil.exe
           - os: ubuntu-18.04
             args: --jerry-heaplimit=8192 --target-os=linux --target-arch=arm --target-board=rpiv6
             build_tag: arm-linux-rpi
@@ -67,13 +67,9 @@ jobs:
       - name: Build
         run: ./tools/build.py --n-api --no-init-submodule --buildtype=release --js-backtrace=ON ${{ matrix.args }}
 
-      - name: Test (Windows)
-        if: startsWith(matrix.os, 'windows') == true && matrix.test == 'enabled'
-        run: ./build/*/release/bin/Release/veil.exe tools/test/test-runner.mjs
-
       - name: Test
-        if: startsWith(matrix.os, 'windows') == false && matrix.test == 'enabled'
-        run: ./build/*/release/bin/veil tools/test/test-runner.mjs
+        if: matrix.host_veil
+        run: ${{matrix.host_veil}} tools/test/test-runner.mjs
 
       - name: Package
         run: ./tools/create-package.sh ${{ matrix.build_tag }} ${{ matrix.package_tag }}
