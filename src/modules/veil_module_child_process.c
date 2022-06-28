@@ -12,7 +12,7 @@
  */
 
 #include "iotjs_def.h"
-#include "veil_handle_wrap.h"
+#include "veil_process_wrap.h"
 #include "veil_pipe_wrap.h"
 
 jerry_value_t veil_init_child_process(void) {

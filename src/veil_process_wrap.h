@@ -11,46 +11,9 @@
 * specific language governing permissions and limitations under the License.
  */
 
-#include "iotjs_def.h"
+#pragma once
 
-#include "veil_uv.h"
-#include "veil_handle_wrap.h"
-
-#define DECLARE_UV_HANDLE(NAME) \
-  uv_handle_t* NAME; \
-  if (!(NAME = jerry_object_get_native_ptr(call_info_p->this_value, native_info))) { \
-    return JS_CREATE_ERROR(COMMON, "invalid native ptr"); \
-  }
-
-VEIL_HANDLE_WRAP_FUNC(close) {
-  DECLARE_UV_HANDLE(handle);
-
-  veil_uv_handle_close(handle);
-
-  return jerry_undefined();
-}
-
-VEIL_HANDLE_WRAP_FUNC(has_ref) {
-  DECLARE_UV_HANDLE(handle);
-
-  return jerry_boolean(veil_uv_handle_has_ref(handle));
-}
-
-VEIL_HANDLE_WRAP_FUNC(ref) {
-  DECLARE_UV_HANDLE(handle);
-
-  veil_uv_handle_ref(handle);
-
-  return jerry_undefined();
-}
-
-VEIL_HANDLE_WRAP_FUNC(unref) {
-  DECLARE_UV_HANDLE(handle);
-
-  veil_uv_handle_unref(handle);
-
-  return jerry_undefined();
-}
+jerry_value_t veil_process_wrap_constructor();
 
 /*
  * Contains code from the following projects:

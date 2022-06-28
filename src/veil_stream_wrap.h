@@ -13,34 +13,25 @@
 
 #pragma once
 
-// handle_wrap js binding implementation
+// stream_wrap js binding implementation
 // due to how native pointers are attached to objects, the bindings must be unique per compilation unit
-#define VEIL_HANDLE_WRAP_BINDINGS(NATIVE_INFO) \
-  JS_FUNCTION(js_handle_wrap_close) { return veil_handle_wrap_close(call_info_p, jargv, jargc, (NATIVE_INFO)); } \
-  JS_FUNCTION(js_handle_has_ref) { return veil_handle_wrap_has_ref(call_info_p, jargv, jargc, (NATIVE_INFO)); } \
-  JS_FUNCTION(js_handle_ref) { return veil_handle_wrap_ref(call_info_p, jargv, jargc, (NATIVE_INFO)); } \
-  JS_FUNCTION(js_handle_unref) { return veil_handle_wrap_unref(call_info_p, jargv, jargc, (NATIVE_INFO)); }
+#define VEIL_STREAM_WRAP_BINDINGS(NATIVE_INFO) \
+  JS_FUNCTION(js_stream_wrap_placeholder) { return veil_stream_wrap_placeholder(call_info_p, jargv, jargc, (NATIVE_INFO)); }
 
-// Adds JS methods, declared by VEIL_HANDLE_WRAP_BINDINGS, to a prototype
-#define veil_handle_wrap_mixin(PROTOTYPE) \
-  iotjs_jval_set_method(PROTOTYPE, "close", js_handle_wrap_close); \
-  iotjs_jval_set_method(PROTOTYPE, "hasRef", js_handle_has_ref); \
-  iotjs_jval_set_method(PROTOTYPE, "ref", js_handle_ref); \
-  iotjs_jval_set_method(PROTOTYPE, "unref", js_handle_unref)
+// Adds JS methods, declared by VEIL_HANDLE_STREAM_BINDINGS, to a prototype
+#define veil_stream_wrap_mixin(PROTOTYPE) \
+  iotjs_jval_set_method(PROTOTYPE, "placeholder", js_stream_wrap_placeholder);
 
-// handle_wrap api function signature
-#define VEIL_HANDLE_WRAP_FUNC(NAME) \
-  jerry_value_t veil_handle_wrap_ ## NAME ( \
+// stream_wrap api function signature
+#define VEIL_STREAM_WRAP_FUNC(NAME) \
+  jerry_value_t veil_stream_wrap_ ## NAME ( \
       const jerry_call_info_t *call_info_p, \
       const jerry_value_t jargv[], \
       jerry_length_t jargc, \
       const jerry_object_native_info_t* native_info)
 
 // handle_wrap api
-VEIL_HANDLE_WRAP_FUNC(close);
-VEIL_HANDLE_WRAP_FUNC(ref);
-VEIL_HANDLE_WRAP_FUNC(unref);
-VEIL_HANDLE_WRAP_FUNC(has_ref);
+VEIL_STREAM_WRAP_FUNC(placeholder);
 
 /*
  * Contains code from the following projects:

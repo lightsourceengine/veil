@@ -14,7 +14,7 @@
 #include "iotjs_def.h"
 
 #include "veil_uv.h"
-#include "veil_handle_wrap.h"
+#include "veil_stream_wrap.h"
 
 #define DECLARE_UV_HANDLE(NAME) \
   uv_handle_t* NAME; \
@@ -22,32 +22,8 @@
     return JS_CREATE_ERROR(COMMON, "invalid native ptr"); \
   }
 
-VEIL_HANDLE_WRAP_FUNC(close) {
-  DECLARE_UV_HANDLE(handle);
-
-  veil_uv_handle_close(handle);
-
-  return jerry_undefined();
-}
-
-VEIL_HANDLE_WRAP_FUNC(has_ref) {
-  DECLARE_UV_HANDLE(handle);
-
-  return jerry_boolean(veil_uv_handle_has_ref(handle));
-}
-
-VEIL_HANDLE_WRAP_FUNC(ref) {
-  DECLARE_UV_HANDLE(handle);
-
-  veil_uv_handle_ref(handle);
-
-  return jerry_undefined();
-}
-
-VEIL_HANDLE_WRAP_FUNC(unref) {
-  DECLARE_UV_HANDLE(handle);
-
-  veil_uv_handle_unref(handle);
+VEIL_STREAM_WRAP_FUNC(placeholder) {
+//  DECLARE_UV_HANDLE(handle);
 
   return jerry_undefined();
 }
