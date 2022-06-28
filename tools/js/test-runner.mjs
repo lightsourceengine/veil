@@ -13,11 +13,21 @@
 
 import { readdir } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
-import { normalize, join, extname } from 'node:path'
+import { normalize, join, extname, basename } from 'node:path'
 import { spawn } from 'node:child_process'
+import { isPromise } from 'node:util/types'
+
+/*
+ * Test Runner
+ *
+ * Runs node:test style tests in veil.
+ * 
+ * Note: The runner must run in veil and node. No npm imports. No non-builtin imports. No transpilation.
+ */
 
 const sourceRoot = normalize(join(fileURLToPath(import.meta.url), '..', '..', '..'))
-const container = join(sourceRoot, 'tools', 'js', 'lib', 'test-container.mjs')
+const clientTestCases = []
+const container = process.argv[1]
 
 const veil = async (args, options) => {
   const child = spawn(process.execPath, args, options)
@@ -32,16 +42,88 @@ const veil = async (args, options) => {
   })
 }
 
-const main = async () => {
-  // find tests files
-  const files = await readdir(join(sourceRoot, 'test', 'pass'))
-  const tests = files
-    .filter(file => file.startsWith('test-') && extname(file) === '.mjs')
-    .map(file => join(sourceRoot, 'test', 'pass', file))
+const clientTestFunction = (...args) => {
+  clientTestCases.push({
+    description: args[0],
+    options: typeof args[1] === 'function' ? {} : args[1],
+    fn: typeof args[1] === 'function' ? args[1] : args[2]
+  })
+}
+
+const runOne = async (test) => {
+  const testName = basename(test)
+  let failures = 0
+
+  global.test = clientTestFunction
+
+  try {
+    await import(test)
+  } catch (e) {
+    console.error(`Fatal Error: import('${test}')`)
+    console.error(e)
+    process.exit(1)
+  }
+
+  console.log(testName)
+
+  for (const t of clientTestCases) {
+    let result
+    let caught
+    let { skip } = t.options
+    let status
+
+    if (!skip) {
+      try {
+        result = t.fn()
+      } catch (e) {
+        caught = e
+      }
+
+      if (!caught && isPromise(result)) {
+        try {
+          await result
+        } catch (e) {
+          caught = e
+        }
+      }
+
+      status = caught ? 'FAIL' : 'PASS'
+    } else {
+      status = 'SKIP'
+    }
+
+    console.log(`  [${status}] ${t.description}`)
+
+    if (caught) {
+      failures++
+      console.log(caught)
+    }
+
+    if (failures > 0) {
+      process.exit(1)
+    }
+  }
+}
+
+const runAll = async (dirs) => {
+  let testSet = []
+
+  // find test-*.mjs files. non-recursive
+  for (const dir of dirs) {
+    let files = await readdir(dir)
+
+    let testFiles = files
+      .filter(file => file.startsWith('test-') && extname(file) === '.mjs')
+      .map(file => join(dir, file))
+
+    testSet.push(...testFiles)
+  }
+
+  // run each test file in a separate veil process
   let failed
 
-  for (const test of tests) {
-    const exitCode = await veil([ container, test ], { stdio: 'inherit' })
+  for (const test of testSet) {
+    const exitCode = await veil([ container, '--run-one', test ], { stdio: 'inherit' })
 
     if (exitCode !== 0) {
       failed = true
@@ -53,6 +135,20 @@ const main = async () => {
     process.exit(1)
   } else {
     console.log('TEST RUN SUCCEEDED')
+  }
+}
+
+const main = async () => {
+  if (process.argv[2] === '--run-one') {
+    const test = process.argv[3]
+
+    if (!test) {
+      throw Error('--run-one: No test specified')
+    }
+
+    await runOne(test)
+  } else {
+    await runAll([join(sourceRoot, 'test', 'pass')])
   }
 }
 

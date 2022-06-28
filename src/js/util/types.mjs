@@ -11,11 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-const something = {}
+import { types } from 'util'
 
-// Syntax error in jerryscript. Ok on node. Babel, terser and other tools produce exports like this.
-// This has been patched in the LSE fork of jerryscript.
-
-export { something as default }
-
-test('export symbol as default', () => {})
+export const { isPromise } = types
+export default types

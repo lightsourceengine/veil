@@ -11,11 +11,13 @@
  * specific language governing permissions and limitations under the License.
  */
 
-const something = {}
+import { isPromise } from 'node:util/types'
+import assert from 'node:assert'
 
-// Syntax error in jerryscript. Ok on node. Babel, terser and other tools produce exports like this.
-// This has been patched in the LSE fork of jerryscript.
+test('isPromise() returns true for Promise instance', () => {
+  assert.equal(isPromise(Promise.resolve()), true)
+})
 
-export { something as default }
-
-test('export symbol as default', () => {})
+test('isPromise() returns falsy for null', () => {
+  assert.equal(!!isPromise(null), false)
+})

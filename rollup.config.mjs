@@ -121,6 +121,7 @@ const ops = readdirSync('src/js')
   .map(file => min(`src/js/${file}`, join(minifiedOutputPath, file)))
 
 ops.push(min(`src/js/fs/promises.mjs`, join(minifiedOutputPath, 'fs/promises.mjs')))
+ops.push(min(`src/js/util/types.mjs`, join(minifiedOutputPath, 'util/types.mjs')))
 ops.push(min(`src/js/internal/event_target.mjs`, join(minifiedOutputPath, 'internal/event_target.mjs')))
 
 ops.push(lexer())

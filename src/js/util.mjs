@@ -280,6 +280,10 @@ const exceptionWithHostPort = (err, syscall, address, port, additional) => {
 const { isBuffer } = Buffer
 const { isArray } = Array
 
+const types = {
+  isPromise: (p) => p && Object.prototype.toString.call(p) === '[object Promise]'
+}
+
 export {
   isNull,
   isUndefined,
@@ -298,6 +302,7 @@ export {
   inherits,
   mixin,
   format,
+  types,
   promisify,
   toUSVString
 }
@@ -320,6 +325,7 @@ export default {
   inherits,
   mixin,
   format,
+  types,
   promisify,
   toUSVString
 }

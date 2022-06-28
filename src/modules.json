@@ -21,7 +21,8 @@
         "stream",
         "tcp",
         "timers",
-        "util"
+        "util",
+        "util__types"
       ]
     },
     "veil_napi_modules": {
@@ -237,6 +238,10 @@
       "js_file": "$JS_GEN/util.mjs",
       "init": "veil_init_util",
       "native_files": ["modules/veil_module_util.c"]
+    },
+    "util__types": {
+      "js_file": "$JS_GEN/util/types.mjs",
+      "import": ["util"]
     }
   }
 }
