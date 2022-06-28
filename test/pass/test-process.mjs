@@ -51,10 +51,6 @@ test('has pid', () => {
   assert(typeof instance.pid === 'number')
 })
 
-test('has exitCode', () => {
-  assert(instance.exitCode !== undefined)
-})
-
 test('has nextTick()', () => {
   assert(typeof instance.nextTick === 'function')
 })

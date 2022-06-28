@@ -12,22 +12,22 @@
  */
 
 import assert from 'node:assert'
-import BufferClass from 'node:buffer'
+import { Buffer } from 'node:buffer'
 
 // check all static methods exposed by veil
 
 test('has static from()', () => {
-  assert(typeof BufferClass.from === 'function')
+  assert(typeof Buffer.from === 'function')
 })
 
 test('has static isBuffer()', () => {
-  assert(typeof BufferClass.isBuffer === 'function')
+  assert(typeof Buffer.isBuffer === 'function')
 })
 
 test('has static byteLength()', () => {
-  assert(typeof BufferClass.byteLength === 'function')
+  assert(typeof Buffer.byteLength === 'function')
 })
 
 test('has static concat()', () => {
-  assert(typeof BufferClass.concat === 'function')
+  assert(typeof Buffer.concat === 'function')
 })

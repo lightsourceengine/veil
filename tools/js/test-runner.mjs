@@ -21,7 +21,7 @@ import { isPromise } from 'node:util/types'
  * Test Runner
  *
  * Runs node:test style tests in veil.
- * 
+ *
  * Note: The runner must run in veil and node. No npm imports. No non-builtin imports. No transpilation.
  */
 
