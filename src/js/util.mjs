@@ -13,7 +13,9 @@
 
 import { validateFunction } from './internal/validators.mjs'
 
+const ObjectGetPrototypeOf = Object.getPrototypeOf
 const { errname, errmessage, toUSVString } = import.meta.native
+const kEmptyObject = Object.freeze({})
 
 const isNull = (arg) => {
   return arg === null;
@@ -131,7 +133,7 @@ const promisify = (original) => {
     })
   }
 
-  Object.setPrototypeOf(fn, Object.getPrototypeOf(original));
+  Object.setPrototypeOf(fn, ObjectGetPrototypeOf(original));
 
   Object.defineProperty(fn, kCustomPromisifiedSymbol, {
     value: fn, enumerable: false, writable: false, configurable: true
@@ -279,9 +281,22 @@ const exceptionWithHostPort = (err, syscall, address, port, additional) => {
 
 const { isBuffer } = Buffer
 const { isArray } = Array
+const getClassName = (value) => value?.constructor?.name
 
 const types = {
-  isPromise: (p) => p && Object.prototype.toString.call(p) === '[object Promise]'
+  isTypedArray: (value) => getClassName(ObjectGetPrototypeOf(ObjectGetPrototypeOf(value ?? kEmptyObject))) === 'TypedArray',
+  isPromise: (value) => getClassName(value) === 'Promise',
+  isUint8Array: (value) => getClassName(value)  === 'Uint8Array',
+  isUint8ClampedArray: (value) => getClassName(value)  === 'Uint8ClampedArray',
+  isUint16Array: (value) => getClassName(value)  === 'Uint16Array',
+  isUint32Array: (value) => getClassName(value)  === 'Uint32Array',
+  isInt8Array: (value) => getClassName(value)  === 'Int8Array',
+  isInt16Array: (value) => getClassName(value)  === 'Int16Array',
+  isInt32Array: (value) => getClassName(value)  === 'Int32Array',
+  isFloat32Array: (value) => getClassName(value)  === 'Float32Array',
+  isFloat64Array: (value) => getClassName(value)  === 'Float64Array',
+  isBigInt64Array: (value) => getClassName(value)  === 'BigInt64Array',
+  isBigUint64Array: (value) => getClassName(value)  === 'BigUint64Array',
 }
 
 export {

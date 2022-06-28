@@ -13,5 +13,20 @@
 
 import { types } from 'util'
 
-export const { isPromise } = types
+export const {
+  isPromise,
+  isTypedArray,
+  isUint8Array,
+  isUint8ClampedArray,
+  isUint16Array,
+  isUint32Array,
+  isInt8Array,
+  isInt16Array,
+  isInt32Array,
+  isFloat32Array,
+  isFloat64Array,
+  isBigInt64Array,
+  isBigUint64Array,
+} = types
+
 export default types
