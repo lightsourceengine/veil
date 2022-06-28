@@ -12,6 +12,7 @@
 */
 
 import { fail } from 'node:assert'
+import { setTimeout, setInterval, setImmediate, clearTimeout, clearInterval, clearImmediate } from 'node:timers'
 
 test('setTimeout() handler called', async () => {
   return new Promise((resolve, reject) => {

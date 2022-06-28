@@ -112,18 +112,17 @@ import perf_hooks, {
 import stream from 'node:stream'
 import tcp from 'node:tcp'
 import timers, {
-  // XXX: rename exports because vm will throw exception that the names shadow global variable names (bug in vm)
-  setTimeout as _setTimeout,
-  setInterval as _setInterval,
-  setImmediate as _setImmediate,
-  clearTimeout as _clearTimeout,
-  clearInterval as _clearInterval
+  setTimeout,
+  setInterval,
+  setImmediate,
+  clearTimeout,
+  clearInterval
 } from 'node:timers'
 import tls from 'node:tls'
 import udp from 'node:udp'
 import url, {
-  URL as _URL,
-  URLSearchParams as _URLSearchParams,
+  URL,
+  URLSearchParams,
   urlToHttpOptions,
   fileURLToPath,
   pathToFileURL
@@ -132,20 +131,20 @@ import util from 'node:util'
 
 // XXX: rename exports because vm will throw exception that the names shadow global variable names (bug in vm)
 import _buffer, {
-  Buffer as _named_Buffer
+  Buffer
 } from 'node:buffer'
 import _console, {
-  console as _named_console
+  console
 } from 'node:console'
 import _process, {
-  process as _named_process
+  process
 } from 'node:process'
 
 const survey = {
   builtin: {
     assert: Object.keys(assert),
     buffer: typeof _buffer,
-    console: _console === console,
+    console: console === global.console,
     constants: Object.keys(constants),
     crypto: Object.keys(crypto),
     dgram: Object.keys(dgram),
@@ -162,7 +161,7 @@ const survey = {
     perf_hooks: {
       performance: Object.keys(performance)
     },
-    process: _process === process,
+    process: process === global.process,
     tcp: Object.keys(tcp),
     timers: Object.keys(timers),
     tls: Object.keys(tls),
