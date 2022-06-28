@@ -26,7 +26,7 @@
 #include "jerryscript-port.h"
 #include "jerryscript.h"
 
-#include "iotjs_uv_handle.h"
+#include "veil_uv.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -256,10 +256,17 @@ static int iotjs_start(iotjs_environment_t* env) {
 //  return true;
 //}
 
+static void uv_handle_walker(uv_handle_t* handle, void* arg) {
+  if (handle) {
+    veil_uv_handle_close(handle);
+  }
+}
+
 void iotjs_end(iotjs_environment_t* env) {
   uv_loop_t* loop = iotjs_environment_loop(env);
+
   // Close uv loop.
-  uv_walk(loop, (uv_walk_cb)iotjs_uv_handle_close, NULL);
+  uv_walk(loop, &uv_handle_walker, NULL);
   uv_run(loop, UV_RUN_DEFAULT);
 
   int res = uv_loop_close(loop);

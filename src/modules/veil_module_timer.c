@@ -84,7 +84,10 @@ JS_FUNCTION(timer_constructor) {
 
   const jerry_value_t jtimer = JS_GET_THIS();
 
-  iotjs_timer_object_init(jtimer);
+  if (iotjs_timer_object_init(jtimer) != 0) {
+    return jerry_throw_sz(JERRY_ERROR_COMMON, "error creating timer handle");
+  }
+
   return jerry_undefined();
 }
 

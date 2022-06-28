@@ -15,18 +15,28 @@
 
 #include "veil_module_buffer.h"
 #include "veil_module_tcp.h"
-#include "iotjs_uv_handle.h"
+#include "veil_uv.h"
 #include "iotjs_uv_request.h"
 
-static const jerry_object_native_info_t this_module_native_info = { NULL, 0, 0 };
+static void udp_finalize(void* native_p, jerry_object_native_info_t* native_info);
+static const jerry_object_native_info_t this_module_native_info = { &udp_finalize, 0, 0 };
 
+static void udp_finalize(void* native_p, jerry_object_native_info_t* native_info) {
+  veil_uv_destroy_handle((uv_handle_t*)native_p);
+}
 
-void iotjs_udp_object_init(jerry_value_t judp) {
-  uv_handle_t* handle = iotjs_uv_handle_create(sizeof(uv_udp_t), judp,
-                                               &this_module_native_info, 0);
+int32_t iotjs_udp_object_init(jerry_value_t judp) {
+  uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
+  uv_handle_t* handle = veil_uv_create_handle(sizeof(uv_udp_t), NULL, judp, &this_module_native_info);
+  int32_t err = uv_udp_init(loop, (uv_udp_t*)handle);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
-  uv_udp_init(iotjs_environment_loop(env), (uv_udp_t*)handle);
+  if (err) {
+    veil_uv_destroy_handle(handle);
+  } else {
+    veil_uv_handle_mark_initialized(handle);
+  }
+
+  return err;
 }
 
 
@@ -34,7 +44,10 @@ JS_FUNCTION(udp_constructor) {
   DJS_CHECK_THIS();
 
   jerry_value_t judp = JS_GET_THIS();
-  iotjs_udp_object_init(judp);
+
+  if (iotjs_udp_object_init(judp) != 0) {
+    return jerry_throw_sz(JERRY_ERROR_COMMON, "error creating udp handle");
+  }
 
   return jerry_undefined();
 }
@@ -91,7 +104,8 @@ static void on_recv(uv_udp_t* handle, ssize_t nread, const uv_buf_t* buf,
   }
 
   // udp handle
-  jerry_value_t judp = IOTJS_UV_HANDLE_DATA(handle)->jobject;
+  veil_uv_handle_data* data = handle->data;
+  jerry_value_t judp = data->self;
   IOTJS_ASSERT(jerry_value_is_object(judp));
 
   // onmessage callback
@@ -227,9 +241,9 @@ JS_FUNCTION(udp_send) {
 
 // Close socket
 JS_FUNCTION(udp_close) {
-  JS_DECLARE_PTR(call_info_p->this_value, uv_handle_t, uv_handle);
+  JS_DECLARE_PTR(call_info_p->this_value, uv_handle_t, handle);
 
-  iotjs_uv_handle_close(uv_handle, NULL);
+  veil_uv_handle_close(handle);
 
   return jerry_undefined();
 }

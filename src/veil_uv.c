@@ -14,6 +14,19 @@
 #include "iotjs_def.h"
 #include "veil_uv.h"
 
+/*
+ * The allocated memory has the following layout:
+ *
+ *  |-------------|  <- start of uv_handle_t*
+ *  | uv_handle_t |
+ *  |             |
+ *  |-------------|
+ *  | PADDING     |  <- alignment padding
+ *  |-------------|  <- start of the veil_uv_handle_data struct
+ *  | handle_data |
+ *  |-------------|
+ *
+ */
 #define ALIGN(value, alignment) (((value) + ((alignment)-1)) & ~((alignment)-1))
 
 uv_handle_t* veil_uv_create_handle(
@@ -103,3 +116,16 @@ bool veil_uv_handle_has_ref(uv_handle_t* handle) {
 
   return false;
 }
+
+/*
+ * Contains code from the following projects:
+ *
+ * https://github.com/jerryscript-project/iotjs
+ * Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
+ *
+ * https://github.com/nodejs/node
+ * Copyright Node.js contributors. All rights reserved.
+ * Copyright Joyent, Inc. and other Node contributors.
+ *
+ * See the veil LICENSE file for more information.
+ */

@@ -15,19 +15,32 @@
 #include "veil_module_tcp.h"
 
 #include "veil_module_buffer.h"
-#include "iotjs_uv_handle.h"
+#include "veil_uv.h"
 #include "iotjs_uv_request.h"
 
-static const jerry_object_native_info_t this_module_native_info = { NULL, 0, 0 };
+static void tcp_finalize(void* native_p, jerry_object_native_info_t* native_info);
+static void tcp_on_close(uv_handle_t* handle);
 
+static const jerry_object_native_info_t this_module_native_info = { &tcp_finalize, 0, 0 };
 
-void iotjs_tcp_object_init(jerry_value_t jtcp) {
-  // uv_tcp_t* can be handled as uv_handle_t* or even as uv_stream_t*
-  uv_handle_t* handle = iotjs_uv_handle_create(sizeof(uv_tcp_t), jtcp,
-                                               &this_module_native_info, 0);
+static void tcp_finalize(void* native_p, jerry_object_native_info_t* native_info) {
+  veil_uv_destroy_handle((uv_handle_t*)native_p);
+}
 
-  const iotjs_environment_t* env = iotjs_environment_get();
-  uv_tcp_init(iotjs_environment_loop(env), (uv_tcp_t*)handle);
+int32_t iotjs_tcp_object_init(jerry_value_t jtcp) {
+  uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
+
+  uv_handle_t* handle = veil_uv_create_handle(sizeof(uv_tcp_t), &tcp_on_close,jtcp, &this_module_native_info);
+
+  int32_t err = uv_tcp_init(loop, (uv_tcp_t*)handle);
+
+  if (err) {
+    veil_uv_destroy_handle(handle);
+  } else {
+    veil_uv_handle_mark_initialized(handle);
+  }
+
+  return err;
 }
 
 
@@ -60,8 +73,9 @@ JS_FUNCTION(tcp_constructor) {
 
 
 // Socket close result handler.
-void after_close(uv_handle_t* handle) {
-  jerry_value_t jtcp = IOTJS_UV_HANDLE_DATA(handle)->jobject;
+static void tcp_on_close(uv_handle_t* handle) {
+  veil_uv_handle_data* data = handle->data;
+  jerry_value_t jtcp = data->self;
 
   // callback function.
   jerry_value_t jcallback =
@@ -77,7 +91,7 @@ void after_close(uv_handle_t* handle) {
 JS_FUNCTION(tcp_close) {
   JS_DECLARE_PTR(call_info_p->this_value, uv_handle_t, uv_handle);
 
-  iotjs_uv_handle_close(uv_handle, after_close);
+  veil_uv_handle_close(uv_handle);
   return jerry_undefined();
 }
 
@@ -153,7 +167,8 @@ JS_FUNCTION(tcp_connect) {
 //   * uv_stream_t* handle - server handle
 //   * int status - status code
 static void on_connection(uv_stream_t* handle, int status) {
-  jerry_value_t jtcp = IOTJS_UV_HANDLE_DATA(handle)->jobject;
+  veil_uv_handle_data* data = handle->data;
+  jerry_value_t jtcp = data->self;
 
   // `onconnection` callback.
   jerry_value_t jonconnection =
@@ -251,7 +266,8 @@ static void on_alloc(uv_handle_t* handle, size_t suggested_size,
 
 
 static void on_read(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
-  jerry_value_t jtcp = IOTJS_UV_HANDLE_DATA(handle)->jobject;
+  veil_uv_handle_data* data = handle->data;
+  jerry_value_t jtcp = data->self;
 
   // socket object
   jerry_value_t jsocket =
