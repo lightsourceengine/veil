@@ -33,6 +33,10 @@ test('has clearInterval()', () => {
   assert(typeof global.clearInterval === 'function')
 })
 
+test('has clearImmediate()', () => {
+  assert(typeof global.clearImmediate === 'function')
+})
+
 test('has queueMicrotask()', () => {
   assert(typeof global.queueMicrotask === 'function')
 })

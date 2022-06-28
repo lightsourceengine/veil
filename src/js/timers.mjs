@@ -116,13 +116,15 @@ const setInterval = timeoutConfigurator.bind(undefined, TIMER_TYPES.setInterval)
 const setImmediate = timeoutConfigurator.bind(undefined, TIMER_TYPES.setImmediate)
 const clearTimeout = clearTimeoutBase.bind(undefined, 'clearTimeout')
 const clearInterval = clearTimeoutBase.bind(undefined, 'clearInterval')
+const clearImmediate = clearTimeoutBase.bind(undefined, 'clearImmediate')
 
 Object.assign(global, {
   setTimeout,
   setInterval,
   setImmediate,
   clearTimeout,
-  clearInterval
+  clearInterval,
+  clearImmediate
 })
 
 export {
@@ -130,7 +132,8 @@ export {
   setInterval,
   setImmediate,
   clearTimeout,
-  clearInterval
+  clearInterval,
+  clearImmediate
 }
 
 export default {
@@ -138,7 +141,8 @@ export default {
   setInterval,
   setImmediate,
   clearTimeout,
-  clearInterval
+  clearInterval,
+  clearImmediate
 }
 
 /*

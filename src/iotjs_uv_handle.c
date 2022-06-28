@@ -16,6 +16,7 @@
 #include "iotjs_def.h"
 
 #include "iotjs_uv_handle.h"
+#include "veil_uv.h"
 
 
 uv_handle_t* iotjs_uv_handle_create(size_t handle_size,
@@ -62,11 +63,11 @@ void iotjs_uv_handle_close(uv_handle_t* handle, OnCloseHandler close_handler) {
   }
 
   // skip any process handles, as they are handled by process_wrap
-  if (handle->type == UV_PROCESS) {
-    return;
+  if (handle->type == UV_PROCESS || handle->type == UV_TIMER) {
+    veil_uv_handle_close(handle);
+  } else {
+    iotjs_uv_handle_data* handle_data = IOTJS_UV_HANDLE_DATA(handle);
+    handle_data->on_close_cb = close_handler;
+    uv_close(handle, iotjs_uv_handle_close_processor);
   }
-
-  iotjs_uv_handle_data* handle_data = IOTJS_UV_HANDLE_DATA(handle);
-  handle_data->on_close_cb = close_handler;
-  uv_close(handle, iotjs_uv_handle_close_processor);
 }

@@ -12,25 +12,40 @@
  */
 
 #include "iotjs_def.h"
-#include "iotjs_uv_handle.h"
+#include "veil_uv.h"
 
+static void timer_finalize(void* native_p, jerry_object_native_info_t* native_info);
 
-static const jerry_object_native_info_t this_module_native_info = { NULL, 0, 0 };
+static const jerry_object_native_info_t this_module_native_info = { &timer_finalize, 0, 0 };
 
+static void timer_finalize(void* native_p, jerry_object_native_info_t* native_info) {
+  veil_uv_destroy_handle((uv_handle_t*)native_p);
+}
 
-void iotjs_timer_object_init(jerry_value_t jtimer) {
-  uv_handle_t* handle = iotjs_uv_handle_create(sizeof(uv_timer_t), jtimer,
-                                               &this_module_native_info, 0);
+int32_t iotjs_timer_object_init(jerry_value_t jtimer) {
+  uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
+  uv_handle_t* handle = veil_uv_create_handle(
+      sizeof(uv_timer_t),
+      NULL,
+      jtimer,
+      &this_module_native_info);
+  int32_t err = uv_timer_init(loop, (uv_timer_t*)handle);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
-  uv_timer_init(iotjs_environment_loop(env), (uv_timer_t*)handle);
+  if (err) {
+    veil_uv_destroy_handle(handle);
+  } else {
+    veil_uv_handle_mark_initialized(handle);
+  }
+
+  return err;
 }
 
 
 static void timeout_handler(uv_timer_t* handle) {
   IOTJS_ASSERT(handle != NULL);
 
-  jerry_value_t jobject = IOTJS_UV_HANDLE_DATA(handle)->jobject;
+  veil_uv_handle_data* data = handle->data;
+  jerry_value_t jobject = data->self;
   jerry_value_t jcallback =
       iotjs_jval_get_property(jobject, IOTJS_MAGIC_STRING_HANDLETIMEOUT);
   iotjs_invoke_callback(jcallback, jobject, NULL, 0);
@@ -56,11 +71,9 @@ JS_FUNCTION(timer_start) {
 
 JS_FUNCTION(timer_stop) {
   JS_DECLARE_PTR(call_info_p->this_value, uv_handle_t, timer_handle);
-  // Stop timer.
 
-  if (!uv_is_closing(timer_handle)) {
-    iotjs_uv_handle_close(timer_handle, NULL);
-  }
+  // Stop timer.
+  veil_uv_handle_close(timer_handle);
 
   return jerry_number(0);
 }
