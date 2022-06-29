@@ -11,57 +11,43 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import util from 'util'
-import stream from 'stream'
+import { Readable } from 'stream'
 
-function IncomingMessage(socket) {
-  stream.Readable.call(this);
-
-  this.socket = socket;
-
-  this.readable = true;
-
-  this.headers = {};
-
-  this.complete = false;
-
+class IncomingMessage extends Readable {
+  readable = true;
+  headers = {};
+  complete = false;
   // for request (server)
-  this.url = '';
-  this.method = null;
-  this.httpVersion = '';
-
+  url = '';
+  method = null;
+  httpVersion = '';
   // for response (client)
-  this.statusCode = null;
-  this.statusMessage = null;
+  statusCode = null;
+  statusMessage = null;
+  socket = null
 
+  constructor (socket) {
+    super()
+    this.socket = socket;
+  }
+
+  addHeaders (headers) {
+    if (!this.headers) {
+      this.headers = {};
+    }
+
+    // FIXME: handle headers as array if array C API is done.
+    for (var i=0; i<headers.length; i=i+2) {
+      this.headers[headers[i]] = headers[i+1];
+    }
+  }
+
+  setTimeout (ms, cb) {
+    if (cb)
+      this.once('timeout', cb);
+    this.socket.setTimeout(ms, cb);
+  }
 }
-
-util.inherits(IncomingMessage, stream.Readable);
-
-
-IncomingMessage.prototype.read = function(n) {
-  this.read = stream.Readable.prototype.read;
-  return this.read(n);
-};
-
-
-IncomingMessage.prototype.addHeaders = function(headers) {
-  if (!this.headers) {
-    this.headers = {};
-  }
-
-  // FIXME: handle headers as array if array C API is done.
-  for (var i=0; i<headers.length; i=i+2) {
-    this.headers[headers[i]] = headers[i+1];
-  }
-};
-
-
-IncomingMessage.prototype.setTimeout = function(ms, cb) {
-  if (cb)
-    this.once('timeout', cb);
-  this.socket.setTimeout(ms, cb);
-};
 
 export { IncomingMessage }
 export default IncomingMessage

@@ -15,83 +15,6 @@ import { validateFunction } from './internal/validators.mjs'
 
 const ObjectGetPrototypeOf = Object.getPrototypeOf
 const { errname, errmessage, toUSVString } = import.meta.native
-const kEmptyObject = Object.freeze({})
-
-const isNull = (arg) => {
-  return arg === null;
-}
-
-const isUndefined = (arg) => {
-  return arg === undefined;
-}
-
-
-const isNullOrUndefined = (arg) => {
-  return arg === null || arg === undefined;
-}
-
-
-const isNumber = (arg) => {
-  return typeof arg === 'number';
-}
-
-const isFinite = (arg) => {
-  return (arg === 0) || (arg !== arg / 2);
-}
-
-const isBoolean = (arg) => {
-  return typeof arg === 'boolean';
-}
-
-
-const isString = (arg) => {
-  return typeof arg === 'string';
-}
-
-
-const isObject = (arg) => {
-  return typeof arg === 'object' && arg != null;
-}
-
-
-const isFunction = (arg) => {
-  return typeof arg === 'function';
-}
-
-
-const inherits = (ctor, superCtor) => {
-  ctor.prototype = Object.create(superCtor.prototype, {
-    constructor: {
-      value: ctor,
-      enumerable: false,
-      writable: true,
-      configurable: true,
-    },
-  });
-}
-
-
-const mixin = (...args) => {
-  const [ target ] = args
-
-  if (isNullOrUndefined(target)) {
-    throw new TypeError('target cannot be null or undefined');
-  }
-
-  for (let i = 1; i < args.length; ++i) {
-    const source = args[i];
-    if (!isNullOrUndefined(source)) {
-      for (const prop in source) {
-        if (source.hasOwnProperty(prop)) {
-          target[prop] = source[prop];
-        }
-      }
-    }
-  }
-
-  return target;
-}
-
 const kCustomPromisifiedSymbol = Symbol.for('nodejs.util.promisify.custom');
 const kCustomPromisifyArgsSymbol = Symbol('customPromisifyArgs');
 
@@ -246,12 +169,6 @@ const formatValue = (v) => {
 }
 
 
-const stringToNumber = (value, default_value) => {
-  const num = Number(value);
-  return isNaN(num) ? default_value : num;
-}
-
-
 const errnoException = (err, syscall, original) => {
   const name = errname(err);
   const message = errmessage(err);
@@ -279,12 +196,10 @@ const exceptionWithHostPort = (err, syscall, address, port, additional) => {
   return ex;
 }
 
-const { isBuffer } = Buffer
-const { isArray } = Array
-const getClassName = (value) => value?.constructor?.name
+const getClassName = (value) => value?.__proto__?.constructor?.name
 
 const types = {
-  isTypedArray: (value) => getClassName(ObjectGetPrototypeOf(ObjectGetPrototypeOf(value ?? kEmptyObject))) === 'TypedArray',
+  isTypedArray: (value) => getClassName(value?.__proto__) === 'TypedArray',
   isPromise: (value) => getClassName(value) === 'Promise',
   isUint8Array: (value) => getClassName(value)  === 'Uint8Array',
   isUint8ClampedArray: (value) => getClassName(value)  === 'Uint8ClampedArray',
@@ -300,22 +215,8 @@ const types = {
 }
 
 export {
-  isNull,
-  isUndefined,
-  isNullOrUndefined,
-  isNumber,
-  isBoolean,
-  isString,
-  isObject,
-  isFinite,
-  isFunction,
-  isBuffer,
-  isArray,
   exceptionWithHostPort,
   errnoException,
-  stringToNumber,
-  inherits,
-  mixin,
   format,
   types,
   promisify,
@@ -323,22 +224,8 @@ export {
 }
 
 export default {
-  isNull,
-  isUndefined,
-  isNullOrUndefined,
-  isNumber,
-  isBoolean,
-  isString,
-  isObject,
-  isFinite,
-  isFunction,
-  isBuffer,
-  isArray,
   exceptionWithHostPort,
   errnoException,
-  stringToNumber,
-  inherits,
-  mixin,
   format,
   types,
   promisify,

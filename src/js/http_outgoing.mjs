@@ -11,187 +11,158 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import util from 'util'
-import stream from 'stream'
+import { Writable } from 'stream'
 
-
-function OutgoingMessage() {
-  stream.Writable.call(this);
-
-  this.writable = true;
-
-  this._hasBody = true;
-
-  this.finished = false;
-  this._sentHeader = false;
-  this._connected = false;
-
+class OutgoingMessage extends Writable {
+  writable = true;
+  _hasBody = true;
+  finished = false;
+  _sentHeader = false;
+  _connected = false;
   // storage for chunks when there is no connection established
-  this._chunks = [];
-
-  this.socket = null;
+  _chunks = [];
+  socket = null;
   // response header string : same 'content' as this._headers
-  this._header = null;
+  _header = null;
   // response header obj : (key, value) pairs
-  this._headers = {};
+  _headers = {};
 
-}
-
-util.inherits(OutgoingMessage, stream.Writable);
-
-
-OutgoingMessage.prototype.end = function(data, encoding, callback) {
-  var self = this;
-
-  if (util.isFunction(data)) {
-    callback = data;
-    data = null;
-  } else if (util.isFunction(encoding)) {
-    callback = encoding;
-    encoding = null;
-  }
-
-  if (this.finished) {
-    return false;
-  }
-
-  // flush header
-  if (!this._header) {
-    this._implicitHeader();
-  }
-
-  if (data) {
-    this.write(data, encoding);
-  }
-
-  // Register finish event handler.
-  if (util.isFunction(callback)) {
-    this.once('finish', callback);
-  }
-
-  // Force flush buffered data.
-  // After all data was sent, emit 'finish' event meaning segment of header and
-  // body were all sent finished. This means different from 'finish' event
-  // emitted by net which indicate there will be no more data to be sent through
-  // the connection. On the other hand emitting 'finish' event from http does
-  // not neccessarily imply end of data transmission since there might be
-  // another segment of data when connection is 'Keep-Alive'.
-  this._send('', function() {
-    self.emit('finish');
-  });
-
-
-  this.finished = true;
-
-  this.emit('prefinish');
-
-  return true;
-};
-
-
-// This sends chunk directly into socket
-OutgoingMessage.prototype._send = function(chunk, encoding, callback) {
-  if (util.isFunction(encoding)) {
-    callback = encoding;
-  }
-
-  if (!this._sentHeader) {
-    this._chunks.push(this._header + '\r\n');
-    this._sentHeader = true;
-  }
-
-  if (!this._connected) {
-    this._chunks.push(chunk);
-    return false;
-  } else {
-    while (this._chunks.length) {
-      this.socket.write(this._chunks.shift(), encoding, callback);
+  end (data, encoding, callback) {
+    if (typeof data === 'function') {
+      callback = data;
+      data = null;
+    } else if (typeof encoding === 'function') {
+      callback = encoding;
+      encoding = null;
     }
-  }
 
-  if (this.socket) {
-    return this.socket.write(chunk, encoding, callback);
-  }
+    if (this.finished) {
+      return false;
+    }
 
-  return false;
-};
+    // flush header
+    if (!this._header) {
+      this._implicitHeader();
+    }
+
+    if (data) {
+      this.write(data, encoding);
+    }
+
+    // Register finish event handler.
+    if (typeof callback === 'function') {
+      this.once('finish', callback);
+    }
+
+    // Force flush buffered data.
+    // After all data was sent, emit 'finish' event meaning segment of header and
+    // body were all sent finished. This means different from 'finish' event
+    // emitted by net which indicate there will be no more data to be sent through
+    // the connection. On the other hand emitting 'finish' event from http does
+    // not neccessarily imply end of data transmission since there might be
+    // another segment of data when connection is 'Keep-Alive'.
+    this._send('', () => this.emit('finish'));
 
 
-OutgoingMessage.prototype.write = function(chunk, encoding, callback) {
-  if (!this._header) {
-    this._implicitHeader();
-  }
+    this.finished = true;
 
-  if (!this._hasBody) {
+    this.emit('prefinish');
+
     return true;
   }
 
-  return this._send(chunk, encoding, callback);
-};
+
+  // This sends chunk directly into socket
+  _send (chunk, encoding, callback) {
+    if (typeof encoding === 'function') {
+      callback = encoding;
+    }
+
+    if (!this._sentHeader) {
+      this._chunks.push(this._header + '\r\n');
+      this._sentHeader = true;
+    }
+
+    if (!this._connected) {
+      this._chunks.push(chunk);
+      return false;
+    } else {
+      while (this._chunks.length) {
+        this.socket.write(this._chunks.shift(), encoding, callback);
+      }
+    }
+
+    if (this.socket) {
+      return this.socket.write(chunk, encoding, callback);
+    }
+
+    return false;
+  }
+
+  write (chunk, encoding, callback) {
+    if (!this._header) {
+      this._implicitHeader();
+    }
+
+    if (!this._hasBody) {
+      return true;
+    }
+
+    return this._send(chunk, encoding, callback);
+  }
 
 
-// Stringfy header fields of _headers into _header
-OutgoingMessage.prototype._storeHeader = function(statusLine) {
-  var headerStr = '';
+  // Stringfy header fields of _headers into _header
+  _storeHeader (statusLine) {
+    let headerStr = '';
 
-  var keys;
-  if (this._headers) {
-    keys = Object.keys(this._headers);
-    for (var i=0; i<keys.length; i++) {
-      var key = keys[i];
-      headerStr += key + ': ' + this._headers[key] + '\r\n';
+    if (this._headers) {
+      for (const key of Object.keys(this._headers)) {
+        headerStr += key + ': ' + this._headers[key] + '\r\n';
+      }
+    }
+
+    this._header = statusLine + headerStr;
+  }
+
+  setHeader (name, value) {
+    if (typeof name !== 'string') {
+      throw new TypeError('Name must be string.');
+    }
+
+    if (value === null || value === undefined) {
+      throw new Error('value required in setHeader(' + name + ', value)');
+    }
+
+    if (this._headers === null) {
+      this._headers = {};
+    }
+
+    this._headers[name.toLowerCase()] = value;
+  }
+
+  removeHeader (name) {
+    if (this._headers !== null) {
+      delete this._headers[name];
     }
   }
 
-  this._header = statusLine + headerStr;
-
-};
-
-
-OutgoingMessage.prototype.setHeader = function(name, value) {
-  if ((typeof name) != 'string') {
-    throw new TypeError('Name must be string.');
+  getHeader (name) {
+    return this._headers[name];
   }
 
-  if (util.isNullOrUndefined(value)) {
-    throw new Error('value required in setHeader(' + name + ', value)');
+  setTimeout (ms, cb) {
+    if (cb) {
+      this.once('timeout', cb);
+    }
+
+    if (!this.socket) {
+      this.once('socket', (socket) => socket.setTimeout(ms));
+    } else {
+      this.socket.setTimeout(ms);
+    }
   }
-
-  if (this._headers === null) {
-    this._headers = {};
-  }
-
-  this._headers[name.toLowerCase()] = value;
-};
-
-
-OutgoingMessage.prototype.removeHeader = function(name) {
-  if (this._headers === null) {
-    return;
-  }
-
-  delete this._headers[name];
-};
-
-
-OutgoingMessage.prototype.getHeader = function(name) {
-  return this._headers[name];
-};
-
-
-OutgoingMessage.prototype.setTimeout = function(ms, cb) {
-  if (cb) {
-    this.once('timeout', cb);
-  }
-
-  if (!this.socket) {
-    this.once('socket', function(socket) {
-      socket.setTimeout(ms);
-    });
-  } else {
-    this.socket.setTimeout(ms);
-  }
-};
+}
 
 export { OutgoingMessage }
 export default OutgoingMessage

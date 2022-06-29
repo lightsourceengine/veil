@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import crypto from 'crypto'
+import { createVerify } from 'crypto'
 
 function parseRequest(request) {
   var authHeader = false;
@@ -74,7 +74,7 @@ function verifySignature(parsedRequest, pubKey) {
   }
 
   // We know it begins with rsa-sha, so give only the sha info to crypto
-  var toVerify = crypto.createVerify(algorithm.split('-')[1]);
+  var toVerify = createVerify(algorithm.split('-')[1]);
   var headersToHash = parsedRequest.authObject.headers.split(' ');
 
   for (var i = 0; i < headersToHash.length; i++) {

@@ -16,7 +16,6 @@ import { ClientRequest } from 'http_client'
 import { IncomingMessage } from 'http_incoming'
 import HTTPParser from 'http_parser'
 import HTTPServer, { ServerResponse } from 'http_server'
-import util from 'util'
 
 const request = (options, cb) => {
   // Create socket.
@@ -26,32 +25,24 @@ const request = (options, cb) => {
   return new ClientRequest(options, cb, socket);
 };
 
-function Server(options, requestListener) {
-  if (!(this instanceof Server)) {
-    return new Server(options, requestListener);
+class Server extends net.Server {
+  constructor (options, requestListener) {
+    super({allowHalfOpen: true}, HTTPServer.connectionListener)
+
+    HTTPServer.initServer.call(this, options, requestListener);
   }
 
-  net.Server.call(this, {allowHalfOpen: true},
-                  HTTPServer.connectionListener);
-
-  HTTPServer.initServer.call(this, options, requestListener);
+  setTimeout (ms, cb) {
+    this.timeout = ms;
+    cb && this.on('timeout', cb);
+  }
 }
-util.inherits(Server, net.Server);
-
-Server.prototype.setTimeout = function(ms, cb) {
-  this.timeout = ms;
-  if (cb) {
-    this.on('timeout', cb);
-  }
-};
 
 const createServer = (options, requestListener) => {
   return new Server(options, requestListener);
 };
 
-
 const METHODS = HTTPParser.methods;
-
 
 const get = (options, cb) => {
   var req = request(options, cb);

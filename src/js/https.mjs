@@ -15,7 +15,6 @@ import tls from 'tls'
 import net from 'net'
 import { ClientRequest } from 'http_client'
 import HTTPServer from 'http_server'
-import util from 'util'
 
 const request = (options, cb) => {
   options.port = options.port || 443;
@@ -23,32 +22,27 @@ const request = (options, cb) => {
   var socket = new tls.TLSSocket(new net.Socket(), options);
 
   return new ClientRequest(options, cb, socket);
-};
-
-function Server(options, requestListener) {
-  if (!(this instanceof Server)) {
-    return new Server(options, requestListener);
-  }
-  options.allowHalfOpen = true;
-  tls.Server.call(this, options, HTTPServer.connectionListener);
-
-  HTTPServer.initServer.call(this, options, requestListener);
 }
-util.inherits(Server, tls.Server);
 
-Server.prototype.setTimeout = function(ms, cb) {
-  this.timeout = ms;
-  if (cb) {
-    this.on('timeout', cb);
+class Server extends tls.Server {
+  constructor (options, requestListener) {
+    super(options, HTTPServer.connectionListener)
+    options.allowHalfOpen = true;
+    HTTPServer.initServer.call(this, options, requestListener);
   }
-};
+
+  setTimeout (ms, cb) {
+    this.timeout = ms;
+    cb && this.on('timeout', cb);
+  }
+}
 
 const createServer = (options, requestListener) => {
   return new Server(options, requestListener);
 };
 
 const get = (options, cb) => {
-  var req = request(options, cb);
+  const req = request(options, cb);
   req.end();
   return req;
 };

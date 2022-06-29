@@ -2,12 +2,9 @@ import t from'tls'
 import e from'net'
 import{ClientRequest as r}from'http_client'
 import o from'http_server'
-import n from'util'
-const i=(o,n)=>{o.port=o.port||443
-var i=new t.TLSSocket(new e.Socket,o)
-return new r(o,n,i)}
-function s(e,r){if(!(this instanceof s))return new s(e,r)
-e.allowHalfOpen=true,t.Server.call(this,e,o.connectionListener),o.initServer.call(this,e,r)}n.inherits(s,t.Server),s.prototype.setTimeout=function(t,e){if(this.timeout=t,e)this.on('timeout',e)}
-const c=(t,e)=>new s(t,e),m=(t,e)=>{var r=i(t,e)
-return r.end(),r},p={get:m,createServer:c,request:i}
-export{c as createServer,p as default,m as get,i as request}
+const n=(o,n)=>{o.port=o.port||443
+var s=new t.TLSSocket(new e.Socket,o)
+return new r(o,n,s)}
+class s extends t.Server{constructor(t,e){super(t,o.connectionListener),t.allowHalfOpen=true,o.initServer.call(this,t,e)}setTimeout(t,e){this.timeout=t,e&&this.on('timeout',e)}}const i=(t,e)=>new s(t,e),c=(t,e)=>{const r=n(t,e)
+return r.end(),r},m={get:c,createServer:i,request:n}
+export{i as createServer,m as default,c as get,n as request}

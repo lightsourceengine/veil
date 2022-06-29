@@ -11,66 +11,73 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import util from 'util'
 import { OutgoingMessage } from 'http_outgoing'
-import common from 'http_common'
+import { createHTTPParser } from 'http_common'
 import HTTPParser from 'http_parser'
 
-function ClientRequest(options, cb, socket) {
-  OutgoingMessage.call(this);
+class ClientRequest extends OutgoingMessage {
+  constructor (options, cb, socket) {
+    super()
 
-  // get port, host and method.
-  var method = options.method || 'GET';
-  var path = options.path || '/';
-  options.host = options.hostname || options.host || '127.0.0.1';
+    // get port, host and method.
+    var method = options.method || 'GET';
+    var path = options.path || '/';
+    options.host = options.hostname || options.host || '127.0.0.1';
 
-  // If `options` contains header information, save it.
-  if (options.headers) {
-    var keys = Object.keys(options.headers);
-    for (var i = 0, l = keys.length; i < l; i++) {
-      var key = keys[i];
-      this.setHeader(key, options.headers[key]);
+    // If `options` contains header information, save it.
+    if (options.headers) {
+      for (const key of Object.keys(options.headers)) {
+        this.setHeader(key, options.headers[key]);
+      }
     }
-  }
 
-  if (options.host && !this.getHeader('host')) {
-    var hostHeader = options.host;
-    if (this._port && +this._port !== 80) {
-      hostHeader += ':' + this._port;
+    if (options.host && !this.getHeader('host')) {
+      var hostHeader = options.host;
+      if (this._port && +this._port !== 80) {
+        hostHeader += ':' + this._port;
+      }
+      this.setHeader('Host', hostHeader);
     }
-    this.setHeader('Host', hostHeader);
+
+    // store first header line to be sent.
+    this._storeHeader(method + ' ' + path + ' HTTP/1.1\r\n');
+
+    // Register response event handler.
+    if (cb) {
+      this.once('response', cb);
+    }
+
+    this.socket = socket;
+    this.options = options;
   }
 
-  // store first header line to be sent.
-  this._storeHeader(method + ' ' + path + ' HTTP/1.1\r\n');
+  end (data, encoding, callback) {
+    const self = this;
 
-  // Register response event handler.
-  if (cb) {
-    this.once('response', cb);
+    // connect server.
+    this.socket.connect(this.options, () => {
+      self._connected = true;
+      OutgoingMessage.prototype.end.call(self, data, encoding, callback);
+    })
+
+    // setup connection information.
+    setupConnection(this)
   }
 
-  this.socket = socket;
-  this.options = options;
+  abort () {
+    this.emit('abort');
+    this.socket && cleanUpSocket(this.socket);
+  }
+
+  setTimeout (ms, cb) {
+    cb && this.once('timeout', cb)
+    setTimeout(() => this.emit('timeout'), ms)
+  }
 }
-
-util.inherits(ClientRequest, OutgoingMessage);
-
-ClientRequest.prototype.end = function(data, encoding, callback) {
-  var self = this;
-
-  // connect server.
-  this.socket.connect(this.options, function() {
-    self._connected = true;
-    OutgoingMessage.prototype.end.call(self, data, encoding, callback);
-  });
-
-  // setup connection information.
-  setupConnection(this);
-};
 
 function setupConnection(req) {
   var socket = req.socket;
-  var parser = common.createHTTPParser(HTTPParser.RESPONSE);
+  var parser = createHTTPParser(HTTPParser.RESPONSE);
   socket.parser = parser;
   socket._httpMessage = req;
 
@@ -190,23 +197,6 @@ var responseOnEnd = function() {
   if (socket._socketState.writable) {
     socket.destroySoon();
   }
-};
-
-ClientRequest.prototype.abort = function() {
-  this.emit('abort');
-  if (this.socket) {
-    cleanUpSocket(this.socket);
-  }
-};
-
-ClientRequest.prototype.setTimeout = function(ms, cb) {
-  var self = this;
-
-  if (cb) self.once('timeout', cb);
-
-  setTimeout(function() {
-    self.emit('timeout');
-  }, ms);
 };
 
 export { ClientRequest }

@@ -12,164 +12,159 @@
  */
 
 import net from 'net'
-import util from 'util'
 import { Duplex } from 'stream'
 
 const { native } = import.meta
 
-function TLSSocket(socket, options) {
-  if (!(this instanceof TLSSocket)) {
-    return new TLSSocket(socket, options);
+class TLSSocket extends Duplex {
+  _native_read = native.read;
+  _native_write = native.write;
+  _native_connect = native.connect;
+
+  constructor (socket, options) {
+    super()
+
+    if ('_tlsSocket' in socket) {
+      throw Error('Socket already bound');
+    }
+
+    this._socket = socket;
+    socket._tlsSocket = this;
+
+    this.authorized = false;
+
+    this._socket.on('connect', this.onconnect);
+    this._socket.on('data', this.ondata);
+    this._socket.on('error', this.onerror);
+    this._socket.on('close', this.onclose);
+    if (this._socket instanceof net.Socket) {
+      this._socket.on('finish', this.onfinish);
+    } else {
+      this._socket.on('finish', this.onend);
+    }
+    this._socket.on('end', this.onend);
+
+    // Native handle
+    var secureContext = options.secureContext;
+    if (!secureContext) {
+      secureContext = createSecureContext(options);
+    }
+
+    native.TlsInit(this, options, secureContext);
+    this._socketState = socket._socketState;
+
+    const self = this;
+    if (socket._writableState.ready && !options.isServer) {
+      process.nextTick(() => {
+        self._native_connect(options.servername || options.host || 'localhost');
+        self._native_read(null);
+      });
+    }
   }
 
-  if ('_tlsSocket' in socket) {
-    throw Error('Socket already bound');
+  connect (options, callback) {
+    this._native_connect(options.servername || options.host || 'localhost');
+
+    if (typeof callback === 'function') {
+      this.on('secureConnect', callback);
+    }
+
+    this._socket.connect(options);
   }
 
-  this._socket = socket;
-  socket._tlsSocket = this;
-
-  Duplex.call(this);
-
-  this.authorized = false;
-
-  this._socket.on('connect', this.onconnect);
-  this._socket.on('data', this.ondata);
-  this._socket.on('error', this.onerror);
-  this._socket.on('close', this.onclose);
-  if (this._socket instanceof net.Socket) {
-    this._socket.on('finish', this.onfinish);
-  } else {
-    this._socket.on('finish', this.onend);
-  }
-  this._socket.on('end', this.onend);
-
-  // Native handle
-  var secureContext = options.secureContext;
-  if (!secureContext) {
-    secureContext = createSecureContext(options);
+  _write (chunk, callback, onwrite) {
+    chunk = this._native_write(chunk);
+    this._socket.write(chunk, callback);
+    onwrite();
   }
 
-  native.TlsInit(this, options, secureContext);
-  this._socketState = socket._socketState;
-
-  var self = this;
-  if (socket._writableState.ready && !options.isServer) {
-    process.nextTick(function() {
-      self._native_connect(options.servername || options.host || 'localhost');
-      self._native_read(null);
-    });
-  }
-}
-util.inherits(TLSSocket, Duplex);
-
-TLSSocket.prototype._native_read = native.read;
-TLSSocket.prototype._native_write = native.write;
-TLSSocket.prototype._native_connect = native.connect;
-
-TLSSocket.prototype.connect = function(options, callback) {
-  this._native_connect(options.servername || options.host || 'localhost');
-
-  if (util.isFunction(callback)) {
-    this.on('secureConnect', callback);
+  end (data, callback) {
+    super.end(data, callback);
+    this._socket.end();
   }
 
-  this._socket.connect(options);
-};
+  destroy () {
+    this._socket.destroy();
+  }
 
-TLSSocket.prototype._write = function(chunk, callback, onwrite) {
-  chunk = this._native_write(chunk);
-  this._socket.write(chunk, callback);
-  onwrite();
-};
+  destroySoon () {
+    this._socket.destroySoon();
+  }
 
-TLSSocket.prototype.end = function(data, callback) {
-  Duplex.prototype.end.call(this, data, callback);
-  this._socket.end();
-};
+  onconnect () {
+    this._tlsSocket._native_read(null);
+  }
 
-TLSSocket.prototype.destroy = function() {
-  this._socket.destroy();
-};
+  encrypted () {
+    return true;
+  }
 
-TLSSocket.prototype.destroySoon = function() {
-  this._socket.destroySoon();
-};
+  address () {
+    return this._socket.address();
+  }
 
-TLSSocket.prototype.onconnect = function() {
-  this._tlsSocket._native_read(null);
-};
+  localAddress () {
+    return this._socket.address().address;
+  }
 
-TLSSocket.prototype.encrypted = function() {
-  return true;
-};
+  setTimeout (msecs, callback) {
+    return this._socket.setTimeout(msecs, callback);
+  }
 
-TLSSocket.prototype.address = function() {
-  return this._socket.address();
-};
+  ondata (data) {
+    this._tlsSocket._native_read(data);
+  };
 
-TLSSocket.prototype.localAddress = function() {
-  return this._socket.address().address;
-};
+  onerror (error) {
+    this._tlsSocket.emit('error', error);
+  }
 
-TLSSocket.prototype.setTimeout = function(msecs, callback) {
-  return this._socket.setTimeout(msecs, callback);
-};
+  onclose () {
+    this._tlsSocket.emit('close');
+  }
 
-TLSSocket.prototype.ondata = function(data) {
-  var self = this._tlsSocket;
-  self._native_read(data);
-};
+  onfinish () {
+    this._tlsSocket.emit('finish');
+  }
 
-TLSSocket.prototype.onerror = function(error) {
-  this._tlsSocket.emit('error', error);
-};
+  onend () {
+    this._tlsSocket.emit('end');
+  }
 
-TLSSocket.prototype.onclose = function() {
-  this._tlsSocket.emit('close');
-};
+  onwrite (data) {
+    return this._socket.write(data);
+  }
 
-TLSSocket.prototype.onfinish = function() {
-  this._tlsSocket.emit('finish');
-};
+  onread (chunk) {
+    this.emit('data', chunk);
+  }
 
-TLSSocket.prototype.onend = function() {
-  this._tlsSocket.emit('end');
-};
+  onhandshakedone (error, authorized) {
+    this.authorized = authorized;
 
-TLSSocket.prototype.onwrite = function(data) {
-  return this._socket.write(data);
-};
+    var server = this._server;
 
-TLSSocket.prototype.onread = function(chunk) {
-  this.emit('data', chunk);
-};
+    if (error) {
+      error = Error('handshake failed');
 
-TLSSocket.prototype.onhandshakedone = function(error, authorized) {
-  this.authorized = authorized;
+      if (server) {
+        server.emit('tlsClientError', error, this);
+      } else {
+        this.emit('error', error);
+      }
+      this.end();
+      return;
+    }
 
-  var server = this._server;
-
-  if (error) {
-    error = Error('handshake failed');
+    this._readyToWrite();
 
     if (server) {
-      server.emit('tlsClientError', error, this);
+      server.emit('secureConnection', this);
     } else {
-      this.emit('error', error);
+      this.emit('secureConnect');
     }
-    this.end();
-    return;
   }
-
-  this._readyToWrite();
-
-  if (server) {
-    server.emit('secureConnection', this);
-  } else {
-    this.emit('secureConnect');
-  }
-};
+}
 
 function tlsConnectionListener(rawSocket) {
   var tlsSocket = new TLSSocket(rawSocket, {
@@ -180,21 +175,16 @@ function tlsConnectionListener(rawSocket) {
   tlsSocket._server = this;
 }
 
-function Server(options, listener) {
-  if (!(this instanceof Server)) {
-    return new Server(options, listener);
-  }
+class Server extends net.Server {
+  constructor (options, listener) {
+    super(options, tlsConnectionListener)
+    this._secureContext = createSecureContext(options);
 
-  this._secureContext = createSecureContext(options);
-
-  // constructor call
-  net.Server.call(this, options, tlsConnectionListener);
-
-  if (listener) {
-    this.on('secureConnection', listener);
+    if (listener) {
+      this.on('secureConnection', listener);
+    }
   }
 }
-util.inherits(Server, net.Server);
 
 function createSecureContext(options) {
   return new native.TlsContext(options);
@@ -254,7 +244,7 @@ function connect(arg0, arg1, arg2, callback) {
   var tlsSocket = new TLSSocket(options.socket || new net.Socket(), options);
   if (tlsSocket._socket instanceof net.Socket) {
     tlsSocket.connect(options, callback);
-  } else if (util.isFunction(callback)) {
+  } else if (typeof callback === 'function') {
     tlsSocket.on('secureConnect', callback);
   }
 

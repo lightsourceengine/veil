@@ -11,14 +11,14 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import util from 'util'
+import { format } from 'util'
 import { IncomingMessage } from 'http_incoming'
 import { OutgoingMessage } from 'http_outgoing'
-import common from 'http_common'
+import { createHTTPParser } from 'http_common'
 import HTTPParser from 'http_parser'
 
 // RFC 7231 (http://tools.ietf.org/html/rfc7231#page-49)
-var STATUS_CODES = {
+const STATUS_CODES = {
   100: 'Continue',
   101: 'Switching Protocols',
   200: 'OK',
@@ -62,88 +62,75 @@ var STATUS_CODES = {
   505: 'HTTP Version Not Supported',
 };
 
+class ServerResponse extends OutgoingMessage {
+  // default status code : 200
+  statusCode = 200;
+  statusMessage = undefined;
+  _hasBody = true
 
-// response to req
-function ServerResponse(req) {
-  OutgoingMessage.call(this);
-  // response to HEAD method has no body
-  if (req.method === 'HEAD') this._hasBody = false;
-}
-
-util.inherits(ServerResponse, OutgoingMessage);
-
-// default status code : 200
-ServerResponse.prototype.statusCode = 200;
-ServerResponse.prototype.statusMessage = undefined;
-
-
-// if user does not set Header before write(..),
-// this function set default header(200).
-ServerResponse.prototype._implicitHeader = function() {
-  this.writeHead(this.statusCode, this.statusMessage);
-};
-
-
-ServerResponse.prototype.writeHead = function(statusCode, reason, obj) {
-  if (util.isString(reason)) {
-    this.statusMessage = reason;
-  } else {
-    this.statusMessage = STATUS_CODES[statusCode] || 'unknown';
-    obj = reason;
+  constructor (req) {
+    super()
+    // response to HEAD method has no body
+    if (req.method === 'HEAD') this._hasBody = false;
   }
 
-  var statusLine = util.format('HTTP/1.1 %s %s\r\n',
-                               statusCode.toString(),
-                               this.statusMessage);
-
-  this.statusCode = statusCode;
-
-  // HTTP response without body
-  if (statusCode === 204 || statusCode === 304 ||
-      (100 <= statusCode && statusCode <= 199)) {
-    this._hasBody = false;
+  // if user does not set Header before write(..),
+  // this function set default header(200).
+  _implicitHeader () {
+    this.writeHead(this.statusCode, this.statusMessage);
   }
 
-  if (util.isObject(obj)) {
-    if (util.isNullOrUndefined(this._headers)) {
-      this._headers = {};
+  writeHead (statusCode, reason, obj) {
+    if (typeof reason === 'string') {
+      this.statusMessage = reason;
+    } else {
+      this.statusMessage = STATUS_CODES[statusCode] || 'unknown';
+      obj = reason;
     }
-    for (var key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        this._headers[key] = obj[key];
+
+    var statusLine = format('HTTP/1.1 %s %s\r\n',
+      statusCode.toString(),
+      this.statusMessage);
+
+    this.statusCode = statusCode;
+
+    // HTTP response without body
+    if (statusCode === 204 || statusCode === 304 ||
+      (100 <= statusCode && statusCode <= 199)) {
+      this._hasBody = false;
+    }
+
+    if (obj !== null && typeof obj === 'object') {
+      if (!this._headers) {
+        this._headers = {};
+      }
+      for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          this._headers[key] = obj[key];
+        }
       }
     }
+
+    this._storeHeader(statusLine);
   }
 
-  this._storeHeader(statusLine);
-};
-
-
-ServerResponse.prototype.assignSocket = function(socket) {
-  this._connected = true;
-  socket._httpMessage = this;
-  this.socket = socket;
-  socket.on('close', onServerResponseClose);
-  this.emit('socket', socket);
-};
-
-
-function onServerResponseClose() {
-  if (this._httpMessage) {
-    this._httpMessage.emit('close');
+  assignSocket (socket) {
+    this._connected = true;
+    socket._httpMessage = this;
+    this.socket = socket;
+    socket.on('close', () => socket._httpMessage?.emit('close'));
+    this.emit('socket', socket);
   }
+
+  detachSocket () {
+    this.socket._httpMessage = null;
+    this.socket = null;
+    this._connected = false;
+  };
 }
 
-
-ServerResponse.prototype.detachSocket = function() {
-  this.socket._httpMessage = null;
-  this.socket = null;
-  this._connected = false;
-};
-
-
 function initServer(options, requestListener) {
-  if (util.isFunction(options)) {
+  if (typeof options === 'function') {
     requestListener = options;
   }
 
@@ -151,7 +138,7 @@ function initServer(options, requestListener) {
     options = {};
   }
 
-  if (util.isFunction(requestListener)) {
+  if (typeof requestListener === 'function') {
     this.addListener('request', requestListener);
   }
 
@@ -171,7 +158,7 @@ function connectionListener(socket) {
 
   // cf) In Node.js, freelist returns a new parser.
   // parser initialize
-  var parser = common.createHTTPParser(HTTPParser.REQUEST);
+  var parser = createHTTPParser(HTTPParser.REQUEST);
   parser._headers = [];
   parser._url = '';
 

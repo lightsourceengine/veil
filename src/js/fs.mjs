@@ -11,29 +11,26 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import util, { promisify } from 'util'
+import { promisify } from 'util'
 import constants from 'constants'
-import stream from 'stream'
+import { Readable, Writable } from 'stream'
 
 const fsBuiltin = import.meta.native;
 
 const exists = (path, callback) =>  {
-  if (!(util.isString(path)) && !(util.isBuffer(path))) {
+  if (typeof path !== 'string' && !Buffer.isBuffer(path)) {
     throw new TypeError('Path should be a string or a buffer');
   }
   if (!path || !path.length) {
-    process.nextTick(function() {
-      if (callback) callback(false);
-    });
-    return;
+    process.nextTick(() => callback?.(false));
+    return
   }
 
-  var cb = function(err/* , stat */) {
-    if (callback) callback(err ? false : true);
-  };
+  checkArgFunction(callback, 'callback')
 
-  fsBuiltin.stat(checkArgString(path, 'path'),
-                 checkArgFunction(cb, 'callback'));
+  const cb = (err/* , stat */) => callback(!!err)
+
+  fsBuiltin.stat(checkArgString(path, 'path'), cb);
 };
 
 
@@ -103,9 +100,7 @@ const openSync = (path, flags, mode) =>  {
 
 
 const read = (fd, buffer, offset, length, position, callback) =>  {
-  if (util.isNullOrUndefined(position)) {
-    position = -1; // Read from the current position.
-  }
+  position = position ?? -1; // Read from the current position.
 
   callback = checkArgFunction(callback, 'callback');
 
@@ -123,9 +118,7 @@ const read = (fd, buffer, offset, length, position, callback) =>  {
 
 
 const readSync = (fd, buffer, offset, length, position) =>  {
-  if (util.isNullOrUndefined(position)) {
-    position = -1; // Read from the current position.
-  }
+  position = position ?? -1; // Read from the current position.
 
   return fsBuiltin.read(checkArgNumber(fd, 'fd'),
                         checkArgBuffer(buffer, 'buffer'),
@@ -136,10 +129,10 @@ const readSync = (fd, buffer, offset, length, position) =>  {
 
 
 const write = (fd, buffer, offset, length, position, callback) =>  {
-  if (util.isFunction(position)) {
+  if (typeof position === 'function') {
     callback = position;
     position = -1; // write at current position.
-  } else if (util.isNullOrUndefined(position)) {
+  } else if (position === null || position === undefined) {
     position = -1; // write at current position.
   }
 
@@ -159,7 +152,7 @@ const write = (fd, buffer, offset, length, position, callback) =>  {
 
 
 const writeSync = (fd, buffer, offset, length, position) =>  {
-  if (util.isNullOrUndefined(position)) {
+  if (position === null || position === undefined) {
     position = -1; // write at current position.
   }
 
@@ -320,7 +313,7 @@ const writeFileSync = (path, data) =>  {
 
 
 const mkdir = (path, mode, callback) =>  {
-  if (util.isFunction(mode)) callback = mode;
+  if (typeof mode === 'function') callback = mode;
   checkArgString(path, 'path');
   checkArgFunction(callback, 'callback');
   fsBuiltin.mkdir(path, convertMode(mode, 511), callback);
@@ -383,10 +376,8 @@ const readdirSync = (path) =>  {
   return fsBuiltin.readdir(checkArgString(path, 'path'));
 };
 
-var Readable = stream.Readable;
-var Writable = stream.Writable;
-var closeFile = function(stream) {
-  close(stream._fd, function(err) {
+const closeFile = (stream) => {
+  close(stream._fd, (err) => {
     if (err) {
       throw err;
     }
@@ -394,137 +385,103 @@ var closeFile = function(stream) {
   });
 };
 
-var ReadStream = function(path, options) {
-  if (!(this instanceof ReadStream)) {
-    return new ReadStream(path, options);
-  }
+class ReadStream extends Readable {
+  constructor (path, options = {}) {
+    super({defaultEncoding: options.encoding || null})
 
-  options = options || {};
+    this.bytesRead = 0;
+    this.path = path;
+    this._autoClose = (options.autoClose === null || options.autoClose === undefined) ||
+      options.autoClose;
+    this._fd = options.fd;
+    this._buff = new Buffer(options.bufferSize || 4096);
 
-  Readable.call(this, {defaultEncoding: options.encoding || null});
-
-  this.bytesRead = 0;
-  this.path = path;
-  this._autoClose = util.isNullOrUndefined(options.autoClose) ||
-                                           options.autoClose;
-  this._fd = options.fd;
-  this._buff = new Buffer(options.bufferSize || 4096);
-
-  var self = this;
-  if (util.isNullOrUndefined(this._fd)) {
-    open(this.path, options.flags || 'r', options.mode || 438,
-            function(err, _fd) {
-      if (err) {
-        throw err;
-      }
-      self._fd = _fd;
-      self.emit('open', self._fd);
-      self.doRead();
-    });
-  }
-
-  this.once('open', function(/* _fd */) {
-    this.emit('ready');
-  });
-
-  if (this._autoClose) {
-    this.on('end', function() {
-      closeFile(self);
-    });
-  }
-};
-
-
-util.inherits(ReadStream, Readable);
-
-
-ReadStream.prototype.doRead = function() {
-  var self = this;
-  read(this._fd, this._buff, 0, this._buff.length, null,
-          function(err, bytes_read/* , buffer*/) {
-    if (err) {
-      if (self._autoClose) {
-        closeFile(self);
-      }
-      throw err;
+    var self = this;
+    if (this._fd === null || this._fd === undefined) {
+      open(this.path, options.flags || 'r', options.mode || 438,
+        function(err, _fd) {
+          if (err) {
+            throw err;
+          }
+          self._fd = _fd;
+          self.emit('open', self._fd);
+          self.doRead();
+        });
     }
 
-    self.bytesRead += bytes_read;
-    if (bytes_read === 0) {
-      // Reached end of file.
-      // null must be pushed so the 'end' event will be emitted.
-      self.push(null);
-    } else {
-      self.push(bytes_read === self._buff.length ?
-                self._buff : self._buff.slice(0, bytes_read));
-      self.doRead();
+    this.once('open', (/* _fd */) => this.emit('ready'));
+
+    if (this._autoClose) {
+      this.on('end', () => closeFile(self));
     }
-  });
-};
-
-
-var WriteStream = function(path, options) {
-  if (!(this instanceof WriteStream)) {
-    return new WriteStream(path, options);
   }
 
-  options = options || {};
+  doRead () {
+    const self = this;
+    read(this._fd, this._buff, 0, this._buff.length, null,
+      (err, bytes_read/* , buffer*/) => {
+        if (err) {
+          if (self._autoClose) {
+            closeFile(self);
+          }
+          throw err;
+        }
 
-  Writable.call(this);
+        self.bytesRead += bytes_read;
+        if (bytes_read === 0) {
+          // Reached end of file.
+          // null must be pushed so the 'end' event will be emitted.
+          self.push(null);
+        } else {
+          self.push(bytes_read === self._buff.length ?
+            self._buff : self._buff.slice(0, bytes_read));
+          self.doRead();
+        }
+      });
+  }
+}
 
-  this._fd = options._fd;
-  this._autoClose = util.isNullOrUndefined(options.autoClose) ||
-                                           options.autoClose;
-  this.bytesWritten = 0;
+class WriteStream extends Writable {
+  constructor (path, options = {}) {
+    super()
 
-  var self = this;
-  if (!this._fd) {
-    open(path, options.flags || 'w', options.mode || 438,
-            function(err, _fd) {
-      if (err) {
-        throw err;
-      }
-      self._fd = _fd;
-      self.emit('open', self._fd);
-    });
+    this._fd = options._fd;
+    this._autoClose = (options.autoClose === null || options.autoClose === undefined) ||
+      options.autoClose;
+    this.bytesWritten = 0;
+
+    var self = this;
+    if (!this._fd) {
+      open(path, options.flags || 'w', options.mode || 438,
+        function(err, _fd) {
+          if (err) {
+            throw err;
+          }
+          self._fd = _fd;
+          self.emit('open', self._fd);
+        });
+    }
+
+    this.once('open', (/* _fd */) => self.emit('ready'));
+    this._autoClose && this.on('finish', () => closeFile(self));
+    this._readyToWrite();
   }
 
-  this.once('open', function(/* _fd */) {
-    self.emit('ready');
-  });
+  _write (chunk, callback, onwrite) {
+    const self = this;
+    write(this._fd, chunk, 0, chunk.length,
+      (err, bytes_written/* , buffer */) => {
+        if (err) {
+          self._autoClose && closeFile(self);
+          throw err;
+        }
+        this.bytesWritten += bytes_written;
 
-  if (this._autoClose) {
-    this.on('finish', function() {
-      closeFile(self);
-    });
+        callback?.();
+        onwrite();
+      });
   }
-
-  this._readyToWrite();
-};
-
-
-util.inherits(WriteStream, Writable);
-
-
-WriteStream.prototype._write = function(chunk, callback, onwrite) {
-  var self = this;
-  write(this._fd, chunk, 0, chunk.length,
-           function(err, bytes_written/* , buffer */) {
-    if (err) {
-      if (self._autoClose) {
-        closeFile(self);
-      }
-      throw err;
-    }
-    this.bytesWritten += bytes_written;
-
-    if (callback) {
-      callback();
-    }
-    onwrite();
-  });
-};
-
+}
 
 const createWriteStream = (path, options) =>  {
   return new WriteStream(path, options);
@@ -577,9 +534,9 @@ function convertFlags(flag) {
 }
 
 function convertMode(mode, def) {
-  if (util.isNumber(mode)) {
+  if (typeof mode === 'number') {
     return mode;
-  } else if (util.isString(mode)) {
+  } else if (typeof mode === 'string') {
     return parseInt(mode, 8);
   } else if (def) {
     return convertMode(def);
@@ -587,7 +544,7 @@ function convertMode(mode, def) {
 }
 
 
-const ensureBuffer = (data) => util.isBuffer(data) ? data : new Buffer(data + '')
+const ensureBuffer = (data) => Buffer.isBuffer(data) ? data : new Buffer(data + '')
 
 const checkArgType = (value, name, checkFunc) => {
   if (!checkFunc(value)) {
@@ -597,10 +554,10 @@ const checkArgType = (value, name, checkFunc) => {
   return value;
 }
 
-const checkArgBuffer = (value, name) => checkArgType(value, name, util.isBuffer)
-const checkArgNumber = (value, name) => checkArgType(value, name, util.isNumber)
-const checkArgString = (value, name) => checkArgType(value, name, util.isString)
-const checkArgFunction = (value, name) => checkArgType(value, name, util.isFunction)
+const checkArgBuffer = (value, name) => checkArgType(value, name, Buffer.isBuffer)
+const checkArgNumber = (value, name) => checkArgType(value, name, (v) => typeof v === 'number')
+const checkArgString = (value, name) => checkArgType(value, name, (v) => typeof v === 'string')
+const checkArgFunction = (value, name) => checkArgType(value, name, (v) => typeof v === 'function')
 
 const promises = {
   close: promisify(close),
