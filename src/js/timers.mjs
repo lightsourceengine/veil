@@ -86,7 +86,7 @@ function timeoutConfigurator(type, callback, delay, ...args) {
     }
   }
 
-  var timeout = new Timeout(delay);
+  const timeout = new Timeout(delay);
 
   // set timeout handler.
   if (args.length === 0) {
@@ -101,22 +101,12 @@ function timeoutConfigurator(type, callback, delay, ...args) {
   return timeout;
 }
 
-function clearTimeoutBase(timeoutType, timeout) {
-  if (timeout) {
-    if (timeout instanceof Timeout) {
-      timeout.unref();
-    } else {
-      throw new Error(timeoutType + '() - invalid timeout');
-    }
-  }
-}
-
 const setTimeout = timeoutConfigurator.bind(undefined, TIMER_TYPES.setTimeout)
 const setInterval = timeoutConfigurator.bind(undefined, TIMER_TYPES.setInterval)
 const setImmediate = timeoutConfigurator.bind(undefined, TIMER_TYPES.setImmediate)
-const clearTimeout = clearTimeoutBase.bind(undefined, 'clearTimeout')
-const clearInterval = clearTimeoutBase.bind(undefined, 'clearInterval')
-const clearImmediate = clearTimeoutBase.bind(undefined, 'clearImmediate')
+const clearTimeout = (timeout) => timeout instanceof Timeout && timeout.unref()
+const clearInterval = (timeout) => timeout instanceof Timeout && timeout.unref()
+const clearImmediate = (timeout) => timeout instanceof Timeout && timeout.unref()
 
 Object.assign(global, {
   setTimeout,

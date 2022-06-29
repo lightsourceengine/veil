@@ -43,10 +43,51 @@ test('clearTimeout() before setTimeout() fires', () => {
   clearTimeout(setTimeout(() => fail('setTimeout() should not be running'), 0))
 })
 
+test('clearTimeout() idempotent', () => {
+  const timeout = setTimeout(() => fail('setTimeout() should not be running'), 0)
+
+  clearTimeout(timeout)
+  clearTimeout(timeout)
+})
+
+test('clearTimeout() ignores bad input', () => {
+  for (const input of junkInput) {
+    clearTimeout(input)
+  }
+})
+
 test('clearInterval() before first setInterval() fires', () => {
   clearInterval(setInterval(() => fail('setInterval() should not be running'), 1))
+})
+
+test('clearInterval() idempotent', () => {
+  const timeout = setInterval(() => fail('setInterval() should not be running'), 1)
+
+  clearInterval(timeout)
+  clearInterval(timeout)
+})
+
+test('clearInterval() ignores bad input', () => {
+  for (const input of junkInput) {
+    clearInterval(input)
+  }
 })
 
 test('clearImmediate() before setImmediate() fires', () => {
   clearImmediate(setImmediate(() => fail('setImmediate() should not be running')))
 })
+
+test('clearImmediate() idempotent', () => {
+  const timeout = setImmediate(() => fail('setImmediate() should not be running'))
+
+  clearImmediate(timeout)
+  clearImmediate(timeout)
+})
+
+test('clearImmediate() ignores bad input', () => {
+  for (const input of junkInput) {
+    clearImmediate(input)
+  }
+})
+
+const junkInput = [ null, undefined, {}, [], new Map(), Infinity, '', 2, true, false ]
