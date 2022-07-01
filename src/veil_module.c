@@ -34,7 +34,7 @@ static veil_module_on_ready_handler_t s_on_ready_handler = NULL;
 
 // helper functions
 static jerry_value_t native_module_evaluate(jerry_value_t module_record);
-static jerry_value_t get_builtins();
+static jerry_value_t get_builtin_specifiers();
 static void add_enums(jerry_value_t object);
 static const iotjs_js_module_t* get_builtin_by_id(const char* id);
 static jerry_value_t string_format(const char* fmt, const char* replace);
@@ -332,9 +332,9 @@ static jerry_value_t string_format(const char* fmt, const char* replace) {
   return result;
 }
 
-static jerry_value_t get_builtins() {
-  size_t i = 0;
-  size_t length;
+static jerry_value_t get_builtin_specifiers() {
+  jerry_length_t i = 0;
+  jerry_length_t length;
   jerry_value_t result;
 
   while (js_modules[i++].name) {}
@@ -434,9 +434,7 @@ static void set_module_meta(jerry_value_t meta_object) {
   iotjs_jval_set_method(native, IOTJS_MAGIC_STRING_CJS, js_run_cjs);
 
   // import.native.builtins
-  jerry_value_t builtins = get_builtins();
-  iotjs_jval_set_property_jval(native, IOTJS_MAGIC_STRING_BUILTINS, builtins);
-  jerry_value_free(builtins);
+  veil_module_export_builtin_specifiers(native);
 
   // import.native.STATE_*; import.native.MODULE_*
   add_enums(native);
@@ -630,4 +628,10 @@ void veil_module_cleanup() {
     s_on_ready_handler = NULL;
     s_was_initialized = false;
   }
+}
+
+void veil_module_export_builtin_specifiers(jerry_value_t exports) {
+  jerry_value_t builtins = get_builtin_specifiers();
+  iotjs_jval_set_property_jval(exports, IOTJS_MAGIC_STRING_BUILTINS, builtins);
+  jerry_value_free(builtins);
 }

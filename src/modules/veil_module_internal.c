@@ -15,6 +15,7 @@
 
 #include "iotjs_compatibility.h"
 #include "iotjs_js.h"
+#include "veil_module.h"
 #define i_key char
 #include <stc/cvec.h>
 
@@ -112,11 +113,12 @@ JS_FUNCTION(js_fast_read_package_json) {
   }
 
   result = jerry_array(2);
-  jerry_value_t json = jerry_string((const jerry_char_t*)cvec_char_at(&chars, start), size, JERRY_ENCODING_UTF8);
-  jerry_value_t contains_keys = jerry_boolean(p < pe ? true : false);
 
+  jerry_value_t json = jerry_string((const jerry_char_t*)cvec_char_at(&chars, start), size, JERRY_ENCODING_UTF8);
   iotjs_jval_set_property_by_index(result, 0, json);
   jerry_value_free(json);
+
+  jerry_value_t contains_keys = jerry_boolean(p < pe ? true : false);
   iotjs_jval_set_property_by_index(result, 1, contains_keys);
   jerry_value_free(contains_keys);
 
@@ -195,7 +197,7 @@ jerry_value_t veil_init_internal(void) {
   iotjs_jval_set_method(internal, "fastReadPackageJson", js_fast_read_package_json);
   iotjs_jval_set_method(internal, "fastStat", js_fast_stat);
   iotjs_jval_set_method(internal, "getOptionValue", js_get_option_value);
-  iotjs_jval_set_property_jval(internal, "builtins", builtins);
+  veil_module_export_builtin_specifiers(internal);
 
   jerry_value_free(builtins);
 

@@ -18,6 +18,7 @@ let esm /* import esm from 'internal/esm' */
 const { native } = import.meta
 
 const {
+  builtins,
   fromSymbols,
   fromBuiltin,
   fromFile,
@@ -26,24 +27,11 @@ const {
   evaluateWith,
   getNamespace,
   readFileSync,
-  cjs,
   getState,
-  STATE_EVALUATED,
-  FORMAT_BUILTIN,
-  FORMAT_MODULE,
-  FORMAT_COMMONJS,
-  FORMAT_JSON,
-  FORMAT_ADDON
+  STATE_EVALUATED
 } = native
 
-// builtin ids used internally that cannot be imported by user scripts
-const PRIVATE_BUILTIN_IDS = new Set(['napi', 'lexer', 'internal'])
-// builtin ids importable by import statements
-const PUBLIC_BUILTIN_IDS = new Set(native.builtins.filter(id => !PRIVATE_BUILTIN_IDS.has(id)))
-// builtin modules with known side effects to the global namespace
-const GLOBAL_POLLUTERS = [ 'buffer', 'console', 'process', 'timers', 'internal/event_target', 'url' ]
-const builtinsSet = new Set(native.builtins)
-
+const builtinsSet = new Set(builtins)
 // id -> Module, where id is the absolute path to the module js file or the builtin id
 const cache = new Map()
 // id -> Module, where id is the absolute path to the .node or .json file
@@ -211,8 +199,10 @@ const createRequire = (pathOrUrl) => {
 }
 
 const addNodeModulePackage = () => {
+  const privateBuiltins = new Set(['napi', 'lexer', 'internal'])
+  const builtinModules = Object.freeze(builtins.filter(b => !privateBuiltins.has(b) && !b.startsWith('internal/')))
   const namedExports = {
-    builtinModules: Array.from(PUBLIC_BUILTIN_IDS.values()),
+    builtinModules,
     createRequire
   }
   const exports = {
@@ -266,23 +256,24 @@ const runMain = () => {
 
 const bootstrap = () => {
   const { emitReady, on } = import.meta.native
+  const globalPolluters = [ 'buffer', 'console', 'process', 'timers', 'internal/event_target', 'url' ]
 
   addNodeModulePackage()
 
-  GLOBAL_POLLUTERS.forEach(loadBuiltin)
+  globalPolluters.forEach(loadBuiltin)
 
-  path = loadBuiltin('path').default
-  url = loadBuiltin('url').default
+  path = loadBuiltin('path')
+  url = loadBuiltin('url')
   esm = loadBuiltin('internal/esm')
 
   const { URL } = url
 
   // some builtins set url to string because URL was not available. cast those url strings to URL here.
-  for (const module of cache.values()) {
+  cache.forEach(module => {
     if (typeof module.url === 'string') {
       module.url = new URL(module.url)
     }
-  }
+  })
 
   on('import', (specifier, referrerId) => load(specifier, cache.get(referrerId), linkResolve))
 

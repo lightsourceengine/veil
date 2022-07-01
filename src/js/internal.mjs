@@ -117,12 +117,12 @@ const getPackageScopeConfig = (resolved) => {
   return packageConfig;
 }
 
-// const privateBuiltins = new Set(['napi', 'lexer', 'internal'])
-// const publicBuiltins = new Set(builtins.filter(id => !privateBuiltins.has(id)))
-const allBuiltins = new Set(builtins)
+const allBuiltinsSet = new Set(builtins)
 
-const canBeImportedByUsers = (specifier) => allBuiltins.has(specifier.replace('node:', ''))
+// TODO: honor --expose-internals option
+const canBeImportedByUsers = (specifier) => allBuiltinsSet.has(specifier.replace('node:', ''))
 
+// No modules requiring 'node:' scheme at this time
 const canBeImportedWithoutScheme = (specifier) => true
 
 export {

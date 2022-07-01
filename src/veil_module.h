@@ -19,3 +19,5 @@ typedef void (*veil_module_on_ready_handler_t)();
 
 jerry_value_t veil_module_run(veil_module_on_ready_handler_t on_ready);
 void veil_module_cleanup();
+
+void veil_module_export_builtin_specifiers(jerry_value_t exports);
