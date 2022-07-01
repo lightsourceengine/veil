@@ -30,7 +30,7 @@ test('import from relative path (relative to parent)', async () => {
   return import('./assets/TestModule.mjs')
 })
 
-test('import from absolute path (filesystem path)', async () => {
+test('import from absolute path (filesystem path)', { skip: true }, async () => {
   return import(join(testDir, 'assets', 'TestModule.mjs'))
 })
 
