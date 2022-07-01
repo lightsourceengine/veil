@@ -13,6 +13,7 @@
 
 #include "iotjs_def.h"
 
+#include "iotjs_compatibility.h"
 #include "iotjs_js.h"
 #define i_key char
 #include <stc/cvec.h>
