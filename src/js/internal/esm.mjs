@@ -436,7 +436,7 @@ function resolvePackageTarget(packageJSONUrl, target, subpath, packageSubpath,
     if (lastException === undefined || lastException === null)
       return lastException;
     throw lastException;
-  } else if (typeof target === 'object' && target !== null) {
+  } else if (target !== null && typeof target === 'object') {
     const keys = ObjectGetOwnPropertyNames(target);
     for (let i = 0; i < keys.length; i++) {
       const key = keys[i];
@@ -509,10 +509,9 @@ function packageExportsResolve(
   let exports = packageConfig.exports;
   if (isConditionalExportsMainSugar(exports, packageJSONUrl, base))
     exports = { '.': exports };
-
   if (exports.hasOwnProperty(packageSubpath) &&
     !packageSubpath.includes('*') &&
-    !packageSubpath.includes('/')) {
+    !packageSubpath.endsWith('/')) {
     const target = exports[packageSubpath];
     const resolveResult = resolvePackageTarget(
       packageJSONUrl, target, '', packageSubpath, base, false, false, conditions

@@ -43,17 +43,41 @@ test('import from absolute path (file URL as string)', async () => {
 })
 
 test('import from a package', async () => {
-  // random module package with no commonjs dependencies
-  const flatted = await import('flatted')
-  assert.equal(typeof flatted.toJSON, 'function')
+  const pkg = await import('pkg')
+  assert.equal(pkg.default, 'pkg/index')
 })
 
-// TODO: not implemented in veil, yet
-test('import from a namespaced package', { skip: true }, async () => {
-  return import('@namespace/test')
+test('import subpath from a package', async () => {
+  const pkg = await import('pkg/subpath')
+  assert.equal(pkg.default, 'pkg/subpath')
 })
 
-// TODO: not implemented in veil, yet
-test('import from package with exports in package.json', { skip: true }, async () => {
-  return import('test-package/child')
+test('import wildcard subpath from a package', async () => {
+  const pkg = await import('pkg/lib/star.mjs')
+  assert.equal(pkg.default, 'pkg/star')
+})
+
+test('import from a package with exports syntactic sugar', async () => {
+  const pkg = await import('pkg-sugar')
+  assert.equal(pkg.default, 'pkg-sugar/index')
+})
+
+test('import from a scoped package', async () => {
+  const pkg = await import('@ns/pkg')
+  assert.equal(pkg.default, '@ns/pkg/index')
+})
+
+test('import subpath from a scoped package', async () => {
+  const pkg = await import('@ns/pkg/subpath')
+  assert.equal(pkg.default, '@ns/pkg/subpath')
+})
+
+test('import wildcard subpath from a scoped package', async () => {
+  const pkg = await import('@ns/pkg/lib/star.mjs')
+  assert.equal(pkg.default, '@ns/pkg/star')
+})
+
+test('import from a scoped package with exports syntactic sugar', async () => {
+  const pkg = await import('@ns/pkg-sugar')
+  assert.equal(pkg.default, '@ns/pkg-sugar/index')
 })

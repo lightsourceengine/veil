@@ -2,7 +2,7 @@ import{getOptionValue as e,canBeImportedByUsers as n,canBeImportedWithoutScheme 
 import{extname as f}from'path'
 import{pathToFileURL as c,URL as u,fileURLToPath as a}from'url'
 import{codes as h}from'internal/errors'
-const{ERR_INVALID_ARG_VALUE:p,ERR_INVALID_MODULE_SPECIFIER:d,ERR_INVALID_PACKAGE_CONFIG:w,ERR_INVALID_PACKAGE_TARGET:m,ERR_MODULE_NOT_FOUND:_,ERR_PACKAGE_IMPORT_NOT_DEFINED:g,ERR_PACKAGE_PATH_NOT_EXPORTED:E,ERR_UNSUPPORTED_DIR_IMPORT:R,ERR_NETWORK_IMPORT_DISALLOWED:j,ERR_UNSUPPORTED_ESM_URL_SCHEME:x,ERR_UNKNOWN_FILE_EXTENSION:y}=h,O=Object.freeze,A=Object.getOwnPropertyNames,N=JSON.stringify,P=Set,I=Map,D=Array.isArray,v=(...e)=>RegExp.prototype[Symbol.replace].call(...e),b=e('--preserve-symlinks'),T=e('--preserve-symlinks-main'),W=[],$=e('--no-addons'),S=$?[]:['node-addons'],k=O(['node','import',...S,...W]),L=new P(k),U=new P
+const{ERR_INVALID_ARG_VALUE:p,ERR_INVALID_MODULE_SPECIFIER:d,ERR_INVALID_PACKAGE_CONFIG:w,ERR_INVALID_PACKAGE_TARGET:m,ERR_MODULE_NOT_FOUND:_,ERR_PACKAGE_IMPORT_NOT_DEFINED:g,ERR_PACKAGE_PATH_NOT_EXPORTED:E,ERR_UNSUPPORTED_DIR_IMPORT:R,ERR_NETWORK_IMPORT_DISALLOWED:j,ERR_UNSUPPORTED_ESM_URL_SCHEME:x,ERR_UNKNOWN_FILE_EXTENSION:y}=h,O=Object.freeze,A=Object.getOwnPropertyNames,N=JSON.stringify,P=Set,I=Map,D=Array.isArray,v=(...e)=>RegExp.prototype[Symbol.replace].call(...e),W=e('--preserve-symlinks'),b=e('--preserve-symlinks-main'),T=[],$=e('--no-addons'),S=$?[]:['node-addons'],k=O(['node','import',...S,...T]),L=new P(k),U=new P
 function C(e,n,t){const o=a(n),r=`pjsonPath + '|' + match`
 if(!U.has(r))U.add(r),M(`${o} - deprecated trailing slash pattern mapping in "exports" field`,'DEP0155')}function G(e,n,t,o){const r=ge(e,{parentURL:''})
 if('module'!==r)return
@@ -45,7 +45,7 @@ try{a=te(e,u,t,o,r,i,s,l)}catch(e){if(f=e,'ERR_INVALID_PACKAGE_TARGET'===e.code)
 throw e}if(void 0===a)continue
 if(null===a){f=null
 continue}return a}if(void 0===f||null===f)return f
-throw f}else if('object'===typeof n&&null!==n){const f=A(n)
+throw f}else if(null!==n&&'object'===typeof n){const f=A(n)
 for(let n=0;n<f.length;n++){const t=f[n]
 if(ne(t))throw new w(a(e),r,'"exports" cannot contain numeric property keys.')}for(let c=0;c<f.length;c++){const u=f[c]
 if('default'===u||l.has(u)){const f=n[u],c=te(e,f,t,o,r,i,s,l)
@@ -59,7 +59,7 @@ for(let e=0;e<o.length;e++){const s=o[e],l=''===s||'.'!==s[0]
 if(0===i++)r=l
 else if(r!==l)throw new w(a(n),t,'"exports" cannot contain some keys starting with \'.\' and some not.'+' The exports object must either be an object of package subpath keys'+' or an object of main entry condition name keys only.')}return r}function re(e,n,t,o,r){let i=t.exports
 if(oe(i,e,o))i={'.':i}
-if(i.hasOwnProperty(n)&&!n.includes('*')&&!n.includes('/')){const t=i[n],s=te(e,t,'',n,o,false,false,r)
+if(i.hasOwnProperty(n)&&!n.includes('*')&&!n.endsWith('/')){const t=i[n],s=te(e,t,'',n,o,false,false,r)
 if(null==s)z(n,e,o)
 return s}let s='',l
 const f=A(i)
@@ -126,7 +126,7 @@ if(l)return l
 if(s&&'node:'===s.protocol)return{url:e}
 let f
 me(s),o=K(o)
-try{f=pe(e,t,o,r?T:b)}catch(e){throw e}return we(f),{url:f.href,format:ge(f,n)}}
+try{f=pe(e,t,o,r?b:W)}catch(e){throw e}return we(f),{url:f.href,format:ge(f,n)}}
 function ge(e,n){const t=new u(e)
 if(xe.has(t.protocol))return xe.get(t.protocol)(t,n,true)}function Ee(e,n,t){const o=a(e),r=f(o)
 if('.js'===r)return'module'===le(e)?'module':'commonjs'

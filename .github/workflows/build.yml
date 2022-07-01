@@ -54,18 +54,12 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Yarn Cache
-        uses: egordm/gha-yarn-node-cache@v1
-
       - name: Install GCC Toolchain
         if: matrix.toolchain
         uses: ./.github/actions/gcc-toolchain
         with:
           toolchain: ${{ matrix.toolchain }}
           version: ${{ matrix.toolchain_version }}
-
-      - name: Yarn
-        run: yarn
 
       - name: Build
         run: ./tools/build.py --n-api --no-init-submodule --buildtype=release --js-backtrace=ON ${{ matrix.args }}
