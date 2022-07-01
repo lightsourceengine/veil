@@ -34,13 +34,13 @@ jobs:
             build_tag: arm-linux-rpi
             package_tag: pi-armv6l
             toolchain: arm-rpi
-            toolchain_version: 8.3.0
+            toolchain_version: 4.9.4
           - os: ubuntu-18.04
             args: --jerry-heaplimit=8192 --target-os=linux --target-arch=arm --target-board=rpiv7
             build_tag: arm-linux-rpi
             package_tag: pi-armv7l
             toolchain: arm-rpi
-            toolchain_version: 8.3.0
+            toolchain_version: 4.9.4
           - os: ubuntu-18.04
             args: --jerry-heaplimit=8192 --target-os=linux --target-arch=aarch64 --target-board=rpiv8
             build_tag: aarch64-linux-rpi

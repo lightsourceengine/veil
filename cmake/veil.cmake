@@ -360,9 +360,17 @@ foreach(module ${IOTJS_MODULES})
 endforeach()
 
 # Common compile flags
-iotjs_add_compile_flags(-Wall)
+
+if (NOT USING_GCC_4_9)
+  iotjs_add_compile_flags(-Wall)
+endif()
+
 if(NOT USING_MSVC)
-  iotjs_add_compile_flags(-Wextra -Werror -Wno-unused-parameter)
+  if (NOT USING_GCC_4_9)
+    iotjs_add_compile_flags(-Wextra -Werror)
+  endif()
+
+  iotjs_add_compile_flags(-Wno-unused-parameter -Wno-pragmas)
   iotjs_add_compile_flags(-Wsign-conversion -std=gnu99)
 endif()
 

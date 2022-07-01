@@ -84,6 +84,10 @@ if (CMAKE_C_COMPILER_ID MATCHES "Clang")
   set(USING_CLANG 1)
 endif()
 
+if(CMAKE_C_COMPILER_ID MATCHES "GNU" AND CMAKE_C_COMPILER_VERSION MATCHES ".*4\\.[0-9].*")
+  set(USING_GCC_4_9 1)
+endif()
+
 CHECK_C_COMPILER_FLAG(-no-pie HAS_NO_PIE)
 
 # Add buildtype-related flags
