@@ -12,7 +12,7 @@
  */
 
 import { readdir } from 'node:fs/promises'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { normalize, join, extname, basename } from 'node:path'
 import { spawn } from 'node:child_process'
 import { isPromise } from 'node:util/types'
@@ -57,7 +57,7 @@ const runOne = async (test) => {
   global.test = clientTestFunction
 
   try {
-    await import(test)
+    await import(pathToFileURL(test).href)
   } catch (e) {
     console.error(`Fatal Error: import('${test}')`)
     console.error(e)

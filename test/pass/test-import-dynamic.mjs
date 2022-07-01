@@ -11,9 +11,9 @@
  * specific language governing permissions and limitations under the License.
  */
 
-
+import assert from 'node:assert'
 import { join, dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { builtinModules } from 'node:module'
 
 const testDir = dirname(fileURLToPath(import.meta.url))
@@ -30,8 +30,16 @@ test('import from relative path (relative to parent)', async () => {
   return import('./assets/TestModule.mjs')
 })
 
-test('import from absolute path', async () => {
+test('import from absolute path (filesystem path)', async () => {
   return import(join(testDir, 'assets', 'TestModule.mjs'))
+})
+
+test('import from absolute path (file URL)', async () => {
+  return import(pathToFileURL(join(testDir, 'assets', 'TestModule.mjs')))
+})
+
+test('import from absolute path (file URL as string)', async () => {
+  return import(pathToFileURL(join(testDir, 'assets', 'TestModule.mjs')).href)
 })
 
 // TODO: not implemented in veil, yet
