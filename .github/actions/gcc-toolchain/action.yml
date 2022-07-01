@@ -20,7 +20,10 @@ runs:
             TOOLCHAIN_VERSION=${INPUT_VERSION:-6.5.0}
             wget https://github.com/lightsourceengine/ci/releases/download/v2.0.0/x64-gcc-${TOOLCHAIN_VERSION}.tar.xz
             tar -xJf x64-gcc-${TOOLCHAIN_VERSION}.tar.xz
-            echo "${GITHUB_WORKSPACE}/x64-gcc-${TOOLCHAIN_VERSION}/${TOOLCHAIN}/bin" >> $GITHUB_PATH
+            if [[ "${INPUT_VERSION" == "4.9.4" ]]; then
+              TOOLCHAIN_TAG="-binutils-2.28"
+            fi
+            echo "${GITHUB_WORKSPACE}/x64-gcc-${TOOLCHAIN_VERSION}/${TOOLCHAIN}${TOOLCHAIN_TAG}/bin" >> $GITHUB_PATH
           ;;
           aarch64)
             TOOLCHAIN=aarch64-linux-gnu
