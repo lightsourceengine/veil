@@ -22,7 +22,7 @@ const E = (code, messageOrFunc, base = Error) => {
     messageOrFunc = (self) => messageOrFunc
   }
 
-  codes[code] = class code extends base {
+  codes[code] = class extends base {
     code = code
     constructor (...args) {
       super()

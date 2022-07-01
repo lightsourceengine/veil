@@ -1,5 +1,5 @@
 const e={},t=TypeError,r=URIError,o=RangeError,n=(t,r,o=Error)=>{if('string'===typeof r)r=e=>r
-e[t]=class code extends o{code=code
+e[t]=class extends o{code=t
 constructor(...e){super(),this.message=r(this,...e)}}}
 n('ERR_INVALID_URI','URI malformed',r),n('ERR_EVENT_RECURSION',((e,t)=>`The event "${t}" is already being dispatched`)),n('ERR_IPC_ONE_PIPE','Child process can have only one IPC pipe'),n('ERR_IPC_SYNC_FORK','IPC cannot be used with synchronous forks'),n('ERR_INVALID_ARG_TYPE',((e,t,r,o)=>`The ${t} argument must be of type ${r}. Received ${typeof o}`)),n('ERR_ARG_NOT_ITERABLE',((e,t)=>`${t} must be iterable`),t),n('ERR_INVALID_ARG_VALUE',((e,t,r,o='is invalid')=>`The ${t.includes('.')?'property':'argument'} '${t}' ${o}. Received ${typeof r}`),t),n('ERR_INVALID_FILE_URL_HOST',((e,t)=>`File URL host must be "localhost" or empty on ${t}`),t),n('ERR_INVALID_FILE_URL_PATH',((e,t)=>`File URL path ${t}`),t),n('ERR_INVALID_THIS',((e,t)=>`Value of "this" must be of type ${t}`),t),n('ERR_INVALID_TUPLE',((e,...t)=>`${t[0]} must be an iterable ${t[1]} tuple`),t),n('ERR_INVALID_URL',((e,t)=>(e.input=t,'Invalid URL')),t),n('ERR_INVALID_URL_SCHEME',((e,t)=>{if('string'===typeof t)t=[t]
 if(t.length>2)return'assert: expected.length <= 2'
