@@ -72,7 +72,7 @@ JS_FUNCTION(js_fast_read_package_json) {
     uv_fs_req_cleanup(&read_req);
 
     if (numchars < 0) {
-      result = jerry_array_length(0);
+      result = jerry_array(0);
       goto EXIT;
     }
     offset += numchars;
@@ -111,7 +111,7 @@ JS_FUNCTION(js_fast_read_package_json) {
     }
   }
 
-  result = jerry_array_length(2);
+  result = jerry_array(2);
   jerry_value_t json = jerry_string((const jerry_char_t*)cvec_char_at(&chars, start), size, JERRY_ENCODING_UTF8);
   jerry_value_t contains_keys = jerry_boolean(p < pe ? true : false);
 

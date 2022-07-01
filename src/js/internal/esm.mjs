@@ -723,7 +723,7 @@ function packageResolve(specifier, base, conditions) {
   let lastPath;
   do {
     const stat = fastStat(packageJSONPath.slice(0, packageJSONPath.length - 13));
-    if (stat === STAT_IS_FILE) {
+    if (stat !== STAT_IS_DIR) {
       lastPath = packageJSONPath;
       packageJSONUrl = new URL((isScoped ?
           '../../../../node_modules/' : '../../../node_modules/') +

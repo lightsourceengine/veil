@@ -42,9 +42,10 @@ test('import from absolute path (file URL as string)', async () => {
   return import(pathToFileURL(join(testDir, 'assets', 'TestModule.mjs')).href)
 })
 
-// TODO: not implemented in veil, yet
-test('import from a package', { skip: true }, async () => {
-  return import('test-package')
+test('import from a package', async () => {
+  // random module package with no commonjs dependencies
+  const flatted = await import('flatted')
+  assert.equal(typeof flatted.toJSON, 'function')
 })
 
 // TODO: not implemented in veil, yet

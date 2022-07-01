@@ -94,17 +94,17 @@ const i=-1===t?e:e.slice(0,t)
 if(null!==Y.exec(i))o=false
 if(!o)throw new d(e,'is not a valid package name',a(n))
 const s='.'+(-1===t?'':e.slice(t))
-return{packageName:i,packageSubpath:s,isScoped:r}}function ce(e,r,f){if(n(e)&&t(e))return new u(`node:${e}`)
-const{packageName:h,packageSubpath:p,isScoped:d}=fe(e,r),w=s(r)
+return{packageName:i,packageSubpath:s,isScoped:r}}function ce(e,i,f){if(n(e)&&t(e))return new u(`node:${e}`)
+const{packageName:h,packageSubpath:p,isScoped:d}=fe(e,i),w=s(i)
 if(w.exists){const e=c(w.pjsonPath)
-if(w.name===h&&void 0!==w.exports&&null!==w.exports)return re(e,p,w,r,f)}let m=new u('./node_modules/'+h+'/package.json',r),g=a(m),E
+if(w.name===h&&void 0!==w.exports&&null!==w.exports)return re(e,p,w,i,f)}let m=new u('./node_modules/'+h+'/package.json',i),g=a(m),E
 do{const n=o(g.slice(0,g.length-13))
-if(n===i){E=g,m=new u((d?'../../../../node_modules/':'../../../node_modules/')+h+'/package.json',m),g=a(m)
-continue}const t=l(g,e,r)
-if(void 0!==t.exports&&null!==t.exports)return re(m,p,t,r,f)
-if('.'===p)return V(m,t,r)
+if(n!==r){E=g,m=new u((d?'../../../../node_modules/':'../../../node_modules/')+h+'/package.json',m),g=a(m)
+continue}const t=l(g,e,i)
+if(void 0!==t.exports&&null!==t.exports)return re(m,p,t,i,f)
+if('.'===p)return V(m,t,i)
 return new u(p,m)}while(g.length!==E.length)
-throw new _(h,a(r))}function ue(e){if('.'===e[0]){if(1===e.length||'/'===e[1])return true
+throw new _(h,a(i))}function ue(e){if('.'===e[0]){if(1===e.length||'/'===e[1])return true
 if('.'===e[1])if(2===e.length||'/'===e[2])return true}return false}function ae(e){if(''===e)return false
 if('/'===e[0])return true
 return ue(e)}const he=({protocol:e})=>'http:'===e||'https:'===e

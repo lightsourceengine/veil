@@ -16,6 +16,9 @@ import assert from 'node:assert'
 import { URL } from 'node:url'
 
 test('URL constructor name is "URL"', () => {
-  return assert.equal(URL.prototype.constructor.name, 'URL')
+  assert.equal(URL.prototype.constructor.name, 'URL')
 })
 
+test('URL constructor throws error for unsupported string', () => {
+  assert.throws(() => new URL('package'))
+})

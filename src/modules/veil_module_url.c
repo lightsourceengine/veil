@@ -1474,6 +1474,7 @@ JS_FUNCTION(js_parse) {
   bool has_url;
   jerry_value_t complete_callback = jargv[4];
   size_t i;
+  jerry_value_t return_value = jerry_undefined();
 
   switch (state_override) {
 #define XX(name) case name:
@@ -1551,13 +1552,24 @@ JS_FUNCTION(js_parse) {
       jerry_value_free(argv[i]);
     }
 
-    jerry_value_free(result);
+    if (jerry_value_is_exception(result)) {
+      jerry_value_free(return_value);
+      return_value = result;
+    } else {
+      jerry_value_free(result);
+    }
   } else if (jargc > 5 && jerry_value_is_function(jargv[5])) {
     jerry_value_t flags = jerry_number(url.flags);
     jerry_value_t result = jerry_call(jargv[5], call_info_p->this_value, &flags, 1);
 
+    if (jerry_value_is_exception(result)) {
+      jerry_value_free(return_value);
+      return_value = result;
+    } else {
+      jerry_value_free(result);
+    }
+
     jerry_value_free(flags);
-    jerry_value_free(result);
   }
 
 EXIT:
@@ -1566,7 +1578,7 @@ EXIT:
   veil_url_data_drop(&url);
   veil_url_data_drop(&base_context);
 
-  return jerry_undefined();
+  return return_value;
 }
 
 jerry_value_t veil_init_url(void) {
