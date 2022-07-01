@@ -1,2 +1,2 @@
 import{EventEmitter as e}from'events'
-class s extends e{}export{s as StreamInternal,s as default}
+class StreamInternal extends e{}export{StreamInternal,StreamInternal as default}

@@ -11,13 +11,14 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import { validateFunction, validateBoolean } from './internal/validators.mjs'
-import {
+import { validateFunction, validateBoolean } from 'internal/validators'
+import { codes } from 'internal/errors'
+
+const {
   ERR_UNHANDLED_ERROR,
   ERR_OUT_OF_RANGE,
   ERR_INVALID_ARG_TYPE
-} from './internal/errors.mjs'
-
+} = codes
 const kCapture = Symbol('kCapture');
 const kErrorMonitor = Symbol('events.errorMonitor');
 const kRejection = Symbol.for('nodejs.rejection');

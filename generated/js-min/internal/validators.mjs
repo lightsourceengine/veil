@@ -1,0 +1,5 @@
+import{codes as o}from'internal/errors'
+const{ERR_INVALID_ARG_TYPE:n,ERR_INVALID_ARG_VALUE:t}=o,r=(o,t,r=void 0)=>{if(!(null!=r&&r.nullable)&&null===o||!(null!=r&&r.allowArray)&&Array.isArray(o)||'object'!==typeof o&&(!(null!=r&&r.allowFunction)||'function'!==typeof o))throw new n(t,'Object',o)},e=(o,t)=>{if('string'!==typeof o)throw new n(t,'string',o)},i=(o,t)=>{if('function'!==typeof o)throw new n(t,'Function',o)},l=(o,t)=>{if('boolean'!==typeof o)throw new n(t,'boolean',o)},f=(o,n,r)=>{if(!r.includes(o)){const e=r.map((o=>'string'===typeof o?`'${o}'`:String(o))).join(', ')
+throw new t(n,o,`'must be one of: ${e}`)}},w=(o,r,e=0)=>{if(!Array.isArray(o))throw new n(r,'Array',o)
+if(o.length<e)throw new t(r,o,`must be longer than ${e}`)},a=(o,t)=>{if(void 0!==o&&(null===o||'object'!==typeof o||!('aborted'in o)))throw new n(t,'AbortSignal',o)}
+export{a as validateAbortSignal,w as validateArray,l as validateBoolean,i as validateFunction,r as validateObject,f as validateOneOf,e as validateString}

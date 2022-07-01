@@ -1,5 +1,5 @@
 import{Writable as e}from'stream'
-class t extends e{writable=true
+class OutgoingMessage extends e{writable=true
 _hasBody=true
 finished=false
 _sentHeader=false
@@ -28,4 +28,4 @@ if(null===t||void 0===t)throw new Error('value required in setHeader('+e+', valu
 if(null===this._headers)this._headers={}
 this._headers[e.toLowerCase()]=t}removeHeader(e){if(null!==this._headers)delete this._headers[e]}getHeader(e){return this._headers[e]}setTimeout(e,t){if(t)this.once('timeout',t)
 if(!this.socket)this.once('socket',(t=>t.setTimeout(e)))
-else this.socket.setTimeout(e)}}export{t as OutgoingMessage,t as default}
+else this.socket.setTimeout(e)}}export{OutgoingMessage,OutgoingMessage as default}

@@ -89,6 +89,8 @@ static void shorten_url_path(veil_url_data* url);
 static bool is_double_dot_segment(cstr* str);
 static bool is_single_dot_segment(cstr* str);
 static bool parse_host(const cstr* input, cstr* output, bool is_special, bool unicode);
+static void cvec_str_assign(cvec_str* self, const cvec_str* other);
+static void assign(cstr* self, const cstr* other);
 
 veil_url_data veil_url_data_init() {
   return (veil_url_data) {
@@ -475,7 +477,7 @@ void url_parse(const char* input, size_t len, veil_url_parse_state state_overrid
           url->flags |= URL_FLAGS_FAILED;
           goto EXIT;
         } else if (cannot_be_base && ch == '#') {
-          url->scheme = base->scheme;
+          assign(&url->scheme, &base->scheme);
           if (is_special(&url->scheme)) {
             url->flags |= URL_FLAGS_SPECIAL;
             special = true;
@@ -486,15 +488,15 @@ void url_parse(const char* input, size_t len, veil_url_parse_state state_overrid
           special_back_slash = (special && ch == '\\');
           if (base->flags & URL_FLAGS_HAS_PATH) {
             url->flags |= URL_FLAGS_HAS_PATH;
-            url->path = base->path;
+            cvec_str_assign(&url->path, &base->path);
           }
           if (base->flags & URL_FLAGS_HAS_QUERY) {
             url->flags |= URL_FLAGS_HAS_QUERY;
-            url->query = base->query;
+            assign(&url->query, &base->query);
           }
           if (base->flags & URL_FLAGS_HAS_FRAGMENT) {
             url->flags |= URL_FLAGS_HAS_FRAGMENT;
-            url->fragment = base->fragment;
+            assign(&url->fragment, &base->fragment);
           }
           url->flags |= URL_FLAGS_CANNOT_BE_BASE;
           state = kFragment;
@@ -528,7 +530,7 @@ void url_parse(const char* input, size_t len, veil_url_parse_state state_overrid
         }
         break;
       case kRelative:
-        url->scheme = base->scheme;
+        assign(&url->scheme, &base->scheme);
         if (is_special(&url->scheme)) {
           url->flags |= URL_FLAGS_SPECIAL;
           special = true;
@@ -541,23 +543,23 @@ void url_parse(const char* input, size_t len, veil_url_parse_state state_overrid
           case kEOL:
             if (base->flags & URL_FLAGS_HAS_USERNAME) {
               url->flags |= URL_FLAGS_HAS_USERNAME;
-              url->username = base->username;
+              assign(&url->username, &base->username);
             }
             if (base->flags & URL_FLAGS_HAS_PASSWORD) {
               url->flags |= URL_FLAGS_HAS_PASSWORD;
-              url->password = base->password;
+              assign(&url->password, &base->password);
             }
             if (base->flags & URL_FLAGS_HAS_HOST) {
               url->flags |= URL_FLAGS_HAS_HOST;
-              url->host = base->host;
+              assign(&url->host, &base->host);
             }
             if (base->flags & URL_FLAGS_HAS_QUERY) {
               url->flags |= URL_FLAGS_HAS_QUERY;
-              url->query = base->query;
+              assign(&url->query, &base->query);
             }
             if (base->flags & URL_FLAGS_HAS_PATH) {
               url->flags |= URL_FLAGS_HAS_PATH;
-              url->path = base->path;
+              cvec_str_assign(&url->path, &base->path);
             }
             url->port = base->port;
             break;
@@ -567,19 +569,19 @@ void url_parse(const char* input, size_t len, veil_url_parse_state state_overrid
           case '?':
             if (base->flags & URL_FLAGS_HAS_USERNAME) {
               url->flags |= URL_FLAGS_HAS_USERNAME;
-              url->username = base->username;
+              assign(&url->username, &base->username);
             }
             if (base->flags & URL_FLAGS_HAS_PASSWORD) {
               url->flags |= URL_FLAGS_HAS_PASSWORD;
-              url->password = base->password;
+              assign(&url->password, &base->password);
             }
             if (base->flags & URL_FLAGS_HAS_HOST) {
               url->flags |= URL_FLAGS_HAS_HOST;
-              url->host = base->host;
+              assign(&url->host, &base->host);
             }
             if (base->flags & URL_FLAGS_HAS_PATH) {
               url->flags |= URL_FLAGS_HAS_PATH;
-              url->path = base->path;
+              cvec_str_assign(&url->path, &base->path);
             }
             url->port = base->port;
             state = kQuery;
@@ -587,23 +589,23 @@ void url_parse(const char* input, size_t len, veil_url_parse_state state_overrid
           case '#':
             if (base->flags & URL_FLAGS_HAS_USERNAME) {
               url->flags |= URL_FLAGS_HAS_USERNAME;
-              url->username = base->username;
+              assign(&url->username, &base->username);
             }
             if (base->flags & URL_FLAGS_HAS_PASSWORD) {
               url->flags |= URL_FLAGS_HAS_PASSWORD;
-              url->password = base->password;
+              assign(&url->password, &base->password);
             }
             if (base->flags & URL_FLAGS_HAS_HOST) {
               url->flags |= URL_FLAGS_HAS_HOST;
-              url->host = base->host;
+              assign(&url->host, &base->host);
             }
             if (base->flags & URL_FLAGS_HAS_QUERY) {
               url->flags |= URL_FLAGS_HAS_QUERY;
-              url->query = base->query;
+              assign(&url->query, &base->query);
             }
             if (base->flags & URL_FLAGS_HAS_PATH) {
               url->flags |= URL_FLAGS_HAS_PATH;
-              url->path = base->path;
+              cvec_str_assign(&url->path, &base->path);
             }
             url->port = base->port;
             state = kFragment;
@@ -614,19 +616,19 @@ void url_parse(const char* input, size_t len, veil_url_parse_state state_overrid
             } else {
               if (base->flags & URL_FLAGS_HAS_USERNAME) {
                 url->flags |= URL_FLAGS_HAS_USERNAME;
-                url->username = base->username;
+                assign(&url->username, &base->username);
               }
               if (base->flags & URL_FLAGS_HAS_PASSWORD) {
                 url->flags |= URL_FLAGS_HAS_PASSWORD;
-                url->password = base->password;
+                assign(&url->password, &base->password);
               }
               if (base->flags & URL_FLAGS_HAS_HOST) {
                 url->flags |= URL_FLAGS_HAS_HOST;
-                url->host = base->host;
+                assign(&url->host, &base->host);
               }
               if (base->flags & URL_FLAGS_HAS_PATH) {
                 url->flags |= URL_FLAGS_HAS_PATH;
-                url->path = base->path;
+                cvec_str_assign(&url->path, &base->path);
                 shorten_url_path(url);
               }
               url->port = base->port;
@@ -643,15 +645,15 @@ void url_parse(const char* input, size_t len, veil_url_parse_state state_overrid
         } else {
           if (base->flags & URL_FLAGS_HAS_USERNAME) {
             url->flags |= URL_FLAGS_HAS_USERNAME;
-            url->username = base->username;
+            assign(&url->username, &base->username);
           }
           if (base->flags & URL_FLAGS_HAS_PASSWORD) {
             url->flags |= URL_FLAGS_HAS_PASSWORD;
-            url->password = base->password;
+            assign(&url->password, &base->password);
           }
           if (base->flags & URL_FLAGS_HAS_HOST) {
             url->flags |= URL_FLAGS_HAS_HOST;
-            url->host = base->host;
+            assign(&url->host, &base->host);
           }
           url->port = base->port;
           state = kPath;
@@ -826,24 +828,24 @@ void url_parse(const char* input, size_t len, veil_url_parse_state state_overrid
           switch (ch) {
             case kEOL:
               if (base->flags & URL_FLAGS_HAS_HOST) {
-                url->host = base->host;
+                assign(&url->host, &base->host);
               }
               if (base->flags & URL_FLAGS_HAS_PATH) {
                 url->flags |= URL_FLAGS_HAS_PATH;
-                url->path = base->path;
+                cvec_str_assign(&url->path, &base->path);
               }
               if (base->flags & URL_FLAGS_HAS_QUERY) {
                 url->flags |= URL_FLAGS_HAS_QUERY;
-                url->query = base->query;
+                assign(&url->query, &base->query);
               }
               break;
             case '?':
               if (base->flags & URL_FLAGS_HAS_HOST) {
-                url->host = base->host;
+                assign(&url->host, &base->host);
               }
               if (base->flags & URL_FLAGS_HAS_PATH) {
                 url->flags |= URL_FLAGS_HAS_PATH;
-                url->path = base->path;
+                cvec_str_assign(&url->path, &base->path);
               }
               url->flags |= URL_FLAGS_HAS_QUERY;
               cstr_clear(&url->query);
@@ -851,15 +853,15 @@ void url_parse(const char* input, size_t len, veil_url_parse_state state_overrid
               break;
             case '#':
               if (base->flags & URL_FLAGS_HAS_HOST) {
-                url->host = base->host;
+                assign(&url->host, &base->host);
               }
               if (base->flags & URL_FLAGS_HAS_PATH) {
                 url->flags |= URL_FLAGS_HAS_PATH;
-                url->path = base->path;
+                cvec_str_assign(&url->path, &base->path);
               }
               if (base->flags & URL_FLAGS_HAS_QUERY) {
                 url->flags |= URL_FLAGS_HAS_QUERY;
-                url->query = base->query;
+                assign(&url->query, &base->query);
               }
               url->flags |= URL_FLAGS_HAS_FRAGMENT;
               cstr_clear(&url->fragment);
@@ -868,11 +870,11 @@ void url_parse(const char* input, size_t len, veil_url_parse_state state_overrid
             default:
               cstr_clear(&url->query);
               if (base->flags & URL_FLAGS_HAS_HOST) {
-                url->host = base->host;
+                assign(&url->host, &base->host);
               }
               if (base->flags & URL_FLAGS_HAS_PATH) {
                 url->flags |= URL_FLAGS_HAS_PATH;
-                url->path = base->path;
+                cvec_str_assign(&url->path, &base->path);
               }
               if (!starts_with_windows_driver_letter(p, end)) {
                 shorten_url_path(url);
@@ -893,7 +895,7 @@ void url_parse(const char* input, size_t len, veil_url_parse_state state_overrid
         } else {
           if (has_base && cstr_eq_raw(&base->scheme, "file:")) {
             url->flags |= URL_FLAGS_HAS_HOST;
-            url->host = base->host;
+            assign(&url->host, &base->host);
             if (!starts_with_windows_driver_letter(p, end) &&
                 is_normalized_windows_drive_letter(cvec_str_at(&base->path, 0))) {
               url->flags |= URL_FLAGS_HAS_PATH;
@@ -928,7 +930,8 @@ void url_parse(const char* input, size_t len, veil_url_parse_state state_overrid
             if (cstr_eq_raw(&host, "localhost"))
               cstr_clear(&host);
             url->flags |= URL_FLAGS_HAS_HOST;
-            url->host = host;
+            assign(&url->host, &host);
+            cstr_drop(&host);
             if (has_state_override)
               goto EXIT;
             cstr_clear(&buffer);
@@ -1020,8 +1023,7 @@ void url_parse(const char* input, size_t len, veil_url_parse_state state_overrid
       case kQuery:
         if (ch == kEOL || (!has_state_override && ch == '#')) {
           url->flags |= URL_FLAGS_HAS_QUERY;
-          cstr_drop(&url->query);
-          url->query = cstr_move(&buffer);
+          assign(&url->query, &buffer);
           cstr_clear(&buffer);
           if (ch == '#')
             state = kFragment;
@@ -1033,8 +1035,8 @@ void url_parse(const char* input, size_t len, veil_url_parse_state state_overrid
       case kFragment:
         if (ch == kEOL) {
           url->flags |= URL_FLAGS_HAS_FRAGMENT;
-          cstr_drop(&url->fragment);
-          url->fragment = cstr_move(&buffer);
+          assign(&url->fragment, &buffer);
+          cstr_clear(&buffer);
         } else {
           append_or_escape(&buffer, ch, VEIL_URL_FRAGMENT_ENCODE_SET);
         }
@@ -1406,6 +1408,22 @@ static bool harvest_context(jerry_value_t context_obj, veil_url_data* context) {
   set_cstr(&context->host, context_obj, "host", 0, false);
 
   return true;
+}
+
+static void cvec_str_assign(cvec_str* self, const cvec_str* other) {
+  size_t length = cvec_str_size(*other);
+  const cstr* value;
+
+  cvec_str_clear(self);
+
+  for (size_t i = 0; i < length; i++) {
+    value = cvec_str_at(other, i);
+    cvec_str_emplace_back(self, cstr_str_safe(value));
+  }
+}
+
+static void assign(cstr* self, const cstr* other) {
+  cstr_assign_n(self, cstr_str_safe(other), cstr_size(*other));
 }
 
 JS_FUNCTION(js_domain_to) {

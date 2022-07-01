@@ -11,15 +11,18 @@
  * specific language governing permissions and limitations under the License.
  */
 
-const ErrorClass = (code, base, messageOrFunc) => {
+export const codes = {}
+
+const ETypeError = TypeError
+const EURIError = URIError
+const ERangeError = RangeError
+
+const E = (code, messageOrFunc, base = Error) => {
   if (typeof messageOrFunc === 'string') {
-    return class extends base {
-      code = code
-      message = messageOrFunc
-    }
+    messageOrFunc = (self) => messageOrFunc
   }
 
-  return class extends base {
+  codes[code] = class code extends base {
     code = code
     constructor (...args) {
       super()
@@ -28,69 +31,68 @@ const ErrorClass = (code, base, messageOrFunc) => {
   }
 }
 
-export const ERR_INVALID_URI = ErrorClass('ERR_INVALID_URI', URIError, 'URI malformed')
+E('ERR_INVALID_URI', 'URI malformed', EURIError)
 
-export const ERR_EVENT_RECURSION = ErrorClass('ERR_EVENT_RECURSION', Error, (self, arg) => `The event "${arg}" is already being dispatched`)
+E('ERR_EVENT_RECURSION', (self, arg) => `The event "${arg}" is already being dispatched`)
 
-export const ERR_IPC_ONE_PIPE = ErrorClass('ERR_IPC_ONE_PIPE', Error, 'Child process can have only one IPC pipe');
+E('ERR_IPC_ONE_PIPE', 'Child process can have only one IPC pipe');
 
-export const ERR_IPC_SYNC_FORK = ErrorClass('ERR_IPC_SYNC_FORK', Error, 'IPC cannot be used with synchronous forks');
+E('ERR_IPC_SYNC_FORK', 'IPC cannot be used with synchronous forks');
 
-export const ERR_INVALID_ARG_TYPE = ErrorClass(
+E(
   'ERR_INVALID_ARG_TYPE',
-  Error,
-  (self, name, expected, actual) => `The ${name} argument must be of type ${expected}. Received ${typeof actual}`)
+  (self, name, expected, actual) => `The ${name} argument must be of type ${expected}. Received ${typeof actual}`
+)
 
-export const ERR_ARG_NOT_ITERABLE = ErrorClass(
+E(
   'ERR_ARG_NOT_ITERABLE',
-  TypeError,
-  (self, arg) => `${arg} must be iterable`
+  (self, arg) => `${arg} must be iterable`,
+  ETypeError
 )
 
-export const ERR_INVALID_ARG_VALUE = ErrorClass(
+E(
   'ERR_INVALID_ARG_VALUE',
-  TypeError,
-  (self, name, value, reason = 'is invalid') => `The ${name.includes('.') ? 'property' : 'argument'} '${name}' ${reason}. Received ${typeof value}`
+  (self, name, value, reason = 'is invalid') => `The ${name.includes('.') ? 'property' : 'argument'} '${name}' ${reason}. Received ${typeof value}`,
+  ETypeError
 )
 
-export const ERR_INVALID_FILE_URL_HOST = ErrorClass(
+E(
   'ERR_INVALID_FILE_URL_HOST',
-  TypeError,
-  (self, arg) => `File URL host must be "localhost" or empty on ${arg}`
+  (self, arg) => `File URL host must be "localhost" or empty on ${arg}`,
+  ETypeError
 )
 
-export const ERR_INVALID_FILE_URL_PATH = ErrorClass(
+E(
   'ERR_INVALID_FILE_URL_PATH',
-  TypeError,
-  (self, arg) => `File URL path ${arg}`
+  (self, arg) => `File URL path ${arg}`,
+  ETypeError
 )
 
-export const ERR_INVALID_THIS = ErrorClass(
+E(
   'ERR_INVALID_THIS',
-  TypeError,
-  (self, arg) => `Value of "this" must be of type ${arg}`
+  (self, arg) => `Value of "this" must be of type ${arg}`,
+  ETypeError
 )
 
-export const ERR_INVALID_TUPLE = ErrorClass(
+E(
   'ERR_INVALID_TUPLE',
-  TypeError,
-  (self, ...args) => `${args[0]} must be an iterable ${args[1]} tuple`
+  (self, ...args) => `${args[0]} must be an iterable ${args[1]} tuple`,
+  ETypeError
 )
 
-export const ERR_INVALID_URL = ErrorClass(
+E(
   'ERR_INVALID_URL',
-  TypeError,
   (self, input) => {
     // Don't include URL in message.
     // (See https://github.com/nodejs/node/pull/38614)
     self.input = input
     return 'Invalid URL'
-  }
+  },
+  ETypeError
 )
 
-export const ERR_INVALID_URL_SCHEME = ErrorClass(
+E(
   'ERR_INVALID_URL_SCHEME',
-  TypeError,
   (self, expected) => {
     if (typeof expected === 'string') {
       expected = [expected];
@@ -102,12 +104,12 @@ export const ERR_INVALID_URL_SCHEME = ErrorClass(
       `one of scheme ${expected[0]} or ${expected[1]}` :
       `of scheme ${expected[0]}`;
     return `The URL must be ${res}`;
-  }
+  },
+  ETypeError
 )
 
-export const ERR_MISSING_ARGS = ErrorClass(
+E(
   'ERR_MISSING_ARGS',
-  TypeError,
   (self, ...args) => {
     const { length } = args
     if (!length) {
@@ -130,24 +132,23 @@ export const ERR_MISSING_ARGS = ErrorClass(
         break;
     }
     return `${msg} must be specified`;
-  }
+  },
+  ETypeError
 )
 
-export const ERR_UNHANDLED_ERROR = ErrorClass(
+E(
   'ERR_UNHANDLED_ERROR',
-  Error,
   (self, err = undefined) => {
     const msg = 'Unhandled error.';
     return (err === undefined) ? msg : `${msg} (${err})`;
   }
 )
 
-export const ERR_OUT_OF_RANGE = ErrorClass(
+E(
   'ERR_OUT_OF_RANGE',
-  RangeError,
   (self, str, range, input, replaceDefaultBoolean = false) => {
     if (!range) {
-      throw new ERR_MISSING_ARGS('range')
+      throw new codes.ERR_MISSING_ARGS('range')
     }
     let msg = replaceDefaultBoolean ? str :
       `The value of "${str}" is out of range.`;
@@ -165,20 +166,109 @@ export const ERR_OUT_OF_RANGE = ErrorClass(
     }
     msg += ` It must be ${range}. Received ${received}`;
     return msg;
+  },
+  ERangeError
+)
+
+E(
+  'ERR_INVALID_SYNC_FORK_INPUT',
+  (self, arg) => `Asynchronous forks do not support Buffer, TypedArray, DataView or string input: ${arg}`,
+  ETypeError
+)
+
+E(
+  'ERR_UNKNOWN_SIGNAL',
+  (self, arg) => `Unknown signal: ${arg}`,
+  ETypeError
+);
+
+E(
+  'ERR_MODULE_NOT_FOUND',
+  (self, search) => `Cannot find module '${search}'`
+)
+
+E(
+  'ERR_INVALID_PACKAGE_CONFIG',
+  (self, path, base, message) => `Invalid package config ${path}${base ? ` while importing ${base}` : ''}${message ? `. ${message}` : ''}`
+);
+
+E(
+  'ERR_PACKAGE_IMPORT_NOT_DEFINED',
+  (self, specifier, packagePath, base) => `Package import specifier "${specifier}" is not defined${packagePath ?
+    ` in package ${packagePath}package.json` : ''} imported from ${base}`,
+  ETypeError
+)
+
+E(
+  'ERR_PACKAGE_PATH_NOT_EXPORTED',
+  (self, pkgPath, subpath, base = undefined) => {
+    if (subpath === '.')
+      return `No "exports" main defined in ${pkgPath}package.json${base ?
+        ` imported from ${base}` : ''}`;
+    return `Package subpath '${subpath}' is not defined by "exports" in ${
+      pkgPath}package.json${base ? ` imported from ${base}` : ''}`;
   }
 )
 
-export const ERR_INVALID_SYNC_FORK_INPUT = ErrorClass(
-  'ERR_INVALID_SYNC_FORK_INPUT',
-  TypeError,
-  (self, arg) => `Asynchronous forks do not support Buffer, TypedArray, DataView or string input: ${arg}`
+E(
+  'ERR_UNSUPPORTED_DIR_IMPORT',
+  (self, ...args) => `Directory import '${args[0]}' is not supported resolving ES modules imported from ${args[1]}`
 )
 
-export const ERR_UNKNOWN_SIGNAL = ErrorClass(
-  'ERR_UNKNOWN_SIGNAL',
-  TypeError,
-  (self, arg) => `Unknown signal: ${arg}`
-);
+E(
+  'ERR_NETWORK_IMPORT_DISALLOWED',
+  (self, ...args) => `import of '${args[0]}' by ${args[1]} is not supported: ${args[2]}`
+)
+
+E(
+  'ERR_UNSUPPORTED_ESM_URL_SCHEME',
+  (self, url, supported) => {
+    let msg = `Only URLs with a scheme in: ${supported.join(', ')} are supported by the default ESM loader`;
+    if (process.platform === 'win32' && url.protocol.length === 2) {
+      msg += '. On Windows, absolute paths must be valid file:// URLs';
+    }
+    msg += `. Received protocol '${url.protocol}'`;
+    return msg;
+  }
+)
+
+E(
+  'ERR_INVALID_PACKAGE_TARGET',
+  (self, pkgPath, key, target, isImport = false, base = undefined) => {
+    const relError = typeof target === 'string' && !isImport && target.length && !target.startsWith('./');
+    if (key === '.') {
+      if(isImport !== false) {
+        throw Error(`isImport must be false when key = '.'`)
+      }
+      return `Invalid "exports" main target ${JSON.stringify(target)} defined ` +
+        `in the package config ${pkgPath}package.json${base ?
+          ` imported from ${base}` : ''}${relError ?
+          '; targets must start with "./"' : ''}`;
+    }
+    return `Invalid "${isImport ? 'imports' : 'exports'}" target ${
+      JSON.stringify(target)} defined for '${key}' in the package config ${
+      pkgPath}package.json${base ? ` imported from ${base}` : ''}${relError ?
+      '; targets must start with "./"' : ''}`;
+  }
+)
+
+E(
+  'ERR_INVALID_MODULE_SPECIFIER',
+  (self, request, reason, base = undefined) => `Invalid module "${request}" ${reason}${base ? ` imported from ${base}` : ''}`,
+  ETypeError
+)
+
+E(
+  'ERR_UNKNOWN_FILE_EXTENSION',
+  (self, ext, path, suggestion) => {
+    let msg = `Unknown file extension "${ext}" for ${path}`;
+    if (suggestion) {
+      msg += `. ${suggestion}`;
+    }
+    return msg;
+  },
+  ETypeError
+)
 
 // TODO: this is a quick and dirty impl. NodeJS has a native map of error code -> messages
 export const errnoException = (err, syscall, original) => {
@@ -206,7 +296,7 @@ export class AbortError extends Error {
 const addNumericalSeparator = (val) => {
   let res = '';
   let i = val.length;
-  const start = val[0] === '-' ? 1 : 0;
+  let start = val[0] === '-' ? 1 : 0;
   for (; i >= start + 4; i -= 3) {
     res = `_${val.slice(i - 3, i)}${res}`;
   }

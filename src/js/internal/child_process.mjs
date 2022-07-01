@@ -13,20 +13,21 @@
 
 import { EventEmitter } from 'events'
 import constants from 'node:constants'
-import {
-  errnoException,
-  ERR_INVALID_ARG_VALUE,
-  ERR_INVALID_SYNC_FORK_INPUT,
-  ERR_IPC_SYNC_FORK,
-  ERR_IPC_ONE_PIPE,
-  ERR_UNKNOWN_SIGNAL
-} from './errors.mjs'
+import { codes, errnoException } from 'internal/errors'
 import {
   validateObject,
   validateOneOf,
   validateString,
   validateArray
-} from './validators.mjs'
+} from 'internal/validators'
+
+const {
+  ERR_INVALID_ARG_VALUE,
+  ERR_INVALID_SYNC_FORK_INPUT,
+  ERR_IPC_SYNC_FORK,
+  ERR_IPC_ONE_PIPE,
+  ERR_UNKNOWN_SIGNAL
+} = codes
 
 const {
   Process,

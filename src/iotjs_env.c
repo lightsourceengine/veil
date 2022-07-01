@@ -28,6 +28,8 @@ typedef enum {
   OPT_NO_ADDON,
   OPT_VERSION_OP,
   OPT_EXPOSE_INTERNALS_OP,
+  OPT_PRESERVE_SYMLINKS,
+  OPT_PRESERVE_SYMLINKS_MAIN,
 #ifdef JERRY_DEBUGGER
   OPT_DEBUG_SERVER,
   OPT_DEBUGGER_WAIT_SOURCE,
@@ -139,7 +141,17 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
         .id = OPT_EXPOSE_INTERNALS_OP,
         .longopt = "expose-internals",
         .help = "enable importing of internal builtin modules"
-    }
+    },
+    {
+        .id = OPT_PRESERVE_SYMLINKS,
+        .longopt = "preserve-symlinks",
+        .help = "preserve symbolic links when resolving"
+    },
+    {
+        .id = OPT_PRESERVE_SYMLINKS_MAIN,
+        .longopt = "preserve-symlinks-main",
+        .help = "preserve symbolic links when resolving the main module"
+    },
 #if defined(JERRY_MEM_STATS)
     {
         .id = OPT_MEM_STATS,
@@ -239,6 +251,12 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
       case OPT_NO_ADDON: {
         env->config.enable_napi = false;
       } break;
+      case OPT_PRESERVE_SYMLINKS:
+        env->config.preserve_symlinks = true;
+        break;
+      case OPT_PRESERVE_SYMLINKS_MAIN:
+        env->config.preserve_symlinks_main = true;
+        break;
       case OPT_VERSION_OP:
         print_version();
         exit(0);

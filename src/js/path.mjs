@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import { validateObject, validateString } from './internal/validators.mjs'
+import { validateObject, validateString } from 'internal/validators'
 import {
   CHAR_UPPERCASE_A,
   CHAR_LOWERCASE_A,

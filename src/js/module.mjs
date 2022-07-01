@@ -13,6 +13,9 @@
 
 let path /* import path from 'node:path' */
 let url /* import url from 'node:url' */
+let esm /* import esm from 'internal/esm' */
+
+const { native } = import.meta
 
 const {
   fromSymbols,
@@ -31,112 +34,86 @@ const {
   FORMAT_COMMONJS,
   FORMAT_JSON,
   FORMAT_ADDON
-} = import.meta.native
+} = native
 
-const URL_SCHEME_NODE = 'node:'
 // builtin ids used internally that cannot be imported by user scripts
-const PRIVATE_BUILTIN_IDS = new Set(['napi', 'lexer'])
+const PRIVATE_BUILTIN_IDS = new Set(['napi', 'lexer', 'internal'])
 // builtin ids importable by import statements
-const PUBLIC_BUILTIN_IDS = new Set(import.meta.native.builtins.filter(id => !PRIVATE_BUILTIN_IDS.has(id)))
+const PUBLIC_BUILTIN_IDS = new Set(native.builtins.filter(id => !PRIVATE_BUILTIN_IDS.has(id)))
 // builtin modules with known side effects to the global namespace
-const GLOBAL_POLLUTERS = [ 'buffer', 'console', 'process', 'timers', 'internal/event_target' ]
+const GLOBAL_POLLUTERS = [ 'buffer', 'console', 'process', 'timers', 'internal/event_target', 'url' ]
+const builtinsSet = new Set(native.builtins)
 
 // id -> Module, where id is the absolute path to the module js file or the builtin id
 const cache = new Map()
 // id -> Module, where id is the absolute path to the .node or .json file
 const requireCache = new Map()
 
-const asBuiltinId = (specifier, referrer) => {
-  const id = specifier.replace(URL_SCHEME_NODE, '')
+const isBuiltinSpecifier = (specifier) => builtinsSet.has(specifier.replace('node:', ''))
 
-  if (PUBLIC_BUILTIN_IDS.has(id)) {
-    return id
-  } else if (!referrer) {
-    if (PRIVATE_BUILTIN_IDS.has(id)) {
-      return id
-    }
-  } else if (specifier.startsWith(URL_SCHEME_NODE)) {
-    throw Error(`import specifier '${specifier}' is not a known builtin package`)
+const linkResolve = (specifier, referrer) => {
+  if (isBuiltinSpecifier(specifier)) {
+    return builtinLinkResolve(specifier.replace('node:', ''))
   }
 
-  // return undefined
+  const resolution = esm.esmResolveSync(specifier, { parentURL: referrer?.url.href })
+
+  if (resolution.format !== 'module') {
+    throw Error(`Unsupported import type [${resolution.format}] from '${specifier}'`)
+  }
+
+  return parseModule(url.fileURLToPath(resolution.url), new URL(resolution.url), fromFile)
 }
 
-const asFileId = (specifier, referrer) => {
-  const { isAbsolute, dirname, normalize, resolve, extname } = path
-  let id
-
-  // TODO: quick and dirty module loading by filename
-  if (isAbsolute(specifier)) {
-    id = normalize(specifier)
-  } else if (specifier.startsWith('.')) {
-    if (referrer) {
-      id = resolve(dirname(referrer.filename), specifier)
-    } else {
-      id = resolve(specifier)
-    }
-  } else {
-    // unsupported
-  }
-
-  if (id && !extname(id)) {
-    throw Error('must specify a file extension')
-  }
-
-  // TODO: realpath(id)
-
-  return id
-}
-
-const resolve = (specifier, referrer) => {
-  let id
-  let module
-  let parseOp
-  let module_url
-
-  id = asBuiltinId(specifier, referrer)
-
-  if (id) {
-    parseOp = fromBuiltin
-    module_url = `node:${id}` // TODO: use URL?
-  } else {
-    id = asFileId(specifier, referrer)
-    parseOp = fromFile
-    module_url = url.pathToFileURL(id)
-  }
-
-  if (!id) {
-    throw Error(`unsupported import specifier '${specifier}`)
-  }
-
-  module = cache.get(id)
+const parseModule = (id, moduleUrl, op) => {
+  let module = cache.get(id)
 
   if (!module) {
     try {
-      module = parseOp(id)
+      module = op(id)
     } catch (e) {
       throw Error(`while parsing code for '${id}'; reason: ${e.message}`)
     }
 
-    module.url = module_url
+    if (moduleUrl) {
+      module.url = moduleUrl
+    }
+
     cache.set(id, module)
   }
 
   return module
 }
 
-const load = (specifier, referrer, resolve) => {
+const builtinLinkResolve = (specifier, referrer) => {
+  const prefix = 'node:'
+  const id = specifier.replace(prefix, '')
+
+  if (!builtinsSet.has(id)) {
+    throw Error(`import specifier '${specifier}' is not a builtin`)
+  }
+
+  let moduleUrl
+
+  if (url) {
+    moduleUrl = new URL(`node:${id}`)
+  }
+
+  return parseModule(id, moduleUrl, fromBuiltin)
+}
+
+const load = (specifier, referrer, linkResolve) => {
   let linked
   let caught
 
-  const module = resolve(specifier, referrer)
+  const module = linkResolve(specifier, referrer)
 
   if (getState(module) === STATE_EVALUATED) {
     return module
   }
 
   try {
-    linked = link(module, resolve)
+    linked = link(module, linkResolve)
   } catch (e) {
     caught = e
   }
@@ -154,14 +131,14 @@ const load = (specifier, referrer, resolve) => {
   return module
 }
 
-const loadBuiltin = (id) => exports(load(id, null, resolve))
+const loadBuiltin = (id) => exports(load(id, null, builtinLinkResolve))
 
 const createRequire = (pathOrUrl) => {
   let context
 
   if (typeof pathOrUrl === 'string') {
     if (pathOrUrl.startsWith('file:')) {
-      url.fileURLToPath(pathOrUrl)
+      context = url.fileURLToPath(pathOrUrl)
     } else if (path.isAbsolute(pathOrUrl)) {
       context = pathOrUrl
     } else {
@@ -172,18 +149,31 @@ const createRequire = (pathOrUrl) => {
     context = url.fileURLToPath(pathOrUrl)
   }
 
-  const resolve = (id) => {
-    const result = asFileId(id, { filename: context })
+  context = path.dirname(context)
 
-    if (!result) {
+  const resolve = (id) => {
+    if (typeof id !== 'string') {
+      throw Error(`Expected argument id to be a string.`)
+    }
+
+    const { isAbsolute, join } = path
+    let resolved
+
+    if (isAbsolute(id)) {
+      resolved = id
+    } else if (id[0] === '.') {
+      resolved = join(context, id)
+    }
+
+    if (!resolved) {
       throw Error(`CommonJS: specifier '${id} could not resolve to a filename`)
     }
 
-    if (!path.extname(result)) {
-      throw Error(`CommonJS: resolved file '${result}' does not have an extension`)
+    if (!path.extname(resolved)) {
+      throw Error(`CommonJS: resolved file '${resolved}' does not have an extension`)
     }
 
-    return result
+    return resolved
   }
 
   const require = (specifier) => {
@@ -206,7 +196,8 @@ const createRequire = (pathOrUrl) => {
         return requireCache.get(filename)
       case '.json':
         if (!requireCache.has(filename)) {
-          requireCache.set(filename, loadJSON(filename))
+          const parsed = JSON.parse(readFileSync(filename, true /* strip bom, if present */))
+          requireCache.set(filename, parsed)
         }
         return requireCache.get(filename)
       default:
@@ -231,19 +222,11 @@ const addNodeModulePackage = () => {
   const module = fromSymbols('module.mjs', Object.keys(exports))
 
   module.id = 'module'
-  module.url = 'node:module' // TODO: make URL?
+  module.url = 'node:module'
 
   evaluateWith(module, exports)
 
   cache.set(module.id, module)
-}
-
-class MODULE_NOT_FOUND extends Error {
-  constructor (search) {
-    super()
-    this.message = `Cannot find module '${search}'`
-    this.code = 'MODULE_NOT_FOUND'
-  }
 }
 
 const exports = (key) => {
@@ -257,14 +240,14 @@ const exports = (key) => {
 const loadAddon = (filename) => {
   const napi = loadBuiltin('napi').default
 
+  // TODO: --no-addon
+
   try {
     return napi(filename)
   } catch (e) {
     throw `while loading addon '${filename}' - ${e.message}`
   }
 }
-
-const loadJSON = (filename) => JSON.parse(readFileSync(filename, true /* strip bom, if present */))
 
 const runMain = () => {
   let filename = process.argv[1]
@@ -274,14 +257,8 @@ const runMain = () => {
     return
   }
 
-  const { isAbsolute, sep } = path
-
-  if (!isAbsolute(filename) && !filename.startsWith('.')) {
-    filename = `.${sep}${filename}`
-  }
-
   try {
-    load(filename, null, resolve)
+    load(url.pathToFileURL(filename).href, null, linkResolve)
   } catch (e) {
     process._onUncaughtException(e)
   }
@@ -296,8 +273,18 @@ const bootstrap = () => {
 
   path = loadBuiltin('path').default
   url = loadBuiltin('url').default
+  esm = loadBuiltin('internal/esm')
 
-  on('import', (specifier, referrerId) => load(specifier, cache.get(referrerId), resolve))
+  const { URL } = url
+
+  // some builtins set url to string because URL was not available. cast those url strings to URL here.
+  for (const module of cache.values()) {
+    if (typeof module.url === 'string') {
+      module.url = new URL(module.url)
+    }
+  }
+
+  on('import', (specifier, referrerId) => load(specifier, cache.get(referrerId), linkResolve))
 
   on('destroy', () => {
     cache.clear()

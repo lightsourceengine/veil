@@ -1,15 +1,15 @@
 /*
-* Copyright (c) 2022 Light Source Software, LLC. All rights reserved.
-*
-* Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
-* the License. You may obtain a copy of the License at
-*
-*     http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
-* an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
-* specific language governing permissions and limitations under the License.
-*/
+ * Copyright (c) 2022 Light Source Software, LLC. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ */
 
 import { terser } from 'rollup-plugin-terser'
 import nodeResolve from '@rollup/plugin-node-resolve'
@@ -46,7 +46,8 @@ const minify = (options = {}) => terser({
   },
   // jerryscript is mostly ES2020, but there are a few things missing
   ecma: 2020,
-  module: true
+  module: true,
+  keep_classnames: true
 })
 
 const onwarn = (warning, warn) => {
@@ -56,6 +57,11 @@ const onwarn = (warning, warn) => {
 
 const veilBuiltins = [
   'udp',
+  'internal',
+  'esm',
+  'internal/errors',
+  'internal/event_target',
+  'internal/validators',
   'http_client',
   'http_incoming',
   'http_parser',
@@ -123,6 +129,9 @@ const ops = readdirSync('src/js')
 ops.push(min(`src/js/fs/promises.mjs`, join(minifiedOutputPath, 'fs/promises.mjs')))
 ops.push(min(`src/js/util/types.mjs`, join(minifiedOutputPath, 'util/types.mjs')))
 ops.push(min(`src/js/internal/event_target.mjs`, join(minifiedOutputPath, 'internal/event_target.mjs')))
+ops.push(min(`src/js/internal/esm.mjs`, join(minifiedOutputPath, 'internal/esm.mjs')))
+ops.push(min(`src/js/internal/errors.mjs`, join(minifiedOutputPath, 'internal/errors.mjs')))
+ops.push(min(`src/js/internal/validators.mjs`, join(minifiedOutputPath, 'internal/validators.mjs')))
 
 ops.push(lexer())
 

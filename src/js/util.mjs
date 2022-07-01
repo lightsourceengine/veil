@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import { validateFunction } from './internal/validators.mjs'
+import { validateFunction } from 'internal/validators'
 
 const ObjectGetPrototypeOf = Object.getPrototypeOf
 const { errname, errmessage, toUSVString } = import.meta.native

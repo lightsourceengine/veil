@@ -12,7 +12,10 @@
  */
 
 import { EventEmitter } from 'events'
+import { validateString } from 'internal/validators'
+import { codes } from 'internal/errors'
 
+const { ERR_INVALID_ARG_TYPE } = codes
 const { native } = import.meta
 
 class Process extends EventEmitter {
@@ -59,11 +62,48 @@ class Process extends EventEmitter {
     this.removeAllListeners()
   };
 
-  emitWarning (message) {
-    console.warn(message)
-    if (!this._exiting) {
-      this.emit('warn', message);
+// process.emitWarning(error)
+// process.emitWarning(str[, type[, code]][, ctor])
+// process.emitWarning(str[, options])
+  emitWarning(warning, type, code, ctor) {
+    let detail;
+    if (type !== null && typeof type === 'object' && !Array.isArray(type)) {
+      ctor = type.ctor;
+      code = type.code;
+      if (typeof type.detail === 'string')
+        detail = type.detail;
+      type = type.type || 'Warning';
+    } else if (typeof type === 'function') {
+      ctor = type;
+      code = undefined;
+      type = 'Warning';
     }
+    if (type !== undefined)
+      validateString(type, 'type');
+    if (typeof code === 'function') {
+      ctor = code;
+      code = undefined;
+    } else if (code !== undefined) {
+      validateString(code, 'code');
+    }
+    if (typeof warning === 'string') {
+      warning = createWarningObject(warning, type, code, ctor, detail);
+    } else if (!(warning instanceof Error)) {
+      throw new ERR_INVALID_ARG_TYPE('warning', ['Error', 'string'], warning);
+    }
+    // TODO: not implemented in veil
+    // if (warning.name === 'DeprecationWarning') {
+    //   if (process.noDeprecation)
+    //     return;
+    //   if (process.throwDeprecation) {
+    //     // Delay throwing the error to guarantee that all former warnings were
+    //     // properly logged.
+    //     return process.nextTick(() => {
+    //       throw warning;
+    //     });
+    //   }
+    // }
+    this.nextTick(() => this.emit('warning', warning))
   }
 
   exit (code) {
@@ -160,6 +200,17 @@ const checkCallback = (callback) => {
     throw TypeError('bad argument: callback')
   }
   return true
+}
+
+const createWarningObject = (warning, type, code, ctor, detail) => {
+  warning = new Error(warning);
+  warning.name = String(type || 'Warning');
+  if (code !== undefined) warning.code = code;
+  if (detail !== undefined) warning.detail = detail;
+
+  warning.captureStackTrace(ctor || process.emitWarning);
+
+  return warning;
 }
 
 const instance = new Process()

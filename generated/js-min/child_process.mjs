@@ -1,32 +1,10 @@
-import{URL as e,fileURLToPath as t}from'url'
-import{EventEmitter as i}from'events'
-import s from'constants'
-const n=(e,t,i)=>{if('string'===typeof i)return class extends t{code=e
-message=i}
-return class extends t{code=e
-constructor(...e){super(),this.message=i(this,...e)}}},o=n('ERR_IPC_ONE_PIPE',Error,'Child process can have only one IPC pipe'),r=n('ERR_IPC_SYNC_FORK',Error,'IPC cannot be used with synchronous forks'),l=n('ERR_INVALID_ARG_TYPE',Error,((e,t,i,s)=>`The ${t} argument must be of type ${i}. Received ${typeof s}`)),a=n('ERR_INVALID_ARG_VALUE',TypeError,((e,t,i,s='is invalid')=>`The ${t.includes('.')?'property':'argument'} '${t}' ${s}. Received ${typeof i}`)),d=n('ERR_MISSING_ARGS',TypeError,((e,...t)=>{const{length:i}=t
-if(!i)return'assert: At least one arg needs to be specified'
-let s='The '
-const n=i,o=e=>`"${e}"`
-switch(t=t.map((e=>Array.isArray(e)?e.map(o).join(' or '):o(e))),n){case 1:s+=`${t[0]} argument`
-break
-case 2:s+=`${t[0]} and ${t[1]} arguments`
-break
-default:s+=t.slice(0,n-1).join(', '),s+=`, and ${t[n-1]} arguments`
-break}return`${s} must be specified`})),f=n('ERR_OUT_OF_RANGE',RangeError,((e,t,i,s,n=false)=>{if(!i)throw new d('range')
-let o=n?t:`The value of "${t}" is out of range.`,r
-if(Number.isInteger(s)&&Math.abs(s)>2**32)r=w(String(s))
-else if('bigint'===typeof s){if(r=String(s),s>2n**32n||s<-(2n**32n))r=w(r)
-r+='n'}else r=s
-return o+=` It must be ${i}. Received ${r}`,o})),p=n('ERR_INVALID_SYNC_FORK_INPUT',TypeError,((e,t)=>`Asynchronous forks do not support Buffer, TypedArray, DataView or string input: ${t}`)),c=n('ERR_UNKNOWN_SIGNAL',TypeError,((e,t)=>`Unknown signal: ${t}`)),h=(e,t,i)=>{const s=new Error(`${t} (${e}): ${i}`)
-return s.errno=e,s.code=e.toString(),s.syscall=t,s}
-class u extends Error{constructor(e='The operation was aborted'){super(e),this.code='ABORT_ERR',this.name='AbortError'}}const w=e=>{let t='',i=e.length
-const s='-'===e[0]?1:0
-for(;i>=s+4;i-=3)t=`_${e.slice(i-3,i)}${t}`
-return`${e.slice(0,i)}${t}`},g=(e,t,i=void 0)=>{if(!(null!=i&&i.nullable)&&null===e||!(null!=i&&i.allowArray)&&Array.isArray(e)||'object'!==typeof e&&(!(null!=i&&i.allowFunction)||'function'!==typeof e))throw new l(t,'Object',e)},_=(e,t)=>{if('string'!==typeof e)throw new l(t,'string',e)},y=(e,t)=>{if('boolean'!==typeof e)throw new l(t,'boolean',e)},m=(e,t,i)=>{if(!i.includes(e)){const s=i.map((e=>'string'===typeof e?`'${e}'`:String(e))).join(', ')
-throw new a(t,e,`'must be one of: ${s}`)}},E=(e,t,i=0)=>{if(!Array.isArray(e))throw new l(t,'Array',e)
-if(e.length<i)throw new a(t,e,`must be longer than ${i}`)},v=(e,t)=>{if(void 0!==e&&(null===e||'object'!==typeof e||!('aborted'in e)))throw new l(t,'AbortSignal',e)},{Process:b,Pipe:A}=import.meta.native,{signals:R}=s.os,{UV_EACCES:N,UV_EAGAIN:$,UV_EINVAL:k,UV_EMFILE:C,UV_ENFILE:I,UV_ENOENT:S,UV_ENOSYS:V,UV_ESRCH:O}=s.uv.errno,T=Symbol('kIsUsedAsStdio')
-class x extends i{_closesNeeded=1
+import{URL as e,fileURLToPath as i}from'url'
+import{errnoException as t,codes as s}from'internal/errors'
+import{validateObject as n,validateOneOf as o,validateArray as r,validateString as l,validateAbortSignal as a,validateBoolean as d}from'internal/validators'
+import{EventEmitter as p}from'events'
+import f from'constants'
+const{ERR_INVALID_ARG_VALUE:h,ERR_INVALID_SYNC_FORK_INPUT:c,ERR_IPC_SYNC_FORK:u,ERR_IPC_ONE_PIPE:w,ERR_UNKNOWN_SIGNAL:_}=s,{Process:g,Pipe:m}=import.meta.native,{signals:v}=f.os,{UV_EACCES:E,UV_EAGAIN:y,UV_EINVAL:N,UV_EMFILE:A,UV_ENFILE:b,UV_ENOENT:R,UV_ENOSYS:k,UV_ESRCH:C}=f.uv.errno,V=Symbol('kIsUsedAsStdio')
+class ChildProcess extends p{_closesNeeded=1
 _closesGot=0
 connected=false
 signalCode=null
@@ -35,113 +13,113 @@ killed=false
 spawnfile=null
 _handle=null
 stdin=null
-constructor(){super(),this._handle=new b,this._handle.onexit=(e,t)=>{if(t)this.signalCode=t
+constructor(){super(),this._handle=new g,this._handle.onexit=(e,i)=>{if(i)this.signalCode=i
 else this.exitCode=e
-const{stdin:i,_handle:s,spawnfile:n,spawnargs:o}=this
-if(null==i?void 0:i.destroy(),s.close(),this._handle=null,e<0){const t=n?`spawn ${n}`:'spawn',i=h(e,t)
-if(n)i.path=n
-i.spawnargs=o.slice(1),this.emit('error',i)}else this.emit('exit',this.exitCode,this.signalCode)
-process.nextTick(P,this),U(this)}}spawn(e){let t=0
-g(e,'options')
-let i=e.stdio||'pipe'
-i=L(i,false)
-const s=i.ipc,n=i.ipcFd
-i=e.stdio=i.stdio,m(e.serialization,'options.serialization',[void 0,'json','advanced'])
-const o=e.serialization||'json'
-if(void 0!==s){if(void 0===e.envPairs)e.envPairs=[]
-else E(e.envPairs,'options.envPairs')
-e.envPairs.push(`NODE_CHANNEL_FD=${n}`),e.envPairs.push(`NODE_CHANNEL_SERIALIZATION_MODE=${o}`)}if(_(e.file,'options.file'),this.spawnfile=e.file,void 0===e.args)this.spawnargs=[]
-else E(e.args,'options.args'),this.spawnargs=e.args
-const r=this._handle.spawn(e)
-if(r===N||r===$||r===C||r===I||r===S){if(process.nextTick(j,this,r),r===C||r===I)return r}else if(r){for(t=0;t<i.length;t++){const e=i[t]
-if('pipe'===e.type)e.handle.close()}throw this._handle.close(),this._handle=null,h(r,'spawn')}else process.nextTick(D,this)
-for(this.pid=this._handle.pid,t=0;t<i.length;t++){const e=i[t]
+const{stdin:s,_handle:n,spawnfile:o,spawnargs:r}=this
+if(null==s?void 0:s.destroy(),n.close(),this._handle=null,e<0){const i=o?`spawn ${o}`:'spawn',s=t(e,i)
+if(o)s.path=o
+s.spawnargs=r.slice(1),this.emit('error',s)}else this.emit('exit',this.exitCode,this.signalCode)
+process.nextTick(I,this),O(this)}}spawn(e){let i=0
+n(e,'options')
+let s=e.stdio||'pipe'
+s=S(s,false)
+const a=s.ipc,d=s.ipcFd
+s=e.stdio=s.stdio,o(e.serialization,'options.serialization',[void 0,'json','advanced'])
+const p=e.serialization||'json'
+if(void 0!==a){if(void 0===e.envPairs)e.envPairs=[]
+else r(e.envPairs,'options.envPairs')
+e.envPairs.push(`NODE_CHANNEL_FD=${d}`),e.envPairs.push(`NODE_CHANNEL_SERIALIZATION_MODE=${p}`)}if(l(e.file,'options.file'),this.spawnfile=e.file,void 0===e.args)this.spawnargs=[]
+else r(e.args,'options.args'),this.spawnargs=e.args
+const f=this._handle.spawn(e)
+if(f===E||f===y||f===A||f===b||f===R){if(process.nextTick(x,this,f),f===A||f===b)return f}else if(f){for(i=0;i<s.length;i++){const e=s[i]
+if('pipe'===e.type)e.handle.close()}throw this._handle.close(),this._handle=null,t(f,'spawn')}else process.nextTick(U,this)
+for(this.pid=this._handle.pid,i=0;i<s.length;i++){const e=s[i]
 if('ignore'===e.type)continue
 if(e.ipc){this._closesNeeded++
-continue}if('wrap'===e.type){e.handle.reading=false,e.handle.readStop(),e._stdio.pause(),e._stdio.readableFlowing=false,e._stdio._readableState.reading=false,e._stdio[T]=true
-continue}if(e.handle)if(e.socket=F(0!==this.pid?e.handle:null),t>0&&0!==this.pid)this._closesNeeded++,e.socket.on('close',(()=>{U(this)}))}for(this.stdin=i.length>=1&&void 0!==i[0].socket?i[0].socket:null,this.stdout=i.length>=2&&void 0!==i[1].socket?i[1].socket:null,this.stderr=i.length>=3&&void 0!==i[2].socket?i[2].socket:null,this.stdio=[],t=0;t<i.length;t++)this.stdio.push(void 0===i[t].socket?null:i[t].socket)
-if(void 0!==s)throw Error('ipc not supported')
-return r}kill(e){const t=0===e?e:K(void 0===e?'SIGTERM':e)
-if(this._handle){const e=this._handle.kill(t)
+continue}if('wrap'===e.type){e.handle.reading=false,e.handle.readStop(),e._stdio.pause(),e._stdio.readableFlowing=false,e._stdio._readableState.reading=false,e._stdio[V]=true
+continue}if(e.handle)if(e.socket=L(0!==this.pid?e.handle:null),i>0&&0!==this.pid)this._closesNeeded++,e.socket.on('close',(()=>{O(this)}))}for(this.stdin=s.length>=1&&void 0!==s[0].socket?s[0].socket:null,this.stdout=s.length>=2&&void 0!==s[1].socket?s[1].socket:null,this.stderr=s.length>=3&&void 0!==s[2].socket?s[2].socket:null,this.stdio=[],i=0;i<s.length;i++)this.stdio.push(void 0===s[i].socket?null:s[i].socket)
+if(void 0!==a)throw Error('ipc not supported')
+return f}kill(e){const i=0===e?e:F(void 0===e?'SIGTERM':e)
+if(this._handle){const e=this._handle.kill(i)
 if(0===e)return this.killed=true,true
-if(e===O);else if(e===k||e===V)throw h(e,'kill')
-else this.emit('error',h(e,'kill'))}return false}ref(){var e
+if(e===C);else if(e===N||e===k)throw t(e,'kill')
+else this.emit('error',t(e,'kill'))}return false}ref(){var e
 null==(e=this._handle)?void 0:e.ref()}unref(){var e
-null==(e=this._handle)?void 0:e.unref()}}const P=e=>{const{stdio:t}=e
-if(null==t)return
-for(let e=0;e<t.length;e++){const i=t[e]
-if(!i||!i.readable||i[T])continue
-i.resume()}},U=e=>{if(e._closesGot++,e._closesGot===e._closesNeeded)e.emit('close',e.exitCode,e.signalCode)},G=(e,t)=>{const i=[]
-switch(e){case'ignore':case'overlapped':case'pipe':i.push(e,e,e)
+null==(e=this._handle)?void 0:e.unref()}}const I=e=>{const{stdio:i}=e
+if(null==i)return
+for(let e=0;e<i.length;e++){const t=i[e]
+if(!t||!t.readable||t[V])continue
+t.resume()}},O=e=>{if(e._closesGot++,e._closesGot===e._closesNeeded)e.emit('close',e.exitCode,e.signalCode)},P=(e,i)=>{const t=[]
+switch(e){case'ignore':case'overlapped':case'pipe':t.push(e,e,e)
 break
-case'inherit':i.push(0,1,2)
+case'inherit':t.push(0,1,2)
 break
-default:throw new a('stdio',e)}if(t)i.push(t)
-return i},L=(e,t)=>{let i,s
-if('string'===typeof e)e=G(e)
-else if(!Array.isArray(e))throw new a('stdio',e)
+default:throw new h('stdio',e)}if(i)t.push(i)
+return t},S=(e,i)=>{let t,s
+if('string'===typeof e)e=P(e)
+else if(!Array.isArray(e))throw new h('stdio',e)
 while(e.length<3)e.push(void 0)
-return e=e.reduce(((e,n,l)=>{const d=()=>{for(let t=0;t<e.length;t++){const{type:i,handle:s}=e[t];('pipe'===i||'ipc'===i)&&(null==s?void 0:s.close())}}
-if(null==n)n=l<3?'pipe':'ignore'
+return e=e.reduce(((e,n,o)=>{const r=()=>{for(let i=0;i<e.length;i++){const{type:t,handle:s}=e[i];('pipe'===t||'ipc'===t)&&(null==s?void 0:s.close())}}
+if(null==n)n=o<3?'pipe':'ignore'
 if('ignore'===n)e.push({type:'ignore'})
-else if('pipe'===n||'overlapped'===n||'number'===typeof n&&n<0){const i={type:'overlapped'===n?'overlapped':'pipe',readable:0===l,writable:0!==l}
-if(!t)i.handle=new A(A.SOCKET)
-e.push(i)}else if('ipc'===n){if(t||void 0!==i)if(d(),!t)throw new o
-else throw new r
-i=new A(A.IPC),s=l,e.push({type:'pipe',handle:i,ipc:true})}else if('inherit'===n)e.push({type:'inherit',fd:l})
+else if('pipe'===n||'overlapped'===n||'number'===typeof n&&n<0){const t={type:'overlapped'===n?'overlapped':'pipe',readable:0===o,writable:0!==o}
+if(!i)t.handle=new m(m.SOCKET)
+e.push(t)}else if('ipc'===n){if(i||void 0!==t)if(r(),!i)throw new w
+else throw new u
+t=new m(m.IPC),s=o,e.push({type:'pipe',handle:t,ipc:true})}else if('inherit'===n)e.push({type:'inherit',fd:o})
 else if('number'===typeof n||'number'===typeof n.fd)e.push({type:'fd',fd:'number'===typeof n?n:n.fd})
-else if(H(n)||H(n.handle)||H(n._handle)){const t=H(n)?n:H(n.handle)?n.handle:n._handle
-e.push({type:'wrap',wrapType:H(t),handle:t,_stdio:n})}else if(ArrayBuffer.isView(n)||'string'===typeof n){if(!t)throw d(),new p(n.toString())}else throw d(),new a('stdio',n)
-return e}),[]),{stdio:e,ipc:i,ipcFd:s}},j=(e,t)=>e._handle.onexit(t),D=e=>e.emit('spawn'),F=(e,t)=>{throw Error('createSocket not implemented')},H=e=>{if(e instanceof A)return'pipe'
+else if(G(n)||G(n.handle)||G(n._handle)){const i=G(n)?n:G(n.handle)?n.handle:n._handle
+e.push({type:'wrap',wrapType:G(i),handle:i,_stdio:n})}else if(ArrayBuffer.isView(n)||'string'===typeof n){if(!i)throw r(),new c(n.toString())}else throw r(),new h('stdio',n)
+return e}),[]),{stdio:e,ipc:t,ipcFd:s}},x=(e,i)=>e._handle.onexit(i),U=e=>e.emit('spawn'),L=(e,i)=>{throw Error('createSocket not implemented')},G=e=>{if(e instanceof m)return'pipe'
 return false}
-let M
-const z=()=>{if(void 0!==M)return M
-M={}
-for(const e in R)M[R[e]]=e
-return M},K=e=>{if('number'===typeof e&&z()[e])return e
-if('string'===typeof e){const t=R[e.toUpperCase()]
-if(t)return t}throw new c(e)},Y=Object.freeze({}),B=/^(?:.*\\)?cmd(?:\.exe)?$/i,W=e=>e===(0|e),Z=(e,t,i)=>{if(_(e,'file'),0===e.length)throw new a('file',e,'cannot be empty')
-if(Array.isArray(t))t=t.slice()
-else if(null==t)t=[]
-else if('object'!==typeof t)throw new l('args','object',t)
-else i=t,t=[]
-if(void 0===i)i=Y
-else g(i,'options')
-let s=i.cwd
-if(null!=s)s=q(s,'options.cwd')
-if(null!=i.detached)y(i.detached,'options.detached')
-if(null!=i.uid&&!W(i.uid))throw new l('options.uid','int32',i.uid)
-if(null!=i.gid&&!W(i.gid))throw new l('options.gid','int32',i.gid)
-if(null!=i.shell&&'boolean'!==typeof i.shell&&'string'!==typeof i.shell)throw new l('options.shell',['boolean','string'],i.shell)
-if(null!=i.argv0)_(i.argv0,'options.argv0')
-if(null!=i.windowsHide)y(i.windowsHide,'options.windowsHide')
-let{windowsVerbatimArguments:n}=i
-if(null!=n)y(n,'options.windowsVerbatimArguments')
-if(i.shell){const s=[e,...t].join(' ')
-if('win32'===process.platform){if('string'===typeof i.shell)e=i.shell
+let T
+const D=()=>{if(void 0!==T)return T
+T={}
+for(const e in v)T[v[e]]=e
+return T},F=e=>{if('number'===typeof e&&D()[e])return e
+if('string'===typeof e){const i=v[e.toUpperCase()]
+if(i)return i}throw new _(e)},{AbortError:H,ERR_INVALID_ARG_VALUE:$,ERR_INVALID_ARG_TYPE:j,ERR_OUT_OF_RANGE:z}=s,K=Object.freeze({}),Y=/^(?:.*\\)?cmd(?:\.exe)?$/i,M=e=>e===(0|e),B=(e,i,t)=>{if(l(e,'file'),0===e.length)throw new $('file',e,'cannot be empty')
+if(Array.isArray(i))i=i.slice()
+else if(null==i)i=[]
+else if('object'!==typeof i)throw new j('args','object',i)
+else t=i,i=[]
+if(void 0===t)t=K
+else n(t,'options')
+let s=t.cwd
+if(null!=s)s=W(s,'options.cwd')
+if(null!=t.detached)d(t.detached,'options.detached')
+if(null!=t.uid&&!M(t.uid))throw new j('options.uid','int32',t.uid)
+if(null!=t.gid&&!M(t.gid))throw new j('options.gid','int32',t.gid)
+if(null!=t.shell&&'boolean'!==typeof t.shell&&'string'!==typeof t.shell)throw new j('options.shell',['boolean','string'],t.shell)
+if(null!=t.argv0)l(t.argv0,'options.argv0')
+if(null!=t.windowsHide)d(t.windowsHide,'options.windowsHide')
+let{windowsVerbatimArguments:o}=t
+if(null!=o)d(o,'options.windowsVerbatimArguments')
+if(t.shell){const s=[e,...i].join(' ')
+if('win32'===process.platform){if('string'===typeof t.shell)e=t.shell
 else e=process.env.comspec||'cmd.exe'
-if(B.test(e))t=['/d','/s','/c',`"${s}"`],n=true
-else t=['-c',s]}else{if('string'===typeof i.shell)e=i.shell
+if(Y.test(e))i=['/d','/s','/c',`"${s}"`],o=true
+else i=['-c',s]}else{if('string'===typeof t.shell)e=t.shell
 else if('android'===process.platform)e='/system/bin/sh'
 else e='/bin/sh'
-t=['-c',s]}}if('string'===typeof i.argv0)t.unshift(i.argv0)
-else t.unshift(e)
-const o=i.env||process.env,r=[]
-if(process.env.NODE_V8_COVERAGE&&!(i.env||{}).hasOwnProperty('NODE_V8_COVERAGE'))o.NODE_V8_COVERAGE=process.env.NODE_V8_COVERAGE
-let d=[]
-for(const e in o)d.push(e)
+i=['-c',s]}}if('string'===typeof t.argv0)i.unshift(t.argv0)
+else i.unshift(e)
+const r=t.env||process.env,a=[]
+if(process.env.NODE_V8_COVERAGE&&!(t.env||{}).hasOwnProperty('NODE_V8_COVERAGE'))r.NODE_V8_COVERAGE=process.env.NODE_V8_COVERAGE
+let p=[]
+for(const e in r)p.push(e)
 if('win32'===process.platform){const e=new Set
-d=d.sort().filter((t=>{const i=t.toUpperCase()
-if(e.has(i))return false
-return e.add(i),true}))}for(const e of d){const t=o[e]
-if(void 0!==t)r.push(`${e}=${t}`)}return{...i,args:t,cwd:s,detached:!!i.detached,envPairs:r,file:e,windowsHide:!!i.windowsHide,windowsVerbatimArguments:!!n}},q=(i,s='path')=>{const n=i instanceof e?t(i):i
-if('string'!==typeof n)throw new l(s,['string','URL'],n)
-return n},J=(e,t)=>{if(!e)return
-try{if(e.kill(t))e.emit('error',new u)}catch(t){e.emit('error',t)}},Q=e=>{if(null!=e&&!(Number.isInteger(e)&&e>=0))throw new f('timeout','an unsigned integer',e)},X=e=>{if('string'===typeof e||'number'===typeof e)return K(e)
-else if(null!=e)throw new l('options.killSignal',['string','number'],e)},ee=(e,t,i)=>{i=Z(e,t,i),Q(i.timeout),v(i.signal,'options.signal')
-const s=X(i.killSignal),n=new x
-if(n.spawn(i),i.timeout>0){let e=setTimeout((()=>{if(e){try{n.kill(s)}catch(e){n.emit('error',e)}e=null}}),i.timeout)
-n.once('exit',(()=>{if(e)clearTimeout(e),e=null}))}if(i.signal){const{signal:e}=i,t=()=>J(n,s)
-if(e.aborted)process.nextTick(t)
-else e.addEventListener('abort',t,{once:true}),n.once('exit',(()=>e.removeEventListener('abort',t)))}return n}
-export{x as ChildProcess,ee as spawn}
+p=p.sort().filter((i=>{const t=i.toUpperCase()
+if(e.has(t))return false
+return e.add(t),true}))}for(const e of p){const i=r[e]
+if(void 0!==i)a.push(`${e}=${i}`)}return{...t,args:i,cwd:s,detached:!!t.detached,envPairs:a,file:e,windowsHide:!!t.windowsHide,windowsVerbatimArguments:!!o}},W=(t,s='path')=>{const n=t instanceof e?i(t):t
+if('string'!==typeof n)throw new j(s,['string','URL'],n)
+return n},Z=(e,i)=>{if(!e)return
+try{if(e.kill(i))e.emit('error',new H)}catch(i){e.emit('error',i)}},q=e=>{if(null!=e&&!(Number.isInteger(e)&&e>=0))throw new z('timeout','an unsigned integer',e)},J=e=>{if('string'===typeof e||'number'===typeof e)return F(e)
+else if(null!=e)throw new j('options.killSignal',['string','number'],e)},Q=(e,i,t)=>{t=B(e,i,t),q(t.timeout),a(t.signal,'options.signal')
+const s=J(t.killSignal),n=new ChildProcess
+if(n.spawn(t),t.timeout>0){let e=setTimeout((()=>{if(e){try{n.kill(s)}catch(e){n.emit('error',e)}e=null}}),t.timeout)
+n.once('exit',(()=>{if(e)clearTimeout(e),e=null}))}if(t.signal){const{signal:e}=t,i=()=>Z(n,s)
+if(e.aborted)process.nextTick(i)
+else e.addEventListener('abort',i,{once:true}),n.once('exit',(()=>e.removeEventListener('abort',i)))}return n}
+export{ChildProcess,Q as spawn}

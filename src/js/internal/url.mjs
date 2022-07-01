@@ -13,6 +13,11 @@
 
 import path from 'path'
 import { toUSVString } from 'util'
+import {
+  validateFunction,
+  validateObject
+} from 'internal/validators'
+import { codes } from 'internal/errors'
 import { encodeStr, hexTable, isHexTable, unescape } from './querystring'
 import {
   CHAR_AMPERSAND,
@@ -24,11 +29,8 @@ import {
   CHAR_PERCENT,
   CHAR_PLUS
 } from './constants'
-import {
-  validateFunction,
-  validateObject
-} from './validators'
-import {
+
+const {
   ERR_ARG_NOT_ITERABLE,
   ERR_INVALID_ARG_TYPE,
   ERR_INVALID_ARG_VALUE,
@@ -39,7 +41,7 @@ import {
   ERR_INVALID_URL,
   ERR_INVALID_URL_SCHEME,
   ERR_MISSING_ARGS
-} from './errors.mjs'
+} = codes
 
 const kEnumerableProperty = Object.freeze({
   enumerable: true

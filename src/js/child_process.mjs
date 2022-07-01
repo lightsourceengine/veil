@@ -12,20 +12,21 @@
  */
 
 import { fileURLToPath, URL } from 'url'
-import { ChildProcess, convertToValidSignal } from './internal/child_process.mjs'
-import {
-  AbortError,
-  ERR_INVALID_ARG_VALUE,
-  ERR_INVALID_ARG_TYPE,
-  ERR_OUT_OF_RANGE
-} from './internal/errors.mjs'
+import { codes } from 'internal/errors'
 import {
   validateBoolean,
   validateObject,
   validateString,
   validateAbortSignal
-} from './internal/validators.mjs'
+} from 'internal/validators'
+import { ChildProcess, convertToValidSignal } from './internal/child_process.mjs'
 
+const {
+  AbortError,
+  ERR_INVALID_ARG_VALUE,
+  ERR_INVALID_ARG_TYPE,
+  ERR_OUT_OF_RANGE
+} = codes
 const kEmptyObject = Object.freeze({})
 const kCmdExeRegEx = /^(?:.*\\)?cmd(?:\.exe)?$/i
 

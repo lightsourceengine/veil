@@ -11,8 +11,9 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import { ERR_INVALID_URI } from './errors.mjs'
+import { codes } from 'internal/errors'
 
+const { ERR_INVALID_URI } = codes
 const hexTable = (new Array(256)).map((value, i) => `%${i < 16 ? '0' : ''}${i.toString(16)}`);
 
 const isHexTable = new Int8Array([

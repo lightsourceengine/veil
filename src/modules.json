@@ -11,7 +11,11 @@
         "events",
         "fs",
         "fs__promises",
+        "internal",
+        "internal__errors",
+        "internal__esm",
         "internal__event_target",
+        "internal__validators",
         "module",
         "net",
         "os",
@@ -88,9 +92,26 @@
       "js_file": "$JS_GEN/events.mjs",
       "import": ["util"]
     },
+    "internal": {
+      "native_files": ["modules/veil_module_internal.c"],
+      "init": "veil_init_internal",
+      "js_file": "$JS_GEN/internal.mjs",
+      "import": ["util"]
+    },
+    "internal__errors": {
+      "js_file": "$JS_GEN/internal/errors.mjs"
+    },
+    "internal__esm": {
+      "js_file": "$JS_GEN/internal/esm.mjs",
+      "import": ["url","path"]
+    },
     "internal__event_target": {
       "js_file": "$JS_GEN/internal/event_target.mjs",
       "import": ["events"]
+    },
+    "internal__validators": {
+      "js_file": "$JS_GEN/internal/validators.mjs",
+      "import": ["internal__errors"]
     },
     "fs": {
       "native_files": ["modules/veil_module_fs.c"],
@@ -141,7 +162,7 @@
     },
     "module": {
       "js_file": "$JS_GEN/module.mjs",
-      "import": ["path", "url", "napi"]
+      "import": ["internal__esm"]
     },
     "napi": {
       "js_file": "$JS_GEN/napi.mjs",

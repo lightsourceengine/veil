@@ -13,14 +13,15 @@
 
 import { EventEmitter } from 'events'
 import { performance } from 'perf_hooks'
-import { validateObject } from './validators.mjs'
-import {
+import { validateObject } from 'internal/validators'
+import { codes } from 'internal/errors'
+
+const {
   ERR_INVALID_ARG_TYPE,
   ERR_EVENT_RECURSION,
   ERR_MISSING_ARGS,
   ERR_INVALID_THIS,
-} from './errors.mjs'
-
+} = codes
 const { now } = performance
 
 const kIsEventTarget = Symbol.for('nodejs.event_target');

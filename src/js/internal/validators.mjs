@@ -11,7 +11,9 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import { ERR_INVALID_ARG_TYPE, ERR_INVALID_ARG_VALUE } from './errors.mjs'
+import { codes } from 'internal/errors'
+
+const { ERR_INVALID_ARG_TYPE, ERR_INVALID_ARG_VALUE } = codes
 
 export const validateObject = (value, name, options = undefined) => {
   if ((!options?.nullable && value === null) ||
