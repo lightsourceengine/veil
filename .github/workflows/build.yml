@@ -64,6 +64,9 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           version: ${{ matrix.toolchain_version }}
 
+      - name: Yarn
+        run: yarn
+
       - name: Build
         run: ./tools/build.py --n-api --no-init-submodule --buildtype=release --js-backtrace=ON ${{ matrix.args }}
 
