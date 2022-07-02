@@ -11,7 +11,7 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import { toNamespacedPath } from 'path'
+import { join, toNamespacedPath, delimiter } from 'path'
 import { fileURLToPath, URL } from 'url'
 import { codes } from 'internal/errors'
 
@@ -125,6 +125,21 @@ const canBeImportedByUsers = (specifier) => allBuiltinsSet.has(specifier.replace
 // No modules requiring 'node:' scheme at this time
 const canBeImportedWithoutScheme = (specifier) => true
 
+const intrinsicPath = (process.env.VEIL_INTRINSIC_PATH ?? '').split(delimiter).filter(Boolean)
+const emptyConfig = { exists: false }
+
+const getIntrinsicPackageConfig = (packageName, specifier, base) => {
+  for (const p of intrinsicPath) {
+    const config = getPackageConfig(join(p, packageName, 'package.json'), specifier, base)
+
+    if (config.exists) {
+      return config
+    }
+  }
+
+  return emptyConfig
+}
+
 export {
   fastStat,
   STAT_IS_FILE,
@@ -133,5 +148,6 @@ export {
   getPackageScopeConfig,
   canBeImportedByUsers,
   canBeImportedWithoutScheme,
-  getOptionValue
+  getOptionValue,
+  getIntrinsicPackageConfig
 }

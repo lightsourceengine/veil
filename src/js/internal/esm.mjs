@@ -15,6 +15,7 @@ import {
   getOptionValue,
   getPackageConfig,
   getPackageScopeConfig,
+  getIntrinsicPackageConfig,
   canBeImportedByUsers,
   canBeImportedWithoutScheme,
   fastStat,
@@ -702,11 +703,31 @@ function packageResolve(specifier, base, conditions) {
     return new URL(`node:${specifier}`);
   }
 
-  const { packageName, packageSubpath, isScoped } =
-    parsePackageName(specifier, base);
+  const { packageName, packageSubpath, isScoped } = parsePackageName(specifier, base);
+
+  let packageConfig = getIntrinsicPackageConfig(packageName, specifier, base)
+
+  if (packageConfig.exists) {
+    const packageJSONUrl = pathToFileURL(packageConfig.pjsonPath);
+
+    if (packageConfig.exports !== undefined && packageConfig.exports !== null) {
+      return packageExportsResolve(
+        packageJSONUrl, packageSubpath, packageConfig, base, conditions);
+    }
+
+    if (packageSubpath === '.') {
+      return legacyMainResolve(
+        packageJSONUrl,
+        packageConfig,
+        base
+      );
+    }
+
+    return new URL(packageSubpath, packageJSONUrl);
+  }
 
   // ResolveSelf
-  const packageConfig = getPackageScopeConfig(base);
+  packageConfig = getPackageScopeConfig(base);
   if (packageConfig.exists) {
     const packageJSONUrl = pathToFileURL(packageConfig.pjsonPath);
     if (packageConfig.name === packageName &&
