@@ -14,6 +14,7 @@
 import { EventEmitter } from 'events'
 import { validateString } from 'internal/validators'
 import { codes } from 'internal/errors'
+import { startListeningIfSignal, stopListeningIfSignal } from './internal/signal.mjs'
 
 const { ERR_INVALID_ARG_TYPE } = codes
 const { native } = import.meta
@@ -215,6 +216,9 @@ const createWarningObject = (warning, type, code, ctor, detail) => {
 
 const instance = new Process()
 const queueMicrotask = (task) => process._queueMicrotask(task)
+
+instance.on('newListener', (type) => startListeningIfSignal(type, instance));
+instance.on('removeListener', (type) => stopListeningIfSignal(type, instance));
 
 global.process = instance
 global.queueMicrotask = queueMicrotask

@@ -13,7 +13,8 @@
 
 #pragma once
 
-jerry_value_t veil_process_wrap_constructor();
+jerry_value_t veil_signal_wrap_constructor();
+void veil_signal_wrap_cleanup();
 
 /*
  * Contains code from the following projects:

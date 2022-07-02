@@ -13,6 +13,7 @@
 
 #include "iotjs_def.h"
 #include "jerryscript-debugger.h"
+#include "veil_signal_wrap.h"
 #include <mbedtls/version.h>
 
 #define NANOS_PER_SEC 1000000000
@@ -237,6 +238,7 @@ static void set_process_versions(jerry_value_t process) {
 
 jerry_value_t veil_init_process(void) {
   jerry_value_t process = jerry_object();
+  jerry_value_t signal = veil_signal_wrap_constructor();
 #ifdef DEBUG
   bool debug = true;
 #else
@@ -271,6 +273,8 @@ jerry_value_t veil_init_process(void) {
   set_process_env(process);
   // process.argv
   set_process_argv(process);
+  // Signal
+  iotjs_jval_set_property_jval(process, "Signal", signal);
 
 #ifdef JERRY_DEBUGGER
   bool wait_source = false;
@@ -279,6 +283,8 @@ jerry_value_t veil_init_process(void) {
                       ->debugger->wait_source;
   }
 #endif
+
+  jerry_value_free(signal);
 
   return process;
 }

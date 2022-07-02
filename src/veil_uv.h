@@ -25,7 +25,10 @@ typedef struct veil_uv_handle_data {
   jerry_value_t self;
   veil_uv_close_cb close_cb;
   veil_uv_handle_state state;
-  int32_t fd;
+  union {
+    int32_t windows_fd;
+    bool signal_active;
+  } extra;
 } veil_uv_handle_data;
 
 uv_handle_t* veil_uv_create_handle(

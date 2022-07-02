@@ -17,16 +17,18 @@
 // due to how native pointers are attached to objects, the bindings must be unique per compilation unit
 #define VEIL_HANDLE_WRAP_BINDINGS(NATIVE_INFO) \
   JS_FUNCTION(js_handle_wrap_close) { return veil_handle_wrap_close(call_info_p, jargv, jargc, (NATIVE_INFO)); } \
-  JS_FUNCTION(js_handle_has_ref) { return veil_handle_wrap_has_ref(call_info_p, jargv, jargc, (NATIVE_INFO)); } \
-  JS_FUNCTION(js_handle_ref) { return veil_handle_wrap_ref(call_info_p, jargv, jargc, (NATIVE_INFO)); } \
-  JS_FUNCTION(js_handle_unref) { return veil_handle_wrap_unref(call_info_p, jargv, jargc, (NATIVE_INFO)); }
+  JS_FUNCTION(js_handle_wrap_has_ref) { return veil_handle_wrap_has_ref(call_info_p, jargv, jargc, (NATIVE_INFO)); } \
+  JS_FUNCTION(js_handle_wrap_ref) { return veil_handle_wrap_ref(call_info_p, jargv, jargc, (NATIVE_INFO)); } \
+  JS_FUNCTION(js_handle_wrap_unref) { return veil_handle_wrap_unref(call_info_p, jargv, jargc, (NATIVE_INFO)); }
+
+#define veil_handle_wrap_mixin_prefix(PROTOTYPE, CLASS) \
+  iotjs_jval_set_method(PROTOTYPE, "close", js_ ## CLASS ## _close); \
+  iotjs_jval_set_method(PROTOTYPE, "hasRef", js_ ## CLASS ## _has_ref); \
+  iotjs_jval_set_method(PROTOTYPE, "ref", js_ ## CLASS ## _ref); \
+  iotjs_jval_set_method(PROTOTYPE, "unref", js_ ## CLASS ## _unref)
 
 // Adds JS methods, declared by VEIL_HANDLE_WRAP_BINDINGS, to a prototype
-#define veil_handle_wrap_mixin(PROTOTYPE) \
-  iotjs_jval_set_method(PROTOTYPE, "close", js_handle_wrap_close); \
-  iotjs_jval_set_method(PROTOTYPE, "hasRef", js_handle_has_ref); \
-  iotjs_jval_set_method(PROTOTYPE, "ref", js_handle_ref); \
-  iotjs_jval_set_method(PROTOTYPE, "unref", js_handle_unref)
+#define veil_handle_wrap_mixin(PROTOTYPE) veil_handle_wrap_mixin_prefix(PROTOTYPE, handle_wrap)
 
 // handle_wrap api function signature
 #define VEIL_HANDLE_WRAP_FUNC(NAME) \

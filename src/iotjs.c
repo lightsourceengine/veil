@@ -19,6 +19,7 @@
 #include "iotjs_js.h"
 #include "iotjs_string_ext.h"
 #include "veil_module.h"
+#include "veil_signal_wrap.h"
 #include "jerryscript-ext/debugger.h"
 #if ENABLE_MODULE_NAPI
 #include "internal/node_api_internal.h"
@@ -283,6 +284,7 @@ void iotjs_terminate(iotjs_environment_t* env) {
 #endif
 
   veil_module_cleanup();
+  veil_signal_wrap_cleanup();
 
   jerry_module_cleanup(jerry_undefined());
 
