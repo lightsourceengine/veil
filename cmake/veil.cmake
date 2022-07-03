@@ -361,7 +361,14 @@ endforeach()
 
 # Common compile flags
 
-if (NOT USING_GCC_4_9)
+if (USING_GCC_4_9)
+  # XXX
+  # stc/cmap.h creates a platform specific c_umul128() macro. on 4.9.4, __int128 is not available and
+  # stc does not have a fallback. Either way, veil uses i_size uint32_t, so c_umul128() is never used.
+  # gcc considers c_umul128() and undefined function, printing a warning. This flag gets rid of the
+  # warning.
+  iotjs_add_link_flags(-Wl,-u,c_umul128)
+else()
   iotjs_add_compile_flags(-Wall)
 endif()
 
