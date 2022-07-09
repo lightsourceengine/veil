@@ -26,7 +26,7 @@ const self = import.meta.url
 const require = createRequire(self)
 
 // veil supports v3 of n-api
-const { v3 } = require('../deps/node-api-headers').symbols
+const { v3 } = require('../../deps/node-api-headers/index.js').symbols
 
 // node_symbols.txt is just a list of symbols (one symbol per line). cmake will read this
 // and set the compiler commands for undefined symbols
