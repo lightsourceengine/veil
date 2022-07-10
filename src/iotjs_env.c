@@ -30,6 +30,7 @@ typedef enum {
   OPT_EXPOSE_INTERNALS_OP,
   OPT_PRESERVE_SYMLINKS,
   OPT_PRESERVE_SYMLINKS_MAIN,
+  OPT_LOADER,
 #ifdef JERRY_DEBUGGER
   OPT_DEBUG_SERVER,
   OPT_DEBUGGER_WAIT_SOURCE,
@@ -83,6 +84,7 @@ void iotjs_environment_release(void) {
   IOTJS_RELEASE(env->config.debugger);
 #endif
   IOTJS_RELEASE(env->argv);
+  cstr_drop(&env->loader_script);
   initialized = false;
 }
 
@@ -104,6 +106,7 @@ static void initialize(iotjs_environment_t* env) {
 #endif
   env->exitcode = 0;
   env->time_origin = uv_hrtime();
+  env->loader_script = cstr_init();
 }
 
 
@@ -151,6 +154,12 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
         .id = OPT_PRESERVE_SYMLINKS_MAIN,
         .longopt = "preserve-symlinks-main",
         .help = "preserve symbolic links when resolving the main module"
+    },
+    {
+        .id = OPT_LOADER,
+        .longopt = "loader",
+        .more = 1,
+        .help = "use the specified module as a custom loader"
     },
 #if defined(JERRY_MEM_STATS)
     {
@@ -266,6 +275,16 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
         // accepted to maintain a CL compatibility with node
         break;
       }
+      case OPT_LOADER:
+        if (i + 1 >= argc) {
+          fprintf(stderr,"veil: --loader requires an argument\n");
+          return false;
+        }
+
+        cstr_drop(&env->loader_script);
+        env->loader_script = cstr_from(argv[i + 1]);
+        // TODO: assign seg faults: cstr_assign(&env->loader_script, argv[i + 1]);
+        break;
 #ifdef JERRY_DEBUGGER
       case OPT_DEBUGGER_WAIT_SOURCE:
       case OPT_DEBUG_SERVER: {
@@ -289,6 +308,10 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
       } break;
       case OPT_DEBUG_PORT: {
         if (env->config.debugger) {
+          if (i + 1 >= argc) {
+            fprintf(stderr,"veil: --port requires an argument\n");
+            return false;
+          }
           char* pos = NULL;
           env->config.debugger->port = (uint16_t)strtoul(argv[i + 1], &pos, 10);
         }

@@ -74,6 +74,9 @@ typedef struct {
   // program start time used by perf_hooks
   uint64_t time_origin;
 
+  // script for module loader hooks
+  cstr loader_script;
+
 } iotjs_environment_t;
 
 

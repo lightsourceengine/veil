@@ -14,8 +14,8 @@
 let path /* import path from 'node:path' */
 let url /* import url from 'node:url' */
 let esm /* import esm from 'internal/esm' */
-let userLoadHook
-let userResolveHook
+let userLoadHook /* from --loader FILE arg; otherwise undefined */
+let userResolveHook /* from --loader FILE arg; otherwise undefined */
 
 const { native } = import.meta
 
@@ -135,11 +135,16 @@ const preLink = async (specifier, referrer) => {
     }
 
     if (!resolveResult) {
-      resolveResult = defaultResolveSync(specifier, resolveContext, defaultResolve)
+      resolveResult = defaultResolveSync(specifier, resolveContext)
     }
 
+    if (resolveResult.format !== 'module' && resolveResult.format !== 'builtin') {
+      throw Error(`resolveHook(): invalid format = '${resolveResult.format}'`)
+    }
 
-    // TODO: check format, url
+    if (typeof resolveResult.url !== 'string') {
+      throw Error(`resolveHook(): expected url as string`)
+    }
 
     specifierCache.set(specifier, resolveResult)
   }
@@ -154,21 +159,24 @@ const preLink = async (specifier, referrer) => {
     }
 
     if (!loadResult) {
-      loadResult = defaultLoadSync(resolveResult.url, loadContext, defaultLoad)
+      loadResult = defaultLoadSync(resolveResult.url, loadContext)
     }
-
-    // TODO: check format
-    // TODO: check source
 
     switch (loadResult.format) {
       case 'module':
+        if (typeof loadResult.source !== 'string') {
+          throw Error(`loadHook(): expected source as string`)
+        }
         const id = resolveResult.url
         cache.set(id, module = fromSource(id, loadResult.source));
         break
       case 'builtin':
+        if (typeof loadResult.source === 'string') {
+          throw Error(`loadHook(): unexpected source for builtin format`)
+        }
         break
       default:
-        throw Error(`invalid load() format: ${loadResult.format}`)
+        throw Error(`loadHook(): unexpected format '${loadResult.format}'`)
     }
   }
 
@@ -431,14 +439,8 @@ const bootstrap = () => {
   url = importBuiltin('url')
   esm = importBuiltin('internal/esm')
 
-  const { URL } = url
-
   // some builtins set url to string because URL was not available. cast those url strings to URL here.
-  cache.forEach(module => {
-    if (!module.url) {
-      module.url = new URL(module.id)
-    }
-  })
+  cache.forEach(module => module.url || (module.url = new url.URL(module.id)))
 
   on('import', onDynamicImport)
 
