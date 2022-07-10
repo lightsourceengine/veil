@@ -15,6 +15,7 @@ import assert from 'node:assert'
 import { join, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { builtinModules } from 'node:module'
+import { isPromise } from 'node:util/types'
 
 const testDir = dirname(fileURLToPath(import.meta.url))
 
@@ -40,6 +41,14 @@ test('import from absolute path (file URL)', async () => {
 
 test('import from absolute path (file URL as string)', async () => {
   return import(pathToFileURL(join(testDir, 'assets', 'TestModule.mjs')).href)
+})
+
+test('import returns a promise', async () => {
+  const promise = import('pkg')
+
+  assert(isPromise(promise))
+
+  await promise
 })
 
 test('import from a package', async () => {

@@ -162,6 +162,9 @@ JS_FUNCTION(js_get_option_value) {
     result = jerry_boolean(env->config.preserve_symlinks);
   } else if (cstr_eq_raw(&name, "--no-addons")) {
     result = jerry_boolean(!env->config.enable_napi);
+  } else if (cstr_eq_raw(&name, "--loader")) {
+    // TODO: implement --loader CL arg
+    result = jerry_undefined();
   } else {
     result = jerry_throw_sz(JERRY_ERROR_COMMON, "unknown option");
   }

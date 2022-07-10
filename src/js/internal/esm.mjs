@@ -873,7 +873,7 @@ function throwIfUnsupportedURLScheme(parsed) {
   }
 }
 
-const esmResolveSync = (specifier, context) => {
+const resolveSync = (specifier, context) => {
   let { parentURL, conditions } = context;
 
   const isMain = parentURL === undefined;
@@ -1039,8 +1039,14 @@ const legacyExtensionFormatMap = {
   '.node': 'commonjs',
 };
 
+const getUserLoader = () => getOptionValue('--loader')
+
+const conditions = DEFAULT_CONDITIONS
+
 export {
-  esmResolveSync
+  conditions,
+  resolveSync,
+  getUserLoader
 }
 
 /*

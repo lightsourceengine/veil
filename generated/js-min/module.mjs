@@ -1,43 +1,57 @@
-let e,t,r
-const{native:o}=import.meta,{builtins:n,fromSymbols:i,fromBuiltin:s,fromFile:l,link:a,evaluate:u,evaluateWith:f,getNamespace:c,readFileSync:h,getState:m,STATE_EVALUATED:p}=o,d=new Set(n),g=new Map,w=new Map,E=e=>d.has(e.replace('node:','')),y=(e,o)=>{if(E(e))return v(e.replace('node:',''))
-const n=r.esmResolveSync(e,{parentURL:null==o?void 0:o.url.href})
-if('module'!==n.format)throw Error(`Unsupported import type [${n.format}] from '${e}'`)
-return $(t.fileURLToPath(n.url),new URL(n.url),l)},$=(e,t,r)=>{let o=g.get(e)
-if(!o){try{o=r(e)}catch(t){throw Error(`while parsing code for '${e}'; reason: ${t.message}`)}if(t)o.url=t
-g.set(e,o)}return o},v=(e,r)=>{const o='node:',n=e.replace(o,'')
-if(!d.has(n))throw Error(`import specifier '${e}' is not a builtin`)
-let i
-if(t)i=new URL(`node:${n}`)
-return $(n,i,s)},S=(e,t,r)=>{let o,n
-const i=r(e,t)
-if(m(i)===p)return i
-try{o=a(i,r)}catch(e){n=e}if(!o)throw Error(`while linking ${i.id} ${n?n.toString():'link = false'}`)
-try{u(i)}catch(e){throw Error(`while evaluating ${i.id} ${e.toString()}`)}return i},b=e=>L(S(e,null,v)),R=r=>{let o
+let e,t,r,o,i
+const{native:n}=import.meta,{builtins:a,fromSymbols:s,fromBuiltin:l,fromSource:u,link:f,evaluate:c,evaluateWith:m,getNamespace:d,getRequests:h,getState:g,readFileSync:p,STATE_EVALUATED:w}=n,v=new Set(a.concat(a.map((e=>`node:${e}`)))),y=new Map,E=new Map,b=new Map,$=Object.freeze({format:'builtin',source:void 0}),S=e=>v.has(e),U=async(e,t,r=void 0)=>R(e,t),R=(e,t)=>{if(S(e))return{url:e.startsWith('node:')?e:`node:${e}`,format:'builtin'}
+return r.resolveSync(e,t)},L=async(e,t,r=void 0)=>k(e,t),k=(e,r)=>{const{format:o}=r
+if('builtin'===o)return $
+if('module'!==o)throw Error(`Unsupported format: ${o}`)
+return{format:o,source:p(t.fileURLToPath(e),false)}},x=async(e,t)=>{let n,a,s={conditions:r.conditions,parentURL:null==t?void 0:t.id},l,f,c
+if(n=b.get(e),!n){if(i)n=await i(e,s,U)
+if(!n)n=R(e,s)
+b.set(e,n)}if(f=y.get(n.url),!f){if(l={format:n.format},o)a=await o(n.url,l,L)
+if(!a)a=k(n.url,l)
+switch(a.format){case'module':const e=n.url
+y.set(e,f=u(e,a.source))
+break
+case'builtin':break
+default:throw Error(`invalid load() format: ${a.format}`)}}if(c=f?h(f).map((e=>x(e,f))):[],c&&c.length)await Promise.all(c)
+return f},T=async(e,t)=>{if(S(e))return j(e)
+return C(A(await x(e,t),J))},j=e=>C(A(W(e),W)),A=(e,r)=>{if(g(e)===w)return e
+let o,i,{id:n}=e
+if(t)e.url=new t.URL(n)
+try{o=f(e,r)}catch(e){i=e}if(!o)throw Error(`while linking ${n} ${i?i.toString():'link = false'}`)
+try{c(e)}catch(e){throw Error(`while evaluating ${n} ${e.toString()}`)}return e},W=(e,t)=>{if(!S(e))throw Error(`illegal import '${e}' from ${null==t?void 0:t.id}`)
+if(!e.startsWith('node:'))e=`node:${e}`
+let r=y.get(e)
+if(!r)r=l(e),y.set(r.id,r)
+return r},J=(e,t)=>{if(S(e))return W(e)
+return y.get(b.get(e).url)},M=async(e,t)=>{const r=y.get(t)
+if(!r)throw Error(`dynamic import unknown referrer: ${t}`)
+return T(e,r)},O=r=>{let o
 if('string'===typeof r)if(r.startsWith('file:'))o=t.fileURLToPath(r)
 else if(e.isAbsolute(r))o=r
 else throw Error(`string must be a file url or absolute path. got '${r}'`)
 else o=t.fileURLToPath(r)
 o=e.dirname(o)
-const n=t=>{if('string'!==typeof t)throw Error(`Expected argument id to be a string.`)
-const{isAbsolute:r,join:n}=e
-let i
-if(r(t))i=t
-else if('.'===t[0])i=n(o,t)
-if(!i)throw Error(`CommonJS: specifier '${t} could not resolve to a filename`)
-if(!e.extname(i))throw Error(`CommonJS: resolved file '${i}' does not have an extension`)
-return i},i=t=>{const r=n(t),o=e.extname(r)
-switch(o){case'.node':if(!w.has(r))w.set(r,x(r))
-return w.get(r)
-case'.json':if(!w.has(r)){const e=JSON.parse(h(r,true))
-w.set(r,e)}return w.get(r)
+const i=t=>{if('string'!==typeof t)throw Error(`Expected argument id to be a string.`)
+const{isAbsolute:r,join:i}=e
+let n
+if(r(t))n=t
+else if('.'===t[0])n=i(o,t)
+if(!n)throw Error(`CommonJS: specifier '${t} could not resolve to a filename`)
+if(!e.extname(n))throw Error(`CommonJS: resolved file '${n}' does not have an extension`)
+return n},n=t=>{const r=i(t),o=e.extname(r)
+switch(o){case'.node':if(!E.has(r))E.set(r,_(r))
+return E.get(r)
+case'.json':if(!E.has(r)){const e=JSON.parse(p(r,true))
+E.set(r,e)}return E.get(r)
 default:throw Error(`CommonJS: unsupported extension '${o}'`)}}
-return i.resolve=n,i},U=()=>{const e=new Set(['napi','lexer','internal']),t=Object.freeze(n.filter((t=>!e.has(t)&&!t.startsWith('internal/')))),r={builtinModules:t,createRequire:R},o={default:r,...r},s=i('module.mjs',Object.keys(o))
-s.id='module',s.url='node:module',f(s,o),g.set(s.id,s)},L=e=>{if('string'===typeof e)e=g.get(e)
-return c(e)},x=e=>{const t=b('napi').default
-try{return t(e)}catch(t){throw`while loading addon '${e}' - ${t.message}`}},T=()=>{let e=process.argv[1]
-if(!e)return process._uncaughtException(Error('missing main script file argument')),void 0
-try{S(t.pathToFileURL(e).href,null,y)}catch(e){process._onUncaughtException(e)}},j=()=>{const{emitReady:o,on:n}=import.meta.native,i=['buffer','console','process','timers','internal/event_target','url']
-U(),i.forEach(b),e=b('path'),t=b('url'),r=b('internal/esm')
-const{URL:s}=t
-g.forEach((e=>{if('string'===typeof e.url)e.url=new s(e.url)})),n('import',((e,t)=>S(e,g.get(t),y))),n('destroy',(()=>{g.clear(),w.clear(),e=t=null})),o()}
-j(),T()
+return n.resolve=i,n},P=()=>{const e=new Set(['napi','lexer','internal']),t=Object.freeze(a.filter((t=>!e.has(t)&&!t.startsWith('internal/')))),r={builtinModules:t,createRequire:O},o={default:r,...r},i=s('module.mjs',Object.keys(o)),n='node:module'
+i.id=n,m(i,o),y.set(n,i)},C=e=>{if('string'===typeof e)e=y.get(e)
+return d(e)},_=e=>{const t=j('napi').default
+try{return t(e)}catch(t){throw`while loading addon '${e}' - ${t.message}`}},q=async()=>{const e=process.argv[1],n=r.getUserLoader()
+if(n){const e=await T(n,null)
+i=e.resolve,o=e.load}if(!e)throw Error('missing main script file argument')
+return T(t.pathToFileURL(e).href,null)},z=()=>{const{emitReady:o,on:i}=import.meta.native,n=['buffer','console','process','timers','internal/event_target','url']
+P(),n.forEach(j),e=j('path'),t=j('url'),r=j('internal/esm')
+const{URL:a}=t
+y.forEach((e=>{if(!e.url)e.url=new a(e.id)})),i('import',M),i('destroy',(()=>{y.clear(),E.clear(),b.clear(),e=t=r=null})),o()}
+z(),q().catch((e=>{process._onUncaughtException(e)}))

@@ -14,6 +14,8 @@
 let path /* import path from 'node:path' */
 let url /* import url from 'node:url' */
 let esm /* import esm from 'internal/esm' */
+let userLoadHook
+let userResolveHook
 
 const { native } = import.meta
 
@@ -21,105 +23,265 @@ const {
   builtins,
   fromSymbols,
   fromBuiltin,
-  fromFile,
+  fromSource,
   link,
   evaluate,
   evaluateWith,
   getNamespace,
-  readFileSync,
+  getRequests,
   getState,
+  readFileSync,
   STATE_EVALUATED
 } = native
 
-const builtinsSet = new Set(builtins)
+// contains builtin ids with and without the node: scheme prefix
+const builtinsSet = new Set(builtins.concat(builtins.map(i => `node:${i}`)))
 // id -> Module, where id is the absolute path to the module js file or the builtin id
 const cache = new Map()
 // id -> Module, where id is the absolute path to the .node or .json file
 const requireCache = new Map()
+// specifier -> { format, url }
+const specifierCache = new Map()
+// result returned from defaultLoad() for builtin specifiers
+const builtinLoadResult = Object.freeze({ format: 'builtin', source: undefined })
 
-const isBuiltinSpecifier = (specifier) => builtinsSet.has(specifier.replace('node:', ''))
+/**
+ * Checks if the specifier is for a registered builtin module (private or public).
+ *
+ * @param {string} specifier raw specifier
+ * @returns {boolean} true if registered builtin, otherwise, false
+ */
+const isBuiltinSpecifier = (specifier) => builtinsSet.has(specifier)
 
-const linkResolve = (specifier, referrer) => {
+/**
+ * Default resolution of an import specifier to a URL and format hint.
+ *
+ * @param {string} specifier raw user supplied specifier
+ * @param {Object} context resolve context
+ * @param {function} def defaultResolve function, unused
+ * @returns {Promise<{format: string, url: string}>}
+ */
+const defaultResolve = async (specifier, context, def = undefined) => defaultResolveSync(specifier, context)
+
+const defaultResolveSync = (specifier, context) => {
   if (isBuiltinSpecifier(specifier)) {
-    return builtinLinkResolve(specifier.replace('node:', ''))
+    return {
+      url: specifier.startsWith('node:') ? specifier : `node:${specifier}`,
+      format: 'builtin'
+    }
   }
 
-  const resolution = esm.esmResolveSync(specifier, { parentURL: referrer?.url.href })
-
-  if (resolution.format !== 'module') {
-    throw Error(`Unsupported import type [${resolution.format}] from '${specifier}'`)
-  }
-
-  return parseModule(url.fileURLToPath(resolution.url), new URL(resolution.url), fromFile)
+  return esm.resolveSync(specifier, context)
 }
 
-const parseModule = (id, moduleUrl, op) => {
-  let module = cache.get(id)
+/**
+ * Default file source loader.
+ *
+ * Determines how a URL should be interpreted, retrieved, and parsed.
+ *
+ * @param {string} resolvedUrl resolved URL to load
+ * @param {Object} context loading context, containing resolved format
+ * @param {function} def defaultLoad function, unused
+ * @returns {Promise<{format: ('module'|'builtin'), source: (string|undefined)}>}
+ */
+const defaultLoad = async (resolvedUrl, context, def = undefined) => defaultLoadSync(resolvedUrl, context)
+
+const defaultLoadSync = (resolvedUrl, context) => {
+  const { format } = context
+
+  if (format === 'builtin') {
+    // loading of builtin, if necessary, is deferred to link()
+    return builtinLoadResult
+  }
+
+  if (format !== 'module') {
+    throw Error(`Unsupported format: ${format}`)
+  }
+
+  return { format, source: readFileSync(url.fileURLToPath(resolvedUrl), false) }
+}
+
+/**
+ * Import step before the ECMA link().
+ *
+ * The jerryscript ECMA link() and ECMA evaluate() are synchronous. However, the module loading process
+ * has asynchronous parts, particularly user supplied load() and resolve(). The solution is to run the
+ * asynchronous work first, populating the cache with unlinked modules. Then, the link() and evaluate()
+ * are run synchronously, pulling modules from the cache.
+ *
+ * The use cases are main script, dynamic import and loader script.
+ *
+ * The implementation is ECMA spec compliant except for builtin modules, as they might be
+ * evaluated out of the order the user imported them in. This should not be an issue, but something
+ * to note.
+ *
+ * @param {string} specifier raw module id
+ * @param {Module} referrer parent module
+ * @returns {Promise<Module>} module, possibly in the unlinked state
+ */
+const preLink = async (specifier, referrer) => {
+  let resolveResult
+  let loadResult
+  let resolveContext = { conditions: esm.conditions, parentURL: referrer?.id }
+  let loadContext
+  let module
+  let requests
+
+  resolveResult = specifierCache.get(specifier)
+
+  if (!resolveResult) {
+    if (userResolveHook) {
+      resolveResult = await userResolveHook(specifier, resolveContext, defaultResolve)
+    }
+
+    if (!resolveResult) {
+      resolveResult = defaultResolveSync(specifier, resolveContext, defaultResolve)
+    }
+
+
+    // TODO: check format, url
+
+    specifierCache.set(specifier, resolveResult)
+  }
+
+  module = cache.get(resolveResult.url)
 
   if (!module) {
-    try {
-      module = op(id)
-    } catch (e) {
-      throw Error(`while parsing code for '${id}'; reason: ${e.message}`)
+    loadContext = { format: resolveResult.format }
+
+    if (userLoadHook) {
+      loadResult = await userLoadHook(resolveResult.url, loadContext, defaultLoad)
     }
 
-    if (moduleUrl) {
-      module.url = moduleUrl
+    if (!loadResult) {
+      loadResult = defaultLoadSync(resolveResult.url, loadContext, defaultLoad)
     }
 
-    cache.set(id, module)
+    // TODO: check format
+    // TODO: check source
+
+    switch (loadResult.format) {
+      case 'module':
+        const id = resolveResult.url
+        cache.set(id, module = fromSource(id, loadResult.source));
+        break
+      case 'builtin':
+        break
+      default:
+        throw Error(`invalid load() format: ${loadResult.format}`)
+    }
+  }
+
+  requests = module ? getRequests(module).map(request => preLink(request, module)) : []
+
+  if (requests && requests.length) {
+    await Promise.all(requests)
   }
 
   return module
 }
 
-const builtinLinkResolve = (specifier, referrer) => {
-  const prefix = 'node:'
-  const id = specifier.replace(prefix, '')
-
-  if (!builtinsSet.has(id)) {
-    throw Error(`import specifier '${specifier}' is not a builtin`)
+/**
+ * Asynchronously import a module by specifier.
+ *
+ * @param {string} specifier id
+ * @param {Module|null} referrer module that is doing the importing, can be null for loader, main, etc
+ * @returns {Promise<Object>} module namespace
+ */
+const importAsync = async (specifier, referrer) => {
+  // short circuit additional async ops when we know its a builtin import
+  if (isBuiltinSpecifier(specifier)) {
+    return importBuiltin(specifier)
   }
 
-  let moduleUrl
-
-  if (url) {
-    moduleUrl = new URL(`node:${id}`)
-  }
-
-  return parseModule(id, moduleUrl, fromBuiltin)
+  return exports(loadModule(await preLink(specifier, referrer), fetchRequest))
 }
 
-const load = (specifier, referrer, linkResolve) => {
-  let linked
-  let caught
+/**
+ * Synchronously import a builtin module.
+ *
+ * @param {string} specifier id with or without node: scheme
+ * @returns {Object} builtin module namespace
+ */
+const importBuiltin = (specifier) => exports(loadModule(fetchBuiltin(specifier), fetchBuiltin))
 
-  const module = linkResolve(specifier, referrer)
-
+/**
+ * Perform ECMA link() and evaluate() on a module, if necessary.
+ *
+ * @param {Module} module module to load
+ * @param {function} linkFetchRequest callback for link to resolve requests (child imports)
+ * @returns {Module}
+ */
+const loadModule = (module, linkFetchRequest) => {
   if (getState(module) === STATE_EVALUATED) {
     return module
   }
 
+  let linked
+  let caught
+  let { id } = module
+
+  if (url) {
+    module.url = new url.URL(id)
+  }
+
   try {
-    linked = link(module, linkResolve)
+    linked = link(module, linkFetchRequest)
   } catch (e) {
     caught = e
   }
 
   if (!linked) {
-    throw Error(`while linking ${module.id} ${caught ? caught.toString() : 'link = false'}`)
+    throw Error(`while linking ${id} ${caught ? caught.toString() : 'link = false'}`)
   }
 
   try {
     evaluate(module)
   } catch (e) {
-    throw Error(`while evaluating ${module.id} ${e.toString()}`)
+    throw Error(`while evaluating ${id} ${e.toString()}`)
   }
 
   return module
 }
 
-const loadBuiltin = (id) => exports(load(id, null, builtinLinkResolve))
+const fetchBuiltin = (specifier, referrer) => {
+  if (!isBuiltinSpecifier(specifier)) {
+    throw Error(`illegal import '${specifier}' from ${referrer?.id}`)
+  }
+
+  if (!specifier.startsWith('node:')) {
+    specifier = `node:${specifier}`
+  }
+
+  let module = cache.get(specifier)
+
+  if (!module) {
+    module = fromBuiltin(specifier)
+    cache.set(module.id, module)
+  }
+
+  return module
+}
+
+const fetchRequest = (specifier, referrer) => {
+  if (isBuiltinSpecifier(specifier)) {
+    return fetchBuiltin(specifier)
+  }
+
+  // assumes preLink() has just been called, resolving all the
+  // requests of this module and caching the results.
+  return cache.get(specifierCache.get(specifier).url)
+}
+
+const onDynamicImport = async (specifier, referrerId) => {
+  const referrer = cache.get(referrerId)
+
+  if (!referrer) {
+    throw Error(`dynamic import unknown referrer: ${referrerId}`)
+  }
+
+  return importAsync(specifier, referrer)
+}
 
 const createRequire = (pathOrUrl) => {
   let context
@@ -210,13 +372,13 @@ const addNodeModulePackage = () => {
     ...namedExports
   }
   const module = fromSymbols('module.mjs', Object.keys(exports))
+  const id = 'node:module'
 
-  module.id = 'module'
-  module.url = 'node:module'
+  module.id = id
 
   evaluateWith(module, exports)
 
-  cache.set(module.id, module)
+  cache.set(id, module)
 }
 
 const exports = (key) => {
@@ -228,7 +390,7 @@ const exports = (key) => {
 }
 
 const loadAddon = (filename) => {
-  const napi = loadBuiltin('napi').default
+  const napi = importBuiltin('napi').default
 
   // TODO: --no-addon
 
@@ -239,19 +401,22 @@ const loadAddon = (filename) => {
   }
 }
 
-const runMain = () => {
-  let filename = process.argv[1]
+const runMain = async () => {
+  const filename = process.argv[1]
+  const loaderSpecifier = esm.getUserLoader()
+
+  if (loaderSpecifier) {
+    const loader = await importAsync(loaderSpecifier, null)
+
+    userResolveHook = loader.resolve
+    userLoadHook = loader.load
+  }
 
   if (!filename) {
-    process._uncaughtException(Error('missing main script file argument'))
-    return
+    throw Error('missing main script file argument')
   }
 
-  try {
-    load(url.pathToFileURL(filename).href, null, linkResolve)
-  } catch (e) {
-    process._onUncaughtException(e)
-  }
+  return importAsync(url.pathToFileURL(filename).href, null)
 }
 
 const bootstrap = () => {
@@ -260,27 +425,28 @@ const bootstrap = () => {
 
   addNodeModulePackage()
 
-  globalPolluters.forEach(loadBuiltin)
+  globalPolluters.forEach(importBuiltin)
 
-  path = loadBuiltin('path')
-  url = loadBuiltin('url')
-  esm = loadBuiltin('internal/esm')
+  path = importBuiltin('path')
+  url = importBuiltin('url')
+  esm = importBuiltin('internal/esm')
 
   const { URL } = url
 
   // some builtins set url to string because URL was not available. cast those url strings to URL here.
   cache.forEach(module => {
-    if (typeof module.url === 'string') {
-      module.url = new URL(module.url)
+    if (!module.url) {
+      module.url = new URL(module.id)
     }
   })
 
-  on('import', (specifier, referrerId) => load(specifier, cache.get(referrerId), linkResolve))
+  on('import', onDynamicImport)
 
   on('destroy', () => {
     cache.clear()
     requireCache.clear()
-    path = url = null
+    specifierCache.clear()
+    path = url = esm = null
   })
 
   emitReady()
@@ -290,7 +456,9 @@ const bootstrap = () => {
 bootstrap()
 
 // run the script the user provided on the commandline
-runMain()
+runMain().catch(e => {
+  process._onUncaughtException(e)
+})
 
 /*
  * Contains code from the following projects:

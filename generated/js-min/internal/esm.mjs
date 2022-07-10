@@ -139,5 +139,5 @@ if(i)return i
 return Ne[r]??null}function Re(e){const n=Pe.exec(e.pathname)
 return je((null==n?void 0:n[1])??'')}const je=e=>{if(null!==Oe.exec(e))return'module'
 if('application/json'===e)return'json'
-return null},ye=new v([['data:',Re],['file:',Ee],['node:',(e,n,t)=>'builtin']]),Oe=/\s*(text|application)\/javascript\s*(;\s*charset=utf-?8\s*)?/i,Pe=/^([^/]+\/[^;,]+)(?:[^,]*?)(;base64)?,/,Ae={__proto__:null,'.cjs':'commonjs','.js':'module','.json':'json','.mjs':'module'},Ne={__proto__:null,'.cjs':'commonjs','.js':'commonjs','.json':'commonjs','.mjs':'module','.node':'commonjs'}
-export{ge as esmResolveSync}
+return null},ye=new v([['data:',Re],['file:',Ee],['node:',(e,n,t)=>'builtin']]),Oe=/\s*(text|application)\/javascript\s*(;\s*charset=utf-?8\s*)?/i,Pe=/^([^/]+\/[^;,]+)(?:[^,]*?)(;base64)?,/,Ae={__proto__:null,'.cjs':'commonjs','.js':'module','.json':'json','.mjs':'module'},Ne={__proto__:null,'.cjs':'commonjs','.js':'commonjs','.json':'commonjs','.mjs':'module','.node':'commonjs'},Ie=()=>e('--loader'),ve=L
+export{ve as conditions,Ie as getUserLoader,ge as resolveSync}
