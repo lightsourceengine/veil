@@ -257,16 +257,16 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
 
     switch (cur_opt->id) {
       case OPT_HELP: {
-        fprintf(stderr, "%s\n  Options:\n\n", CLI_DEFAULT_HELP_STRING);
+        printf("Usage: veil [options] [script.mjs] [arguments]\n\nOptions:\n");
+
         for (uint32_t k = 0; k < opts_length; k++) {
           if (opts[k].opt) {
-            fprintf(stderr, "    -%s, --%-21s %s\n", opts[k].opt,
-                    opts[k].longopt, opts[k].help);
+            printf("--%s, -%s\n  %s\n\n", opts[k].longopt, opts[k].opt, opts[k].help);
           } else {
-            fprintf(stderr, "    --%-25s %s\n", opts[k].longopt, opts[k].help);
+            printf("--%s\n  %s\n\n", opts[k].longopt, opts[k].help);
           }
         }
-        fprintf(stderr, "\n");
+
         return false;
       }
       case OPT_MEM_STATS: {
