@@ -50,7 +50,7 @@ const RegExpPrototypeSymbolReplace = (...args) => RegExp.prototype[Symbol.replac
 const preserveSymlinks = getOptionValue('--preserve-symlinks');
 const preserveSymlinksMain = getOptionValue('--preserve-symlinks-main');
 const useNodeSpecifierResolution = false // TODO: implement --experimental-specifier-resolution
-const userConditions = [] // TODO: implement commandline: --conditions
+const userConditions = getOptionValue('--conditions');
 const noAddons = getOptionValue('--no-addons');
 const addonConditions = noAddons ? [] : ['node-addons'];
 

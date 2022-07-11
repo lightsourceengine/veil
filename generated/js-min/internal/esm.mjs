@@ -2,7 +2,7 @@ import{getOptionValue as e,canBeImportedByUsers as n,canBeImportedWithoutScheme 
 import{extname as c}from'path'
 import{pathToFileURL as u,URL as a,fileURLToPath as h}from'url'
 import{codes as p}from'internal/errors'
-const{ERR_INVALID_ARG_VALUE:d,ERR_INVALID_MODULE_SPECIFIER:w,ERR_INVALID_PACKAGE_CONFIG:m,ERR_INVALID_PACKAGE_TARGET:_,ERR_MODULE_NOT_FOUND:g,ERR_PACKAGE_IMPORT_NOT_DEFINED:x,ERR_PACKAGE_PATH_NOT_EXPORTED:E,ERR_UNSUPPORTED_DIR_IMPORT:R,ERR_NETWORK_IMPORT_DISALLOWED:j,ERR_UNSUPPORTED_ESM_URL_SCHEME:y,ERR_UNKNOWN_FILE_EXTENSION:O}=p,P=Object.freeze,A=Object.getOwnPropertyNames,N=JSON.stringify,I=Set,v=Map,D=Array.isArray,W=(...e)=>RegExp.prototype[Symbol.replace].call(...e),b=e('--preserve-symlinks'),T=e('--preserve-symlinks-main'),$=[],S=e('--no-addons'),k=S?[]:['node-addons'],L=P(['node','import',...k,...$]),U=new I(L),C=new I
+const{ERR_INVALID_ARG_VALUE:d,ERR_INVALID_MODULE_SPECIFIER:w,ERR_INVALID_PACKAGE_CONFIG:m,ERR_INVALID_PACKAGE_TARGET:_,ERR_MODULE_NOT_FOUND:g,ERR_PACKAGE_IMPORT_NOT_DEFINED:x,ERR_PACKAGE_PATH_NOT_EXPORTED:E,ERR_UNSUPPORTED_DIR_IMPORT:R,ERR_NETWORK_IMPORT_DISALLOWED:j,ERR_UNSUPPORTED_ESM_URL_SCHEME:y,ERR_UNKNOWN_FILE_EXTENSION:O}=p,P=Object.freeze,A=Object.getOwnPropertyNames,N=JSON.stringify,I=Set,v=Map,D=Array.isArray,W=(...e)=>RegExp.prototype[Symbol.replace].call(...e),b=e('--preserve-symlinks'),T=e('--preserve-symlinks-main'),$=e('--conditions'),S=e('--no-addons'),k=S?[]:['node-addons'],L=P(['node','import',...k,...$]),U=new I(L),C=new I
 function G(e,n,t){const o=h(n),r=`pjsonPath + '|' + match`
 if(!C.has(r))C.add(r),K(`${o} - deprecated trailing slash pattern mapping in "exports" field`,'DEP0155')}function M(e,n,t,o){const r=xe(e,{parentURL:''})
 if('module'!==r)return

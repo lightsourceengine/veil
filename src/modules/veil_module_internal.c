@@ -30,6 +30,21 @@ static void close_fd(uv_loop_t* loop, int32_t fd) {
   }
 }
 
+static jerry_value_t get_conditions(iotjs_environment_t* env) {
+  jerry_length_t count = (jerry_length_t)cvec_str_size(env->esm_conditions);
+  jerry_length_t i;
+  jerry_value_t conditions = jerry_array(count);
+  jerry_value_t condition;
+
+  for (i = 0; i < count; i++) {
+    condition = jerry_string_sz(cstr_str_safe(cvec_str_at(&env->esm_conditions, i)));
+    iotjs_jval_set_property_by_index(conditions, i, condition);
+    jerry_value_free(condition);
+  }
+
+  return conditions;
+}
+
 // Used to speed up module loading. Returns an array [string, boolean]
 JS_FUNCTION(js_fast_read_package_json) {
   DJS_CHECK_ARGS(1, string);
@@ -163,7 +178,9 @@ JS_FUNCTION(js_get_option_value) {
   } else if (cstr_eq_raw(&name, "--no-addons")) {
     result = jerry_boolean(!env->config.enable_napi);
   } else if (cstr_eq_raw(&name, "--loader")) {
-    result = jerry_string_sz(cstr_str_safe(&env->loader_script));
+    result = jerry_string_sz(cstr_str_safe(&env->esm_loader_script));
+  } else if (cstr_eq_raw(&name, "--conditions")) {
+    result = get_conditions(env);
   } else {
     result = jerry_throw_sz(JERRY_ERROR_COMMON, "unknown option");
   }

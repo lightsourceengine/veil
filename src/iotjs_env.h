@@ -17,6 +17,7 @@
 #define IOTJS_ENV_H
 
 #include "uv.h"
+#include "cvec_str.h"
 
 #ifdef JERRY_DEBUGGER
 typedef struct {
@@ -75,7 +76,10 @@ typedef struct {
   uint64_t time_origin;
 
   // script for module loader hooks
-  cstr loader_script;
+  cstr esm_loader_script;
+
+  // list of user specified condition strings used for package.json imports/exports
+  cvec_str esm_conditions;
 
 } iotjs_environment_t;
 

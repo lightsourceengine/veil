@@ -13,8 +13,7 @@
 
 #pragma once
 
-#define i_key_str
-#include <stc/cvec.h>
+#include "cvec_str.h"
 
 #define GEN_VEIL_URL_PARSE_STATES(XX)                                         \
   XX(kSchemeStart)                                                            \

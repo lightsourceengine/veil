@@ -31,6 +31,7 @@ typedef enum {
   OPT_PRESERVE_SYMLINKS,
   OPT_PRESERVE_SYMLINKS_MAIN,
   OPT_LOADER,
+  OPT_CONDITIONS,
 #ifdef JERRY_DEBUGGER
   OPT_DEBUG_SERVER,
   OPT_DEBUGGER_WAIT_SOURCE,
@@ -84,7 +85,8 @@ void iotjs_environment_release(void) {
   IOTJS_RELEASE(env->config.debugger);
 #endif
   IOTJS_RELEASE(env->argv);
-  cstr_drop(&env->loader_script);
+  cstr_drop(&env->esm_loader_script);
+  cvec_str_drop(&env->esm_conditions);
   initialized = false;
 }
 
@@ -106,7 +108,8 @@ static void initialize(iotjs_environment_t* env) {
 #endif
   env->exitcode = 0;
   env->time_origin = uv_hrtime();
-  env->loader_script = cstr_init();
+  env->esm_loader_script = cstr_init();
+  env->esm_conditions = cvec_str_init();
 }
 
 
@@ -160,6 +163,13 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
         .longopt = "loader",
         .more = 1,
         .help = "use the specified module as a custom loader"
+    },
+    {
+        .id = OPT_CONDITIONS,
+        .opt = "C",
+        .longopt = "conditions",
+        .more = 1,
+        .help = "additional user conditions for conditional exports and imports",
     },
 #ifdef JERRY_MEM_STATS
     {
@@ -283,9 +293,17 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
           return false;
         }
 
-        cstr_drop(&env->loader_script);
-        env->loader_script = cstr_from(argv[i + 1]);
+        cstr_drop(&env->esm_loader_script);
+        env->esm_loader_script = cstr_from(argv[i + 1]);
         // TODO: assign seg faults: cstr_assign(&env->loader_script, argv[i + 1]);
+        break;
+      case OPT_CONDITIONS:
+        if (i + 1 >= argc) {
+          fprintf(stderr,"veil: --conditions requires an argument\n");
+          return false;
+        }
+
+        cvec_str_emplace_back(&env->esm_conditions, argv[i + 1]);
         break;
 #ifdef JERRY_DEBUGGER
       case OPT_DEBUGGER_WAIT_SOURCE:
