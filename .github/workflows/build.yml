@@ -62,7 +62,7 @@ jobs:
           version: ${{ matrix.toolchain_version }}
 
       - name: Build
-        run: ./tools/build.py --n-api --no-init-submodule --buildtype=release --js-backtrace=ON --jerry-mem-stats ${{ matrix.args }}
+        run: ./tools/build.py --buildtype=release --jerry-mem-stats ${{ matrix.args }}
 
       - name: Test
         if: matrix.host_veil

@@ -114,15 +114,15 @@ def init_options():
     iotjs_group.add_argument('--link-flag',
         action='append', default=[],
         help='Specify additional linker flags (can be used multiple times)')
-    iotjs_group.add_argument('--n-api',
+    iotjs_group.add_argument('--no-napi',
         action='store_true', default=False,
         help='Enable to build N-API feature')
     iotjs_group.add_argument('--no-check-valgrind',
         action='store_true', default=False,
         help='Disable test execution with valgrind after build')
-    iotjs_group.add_argument('--no-init-submodule',
+    iotjs_group.add_argument('--init-submodule',
         action='store_true', default=False,
-        help='Disable initialization of git submodules')
+        help='Enable initialization of git submodules')
     iotjs_group.add_argument('--no-parallel-build',
         action='store_true', default=False,
         help='Disable parallel build')
@@ -142,8 +142,7 @@ def init_options():
         default=platform.arch(),
         help='Specify the target architecture (default: %(default)s).')
     iotjs_group.add_argument('--target-board',
-        choices=[None, 'artik10', 'stm32f4dis', 'stm32f7nucleo',
-                 'rpiv6', 'rpiv7', 'rpiv8', 'artik05x'],
+        choices=[None, 'rpiv6', 'rpiv7', 'rpiv8'],
         default=None, help='Specify the target board (default: %(default)s).')
     iotjs_group.add_argument('--target-os',
         choices=['linux', 'darwin', 'osx', 'mock', 'nuttx', 'tizen', 'tizenrt',
@@ -219,7 +218,7 @@ def adjust_options(options):
     if options.target_os == 'darwin':
         options.no_check_valgrind = True
 
-    if options.target_board in ['rpiv6', 'rpiv7', 'rpiv8', 'artik10', 'artik05x']:
+    if options.target_board in ['rpiv6', 'rpiv7', 'rpiv8']:
         options.no_check_valgrind = True
 
     # Then add calculated options.
@@ -321,7 +320,7 @@ def get_on_off(boolean_value):
 
 
 def build_iotjs(options):
-    print_progress('Build IoT.js')
+    print_progress('Build veil')
 
     # Set IoT.js cmake options.
     cmake_opt = [
@@ -333,7 +332,7 @@ def build_iotjs(options):
         '-DTARGET_OS=%s' % options.target_os,
         '-DTARGET_BOARD=%s' % options.target_board,
         '-DENABLE_LTO=%s' % get_on_off(options.jerry_lto), # --jerry-lto
-        '-DENABLE_MODULE_NAPI=%s' % get_on_off(options.n_api), # --n-api
+        '-DENABLE_MODULE_NAPI=%s' % get_on_off(not options.no_napi), # --n-api
         '-DENABLE_SNAPSHOT=OFF',
         '-DBUILD_LIB_ONLY=%s' % get_on_off(options.buildlib), # --buildlib
         '-DCREATE_SHARED_LIB=%s' % get_on_off(options.create_shared_lib),
@@ -401,28 +400,6 @@ def build_iotjs(options):
     else:
         run_make(options, options.build_root)
 
-
-def run_checktest(options):
-    # IoT.js executable
-    iotjs = fs.join(options.build_root, 'bin', 'iotjs')
-
-    cmd = fs.join(path.TOOLS_ROOT, 'testrunner.py')
-    args = [iotjs, "--platform=%s" % options.target_os]
-
-    if options.run_test == "quiet":
-        args.append('--quiet')
-
-    fs.chdir(path.PROJECT_ROOT)
-    code = ex.run_cmd(cmd, args)
-    if code != 0:
-        ex.fail('Failed to pass unit tests')
-
-    if not options.no_check_valgrind:
-        code = ex.run_cmd(cmd, ['--valgrind'] + args)
-        if code != 0:
-            ex.fail('Failed to pass unit tests in valgrind environment')
-
-
 if __name__ == '__main__':
     # Initialize build option object.
     options = init_options()
@@ -437,30 +414,10 @@ if __name__ == '__main__':
         fs.rmtree(options.build_root)
 
     # Perform init-submodule.
-    if not options.no_init_submodule:
+    if options.init_submodule:
         print_progress('Initialize submodule')
         init_submodule()
 
     build_iotjs(options)
 
     Terminal.pprint("\nveil Build Succeeded!!\n", Terminal.green)
-
-    # # Run tests.
-    # if options.run_test:
-    #     print_progress('Run tests')
-    #     if options.buildlib:
-    #         print("Skip unit tests - build target is library\n")
-    #     elif (options.host_tuple == options.target_tuple or
-    #           (options.host_tuple == 'x86_64-linux' and
-    #            options.target_tuple == 'i686-linux') or
-    #           (options.host_tuple == 'x86_64-linux' and
-    #            options.target_tuple == 'x86_64-mock')):
-    #          run_checktest(options)
-    #     else:
-    #         print("Skip unit tests - target-host pair is not allowed\n")
-    # else:
-    #     Terminal.pprint("\nTo run tests use '--run-test' "
-    #                     "or one of the following commands:",
-    #                     Terminal.blue)
-    #     print("\n    tools/testrunner.py %s/%s/%s/bin/veil\n"
-    #           % (options.builddir, options.target_tuple, options.buildtype))

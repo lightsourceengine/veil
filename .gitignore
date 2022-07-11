@@ -68,6 +68,10 @@ yarn-error.log*
 cmake-build-debug
 cmake-build-release
 
+# npm
+
+package-lock.json
+
 # test
 
 !test/node_modules
