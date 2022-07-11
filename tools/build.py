@@ -178,9 +178,12 @@ def init_options():
     jerry_group.add_argument('--jerry-lto',
         action='store_true', default=False,
         help='Build JerryScript with LTO enabled')
-    jerry_group.add_argument('--jerry-memstat',
+    jerry_group.add_argument('--jerry-mem-stats',
         action='store_true', default=False,
         help='Enable JerryScript heap statistics')
+    jerry_group.add_argument('--jerry-dump-byte-code',
+        action='store_true', default=False,
+        help='Enable JerryScript parser byte code dump')
     jerry_group.add_argument('--jerry-profile',
         metavar='FILE', action='store', default='es.next',
         help='Specify the profile for JerryScript (default: %(default)s). '
@@ -335,7 +338,9 @@ def build_iotjs(options):
         '-DBUILD_LIB_ONLY=%s' % get_on_off(options.buildlib), # --buildlib
         '-DCREATE_SHARED_LIB=%s' % get_on_off(options.create_shared_lib),
         # --jerry-memstat
-        '-DJERRY_MEM_STATS=%s' % get_on_off(options.jerry_memstat),
+        '-DJERRY_MEM_STATS=%s' % get_on_off(options.jerry_mem_stats),
+        # --jerry-dump-byte-code
+        '-DJERRY_PARSER_DUMP_BYTE_CODE=%s' % get_on_off(options.jerry_dump_byte_code),
         # --external-modules
         "-DEXTERNAL_MODULES='%s'" % ';'.join(options.external_modules),
         # --jerry-profile

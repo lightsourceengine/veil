@@ -161,16 +161,18 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
         .more = 1,
         .help = "use the specified module as a custom loader"
     },
-#if defined(JERRY_MEM_STATS)
+#ifdef JERRY_MEM_STATS
     {
         .id = OPT_MEM_STATS,
         .longopt = "mem-stats",
         .help = "dump memory statistics",
     },
+#endif
+#ifdef JERRY_PARSER_DUMP_BYTE_CODE
     {
         .id = OPT_SHOW_OP,
-        .longopt = "show-opcodes",
-        .help = "dump parser byte-code",
+        .longopt = "dump-byte-code",
+        .help = "dump parser byte code",
     },
 #endif
 #ifdef JERRY_DEBUGGER

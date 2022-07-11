@@ -496,6 +496,7 @@ message(STATUS "IOTJS_PROFILE            ${IOTJS_PROFILE}")
 message(STATUS "JERRY_DEBUGGER           ${JERRY_DEBUGGER}")
 message(STATUS "JERRY_GLOBAL_HEAP_SIZE   ${JERRY_GLOBAL_HEAP_SIZE}")
 message(STATUS "JERRY_MEM_STATS          ${JERRY_MEM_STATS}")
+message(STATUS "JERRY_PARSER_DUMP_BYTE_CODE ${JERRY_PARSER_DUMP_BYTE_CODE}")
 message(STATUS "JERRY_PROFILE            ${JERRY_PROFILE}")
 message(STATUS "TARGET_ARCH              ${TARGET_ARCH}")
 message(STATUS "TARGET_BOARD             ${TARGET_BOARD}")
@@ -506,6 +507,14 @@ iotjs_add_compile_flags(${IOTJS_MODULE_DEFINES})
 
 if(JERRY_DEBUGGER)
   iotjs_add_compile_flags("-DJERRY_DEBUGGER")
+endif()
+
+if(JERRY_MEM_STATS)
+  iotjs_add_compile_flags("-DJERRY_MEM_STATS")
+endif()
+
+if(JERRY_PARSER_DUMP_BYTE_CODE)
+  iotjs_add_compile_flags("-DJERRY_PARSER_DUMP_BYTE_CODE")
 endif()
 
 file(GLOB IOTJS_HEADERS "${ROOT_DIR}/src/*.h")
