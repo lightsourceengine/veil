@@ -13,9 +13,10 @@
 
 import { readdir } from 'node:fs/promises'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { normalize, join, extname, basename } from 'node:path'
+import { normalize, join, extname, basename, dirname, isAbsolute, resolve } from 'node:path'
 import { spawn } from 'node:child_process'
 import { isPromise } from 'node:util/types'
+import { createRequire } from 'node:module'
 
 /*
  * Test Runner
@@ -27,7 +28,8 @@ import { isPromise } from 'node:util/types'
 
 const sourceRoot = normalize(join(fileURLToPath(import.meta.url), '..', '..', '..'))
 const clientTestCases = []
-const container = process.argv[1]
+const container = join(sourceRoot, 'tools', 'js', 'test-runner.mjs')
+const config = {}
 
 const veil = async (args, options) => {
   const child = spawn(process.execPath, args, options)
@@ -107,10 +109,22 @@ const runOne = async (test) => {
 
 const runAll = async (dirs) => {
   let testSet = []
+  let require = createRequire(import.meta.url)
 
   // find test-*.mjs files. non-recursive
   for (const dir of dirs) {
     let files = await readdir(dir)
+
+    try {
+      // XXX: use require, readFile is broken!
+      const localConfig = require(join(dir, 'config.json'))
+
+      for (const [ key, value ] of Object.entries(localConfig)) {
+        config[join(dir, key)] = value
+      }
+    } catch {
+      // ignore, config.json is optional
+    }
 
     let testFiles = files
       .filter(file => file.startsWith('test-') && extname(file) === '.mjs')
@@ -123,7 +137,8 @@ const runAll = async (dirs) => {
   let failed
 
   for (const test of testSet) {
-    const exitCode = await veil([ container, '--run-one', test ], { stdio: 'inherit' })
+    const testOptions = (config[test] || {}).opts ?? []
+    const exitCode = await veil([ ...testOptions, container, '--run-one', test ], { stdio: 'inherit', cwd: dirname(test) })
 
     if (exitCode !== 0) {
       failed = true

@@ -1,0 +1,8 @@
+{
+  "test-gc.mjs": {
+    "opts": [ "--expose-gc" ]
+  },
+  "test-loader.mjs": {
+    "opts": [ "--loader", "./assets/TestLoader.mjs" ]
+  }
+}
