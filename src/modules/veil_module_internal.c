@@ -181,6 +181,8 @@ JS_FUNCTION(js_get_option_value) {
     result = jerry_string_sz(cstr_str_safe(&env->esm_loader_script));
   } else if (cstr_eq_raw(&name, "--conditions")) {
     result = get_conditions(env);
+  } else if (cstr_eq_raw(&name, "--es-module-specifier-resolution")) {
+    result = jerry_string_sz(cstr_str_safe(&env->esm_specifier_resolution));
   } else {
     result = jerry_throw_sz(JERRY_ERROR_COMMON, "unknown option");
   }

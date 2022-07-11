@@ -32,6 +32,7 @@ typedef enum {
   OPT_PRESERVE_SYMLINKS_MAIN,
   OPT_LOADER,
   OPT_CONDITIONS,
+  OPT_ESM_SPECIFIER_RESOLUTION,
 #ifdef JERRY_DEBUGGER
   OPT_DEBUG_SERVER,
   OPT_DEBUGGER_WAIT_SOURCE,
@@ -86,6 +87,7 @@ void iotjs_environment_release(void) {
 #endif
   IOTJS_RELEASE(env->argv);
   cstr_drop(&env->esm_loader_script);
+  cstr_drop(&env->esm_specifier_resolution);
   cvec_str_drop(&env->esm_conditions);
   initialized = false;
 }
@@ -110,6 +112,7 @@ static void initialize(iotjs_environment_t* env) {
   env->time_origin = uv_hrtime();
   env->esm_loader_script = cstr_init();
   env->esm_conditions = cvec_str_init();
+  env->esm_specifier_resolution = cstr_from("explicit");
 }
 
 
@@ -170,6 +173,12 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
         .longopt = "conditions",
         .more = 1,
         .help = "additional user conditions for conditional exports and imports",
+    },
+    {
+        .id = OPT_ESM_SPECIFIER_RESOLUTION,
+        .longopt = "es-module-specifier-resolution",
+        .more = 1,
+        .help = "select extension resolution algorithm for es modules; either 'explicit' (default) or 'node'",
     },
 #ifdef JERRY_MEM_STATS
     {
@@ -305,6 +314,20 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
 
         cvec_str_emplace_back(&env->esm_conditions, argv[i + 1]);
         break;
+      case OPT_ESM_SPECIFIER_RESOLUTION: {
+        const char* algorithm = (i + 1 < argc) ? argv[i + 1] : NULL;
+
+        cstr_clear(&env->esm_specifier_resolution);
+
+        if (strcmp("explicit", algorithm) == 0 || strcmp("node", algorithm) == 0) {
+          cstr_assign(&env->esm_specifier_resolution, algorithm);
+        } else {
+          fprintf(stderr, "veil: --es-module-specifier-resolution requires an argument\n");
+          return false;
+        }
+
+        break;
+      }
 #ifdef JERRY_DEBUGGER
       case OPT_DEBUGGER_WAIT_SOURCE:
       case OPT_DEBUG_SERVER: {

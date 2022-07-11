@@ -49,16 +49,13 @@ const RegExpPrototypeSymbolReplace = (...args) => RegExp.prototype[Symbol.replac
 
 const preserveSymlinks = getOptionValue('--preserve-symlinks');
 const preserveSymlinksMain = getOptionValue('--preserve-symlinks-main');
-const useNodeSpecifierResolution = false // TODO: implement --experimental-specifier-resolution
-const userConditions = getOptionValue('--conditions');
-const noAddons = getOptionValue('--no-addons');
-const addonConditions = noAddons ? [] : ['node-addons'];
+const useNodeSpecifierResolution = getOptionValue('--es-module-specifier-resolution') === 'node'
 
 const DEFAULT_CONDITIONS = ObjectFreeze([
   'node',
   'import',
-  ...addonConditions,
-  ...userConditions,
+  ...(getOptionValue('--no-addons') ? [] : ['node-addons']),
+  ...getOptionValue('--conditions'),
 ]);
 
 const DEFAULT_CONDITIONS_SET = new SafeSet(DEFAULT_CONDITIONS);
@@ -79,7 +76,7 @@ const emittedPackageWarnings = new SafeSet();
 
 function emitTrailingSlashPatternDeprecation(match, pjsonUrl, base) {
   const pjsonPath = fileURLToPath(pjsonUrl);
-  const key = `pjsonPath + '|' + match`
+  const key = `${pjsonPath}|${match}`
 
   if (!emittedPackageWarnings.has(key)) {
     emittedPackageWarnings.add(key);

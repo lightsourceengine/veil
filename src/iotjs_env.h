@@ -81,6 +81,9 @@ typedef struct {
   // list of user specified condition strings used for package.json imports/exports
   cvec_str esm_conditions;
 
+  // specifier resolution algorithm. values: explicit (default), node
+  cstr esm_specifier_resolution;
+
 } iotjs_environment_t;
 
 
