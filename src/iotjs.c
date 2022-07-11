@@ -301,8 +301,7 @@ int iotjs_entry(int argc, char** argv) {
   srand((unsigned)jerry_port_current_time());
 
   iotjs_environment_t* env = iotjs_environment_get();
-  if (!iotjs_environment_parse_command_line_arguments(env, (uint32_t)argc,
-                                                      argv)) {
+  if (!iotjs_environment_parse_command_line_arguments(env, argc, argv)) {
     ret_code = 1;
     goto exit;
   }

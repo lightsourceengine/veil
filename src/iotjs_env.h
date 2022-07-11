@@ -37,6 +37,7 @@ typedef struct {
   uint32_t enable_napi : 1;
   uint32_t preserve_symlinks : 1;
   uint32_t preserve_symlinks_main : 1;
+  uint32_t expose_internals : 1;
 #ifdef JERRY_DEBUGGER
   DebuggerConfig* debugger;
 #endif
@@ -91,7 +92,7 @@ iotjs_environment_t* iotjs_environment_get(void);
 void iotjs_environment_release(void);
 
 bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
-                                                    uint32_t argc, char** argv);
+                                                    int argc, char** argv);
 
 uint32_t iotjs_environment_argc(const iotjs_environment_t* env);
 const char* iotjs_environment_argv(const iotjs_environment_t* env,

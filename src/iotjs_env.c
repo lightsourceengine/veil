@@ -19,29 +19,39 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stc/coption.h>
 
 typedef enum {
-  OPT_HELP,
-  OPT_MEM_STATS,
-  OPT_SHOW_OP,
-  OPT_EXPOSE_GC,
-  OPT_NO_ADDON,
-  OPT_VERSION_OP,
-  OPT_EXPOSE_INTERNALS_OP,
-  OPT_PRESERVE_SYMLINKS,
-  OPT_PRESERVE_SYMLINKS_MAIN,
-  OPT_LOADER,
-  OPT_CONDITIONS,
-  OPT_ESM_SPECIFIER_RESOLUTION,
-#ifdef JERRY_DEBUGGER
-  OPT_DEBUG_SERVER,
-  OPT_DEBUGGER_WAIT_SOURCE,
-  OPT_DEBUG_PORT,
-  OPT_DEBUG_CHANNEL,
-  OPT_DEBUG_PROTOCOL,
-  OPT_DEBUG_SERIAL_CONFIG,
-#endif
-  NUM_OF_OPTIONS
+  // stc/coption status values
+  OPT_STATUS_UNKNOWN = (int)'?',
+  OPT_STATUS_MISSING = (int)':',
+  OPT_STATUS_END = -1,
+
+  // general options
+  OPT_HELP = (int)'h',
+  OPT_VERSION = (int)'v',
+  OPT_CONDITIONS = (int)'C',
+  OPT_EXPOSE_GC = 0x103,
+  OPT_NO_ADDON = 0x104,
+  OPT_EXPOSE_INTERNALS = 0x105,
+  OPT_PRESERVE_SYMLINKS = 0x106,
+  OPT_PRESERVE_SYMLINKS_MAIN = 0x107,
+  OPT_LOADER = 0x108,
+  OPT_ESM_SPECIFIER_RESOLUTION = 0x109,
+
+  // debugger options (compile time switch enabled)
+  OPT_DEBUG_SERVER = (int)'d',
+  OPT_DEBUGGER_WAIT_SOURCE = (int)'w',
+  OPT_DEBUG_PORT = 0x201,
+  OPT_DEBUG_CHANNEL = 0x202,
+  OPT_DEBUG_PROTOCOL = 0x203,
+  OPT_DEBUG_SERIAL_CONFIG = 0x204,
+
+  // memory stats (compile time switch enabled)
+  OPT_MEM_STATS = 0x301,
+
+  // parser byte codes (compile time switch enabled)
+  OPT_SHOW_OP = 0x401,
 } cli_option_id_t;
 
 typedef struct {
@@ -52,10 +62,8 @@ typedef struct {
   const uint32_t more; // The number of options coming with the given option
 } cli_option_t;
 
-#define CLI_DEFAULT_HELP_STRING \
-  "Usage: veil [options] {FILE.mjs | FILE.js} [arguments]\n"
-
 static void print_version();
+static void print_help();
 
 static iotjs_environment_t current_env;
 static bool initialized = false;
@@ -120,202 +128,76 @@ static void initialize(iotjs_environment_t* env) {
  * Parse command line arguments
  */
 bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
-                                                    uint32_t argc,
+                                                    int argc,
                                                     char** argv) {
-  // declare options
-  const cli_option_t opts[] = {
-    {
-        .id = OPT_HELP,
-        .opt = "h",
-        .longopt = "help",
-        .help = "print this help and exit",
-    },
-    {
-        .id = OPT_EXPOSE_GC,
-        .longopt = "expose-gc",
-        .help = "expose gc() function in global namespace",
-    },
-    {
-        .id = OPT_NO_ADDON,
-        .longopt = "no-addon",
-        .help = "disable loading native addons",
-    },
-    {
-        .id = OPT_VERSION_OP,
-        .opt = "v",
-        .longopt = "version",
-        .help = "print veil version",
-    },
-    {
-        .id = OPT_EXPOSE_INTERNALS_OP,
-        .longopt = "expose-internals",
-        .help = "enable importing of internal builtin modules"
-    },
-    {
-        .id = OPT_PRESERVE_SYMLINKS,
-        .longopt = "preserve-symlinks",
-        .help = "preserve symbolic links when resolving"
-    },
-    {
-        .id = OPT_PRESERVE_SYMLINKS_MAIN,
-        .longopt = "preserve-symlinks-main",
-        .help = "preserve symbolic links when resolving the main module"
-    },
-    {
-        .id = OPT_LOADER,
-        .longopt = "loader",
-        .more = 1,
-        .help = "use the specified module as a custom loader"
-    },
-    {
-        .id = OPT_CONDITIONS,
-        .opt = "C",
-        .longopt = "conditions",
-        .more = 1,
-        .help = "additional user conditions for conditional exports and imports",
-    },
-    {
-        .id = OPT_ESM_SPECIFIER_RESOLUTION,
-        .longopt = "es-module-specifier-resolution",
-        .more = 1,
-        .help = "select extension resolution algorithm for es modules; either 'explicit' (default) or 'node'",
-    },
+  // note: + at position 0 stops cl processing when a non-dashed option is hit
+  const char* shortopts = "+hvC:dw:";
+  coption_long longopts[] = {
+    { "help", coption_no_argument, OPT_HELP },
+    { "expose-gc", coption_no_argument, OPT_EXPOSE_GC },
+    { "no-addon", coption_no_argument, OPT_NO_ADDON },
+    { "version", coption_no_argument, OPT_VERSION },
+    { "expose-internals", coption_no_argument, OPT_EXPOSE_INTERNALS },
+    { "preserve-symlinks", coption_no_argument, OPT_PRESERVE_SYMLINKS },
+    { "preserve-symlinks-main", coption_no_argument, OPT_PRESERVE_SYMLINKS_MAIN },
+    { "loader", coption_required_argument, OPT_LOADER },
+    { "conditions", coption_required_argument, OPT_CONDITIONS },
+    { "es-module-specifier-resolution", coption_required_argument, OPT_ESM_SPECIFIER_RESOLUTION },
 #ifdef JERRY_MEM_STATS
-    {
-        .id = OPT_MEM_STATS,
-        .longopt = "mem-stats",
-        .help = "dump memory statistics",
-    },
+    { "mem-stats", coption_no_argument, OPT_MEM_STATS },
 #endif
 #ifdef JERRY_PARSER_DUMP_BYTE_CODE
-    {
-        .id = OPT_SHOW_OP,
-        .longopt = "dump-byte-code",
-        .help = "dump parser byte code",
-    },
+    { "dump-byte-code", coption_no_argument, OPT_SHOW_OP },
 #endif
 #ifdef JERRY_DEBUGGER
-    {
-        .id = OPT_DEBUG_SERVER,
-        .opt = "d",
-        .longopt = "start-debug-server",
-        .help = "start debug server and wait for a connecting client",
-    },
-    {
-        .id = OPT_DEBUGGER_WAIT_SOURCE,
-        .opt = "w",
-        .longopt = "debugger-wait-source",
-        .help = "wait for an executable source from the client",
-    },
-    {
-        .id = OPT_DEBUG_PORT,
-        .longopt = "debug-port",
-        .more = 1,
-        .help = "debug server port (default: 5001)",
-    },
-    {
-        .id = OPT_DEBUG_CHANNEL,
-        .longopt = "debug-channel",
-        .help = "specify the debugger transmission channel"
-                " (default: websocket)",
-    },
-    {
-        .id = OPT_DEBUG_PROTOCOL,
-        .longopt = "debug-protocol",
-        .help = "Specify the transmission protocol over the communication"
-                " channel (default: tcp)",
-    },
-    {
-        .id = OPT_DEBUG_SERIAL_CONFIG,
-        .longopt = "debug-serial-config",
-        .help = "configure parameters for serial port"
-                " (default: /dev/ttyS0,115200,8,N,1)",
-    },
+    { "start-debug-server", coption_no_argument, OPT_DEBUG_SERVER },
+    { "debugger-wait-source", coption_no_argument, OPT_DEBUGGER_WAIT_SOURCE },
+    { "debug-port", coption_required_argument, OPT_DEBUG_PORT },
+    { "debug-channel", coption_required_argument, OPT_DEBUG_CHANNEL },
+    { "debug-protocol", coption_required_argument, OPT_DEBUG_PROTOCOL },
+    { "debug-serial-config", coption_required_argument, OPT_DEBUG_SERIAL_CONFIG },
 #endif
+    {0}
   };
 
-  const size_t opts_length = sizeof(opts) / sizeof(cli_option_t);
-  const cli_option_t* cur_opt;
-  uint32_t i = 1;
+  int32_t value;
+  coption opt = coption_init();
 
-  while (i < argc && argv[i][0] == '-') {
-    cur_opt = NULL;
-
-    // check if the known option is given.
-    for (uint32_t k = 0; k < opts_length; k++) {
-      if ((opts[k].opt && !strcmp(&argv[i][1], opts[k].opt)) ||
-          (opts[k].longopt && !strcmp(&argv[i][2], opts[k].longopt))) {
-        cur_opt = &opts[k];
+  while ((value = coption_get(&opt, argc, argv, shortopts, longopts)) != OPT_STATUS_END) {
+    switch (value) {
+      case OPT_HELP:
+        print_help();
+        exit(0);
         break;
-      }
-    }
-
-    if (cur_opt == NULL) {
-      fprintf(stderr, "unknown command line option: %s\n", argv[i]);
-      return false;
-    }
-
-    switch (cur_opt->id) {
-      case OPT_HELP: {
-        printf("Usage: veil [options] [script.mjs] [arguments]\n\nOptions:\n");
-
-        for (uint32_t k = 0; k < opts_length; k++) {
-          if (opts[k].opt) {
-            printf("--%s, -%s\n  %s\n\n", opts[k].longopt, opts[k].opt, opts[k].help);
-          } else {
-            printf("--%s\n  %s\n\n", opts[k].longopt, opts[k].help);
-          }
-        }
-
-        return false;
-      }
-      case OPT_MEM_STATS: {
-        env->config.memstat = true;
-      } break;
-      case OPT_SHOW_OP: {
-        env->config.show_opcode = true;
-      } break;
-      case OPT_EXPOSE_GC: {
+      case OPT_VERSION:
+        print_version();
+        exit(0);
+        break;
+      case OPT_EXPOSE_GC:
         env->config.expose_gc = true;
-      } break;
-      case OPT_NO_ADDON: {
+        break;
+      case OPT_NO_ADDON:
         env->config.enable_napi = false;
-      } break;
+        break;
       case OPT_PRESERVE_SYMLINKS:
         env->config.preserve_symlinks = true;
         break;
       case OPT_PRESERVE_SYMLINKS_MAIN:
         env->config.preserve_symlinks_main = true;
         break;
-      case OPT_VERSION_OP:
-        print_version();
-        exit(0);
+      case OPT_EXPOSE_INTERNALS:
+        env->config.expose_internals = true;
         break;
-      case OPT_EXPOSE_INTERNALS_OP: {
-        // internal builtins, such as internal/event_target are always exposed. the are is
-        // accepted to maintain a CL compatibility with node
-        break;
-      }
       case OPT_LOADER:
-        if (i + 1 >= argc) {
-          fprintf(stderr,"veil: --loader requires an argument\n");
-          return false;
-        }
-
         cstr_drop(&env->esm_loader_script);
-        env->esm_loader_script = cstr_from(argv[i + 1]);
-        // TODO: assign seg faults: cstr_assign(&env->loader_script, argv[i + 1]);
+        env->esm_loader_script = cstr_from(opt.arg);
+        // TODO: assign seg faults: cstr_assign(&env->loader_script, opt.arg);
         break;
       case OPT_CONDITIONS:
-        if (i + 1 >= argc) {
-          fprintf(stderr,"veil: --conditions requires an argument\n");
-          return false;
-        }
-
-        cvec_str_emplace_back(&env->esm_conditions, argv[i + 1]);
+        cvec_str_emplace_back(&env->esm_conditions, opt.arg);
         break;
       case OPT_ESM_SPECIFIER_RESOLUTION: {
-        const char* algorithm = (i + 1 < argc) ? argv[i + 1] : NULL;
+        const char* algorithm = opt.arg;
 
         cstr_clear(&env->esm_specifier_resolution);
 
@@ -328,6 +210,12 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
 
         break;
       }
+      case OPT_MEM_STATS:
+        env->config.memstat = true;
+        break;
+      case OPT_SHOW_OP:
+        env->config.show_opcode = true;
+        break;
 #ifdef JERRY_DEBUGGER
       case OPT_DEBUGGER_WAIT_SOURCE:
       case OPT_DEBUG_SERVER: {
@@ -406,12 +294,13 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
         i++;
       } break;
 #endif
+      case OPT_STATUS_MISSING:
+        printf("veil: %s requires an argument\n", opt.optstr);
+        return false;
       default:
-        break;
+        printf("veil: unknown option: %s\n", opt.optstr);
+        return false;
     }
-
-    // increase index of argv
-    i += (1 + cur_opt->more);
   }
 
 #ifdef JERRY_DEBUGGER
@@ -421,9 +310,11 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
     return true;
 #endif
 
+  int32_t i = opt.ind;
+
   // There must be at least one argument after processing the IoT.js args,
   if (argc - i < 1) {
-    fprintf(stderr, CLI_DEFAULT_HELP_STRING);
+
     return false;
   }
 
@@ -492,4 +383,45 @@ void iotjs_environment_set_state(iotjs_environment_t* env, State s) {
 
 bool iotjs_environment_is_exiting(iotjs_environment_t* env) {
   return env->state == kExiting;
+}
+
+static void print_help() {
+  printf("Usage: veil [options] [script.mjs] [arguments]\n\nOptions:\n");
+
+  printf("  -h, --help                      print this help and exit                      \n");
+  printf("  -v, --version                   print veil version                            \n");
+  printf("  --expose-gc                     expose gc() function in global namespace      \n");
+  printf("  --no-addon                      disable loading native addons                 \n");
+  printf("  --expose-internals              enable importing of internal builtin modules  \n");
+  printf("  --preserve-symlinks             preserve symbolic links when resolving        \n");
+  printf("  --preserve-symlinks-main        preserve symbolic links when resolving        \n"
+         "                                  the main module                               \n");
+  printf("  --loader                        use the specified module as a custom loader   \n");
+  printf("  -C, --conditions=...            additional user conditions for conditional    \n"
+         "                                  exports and imports                           \n");
+  printf("  --es-module-specifier-resolution=...                                          \n"
+         "                                  select extension resolution algorithm for es  \n"
+         "                                  modules; either 'explicit' (default) or 'node'\n");
+
+#ifdef JERRY_MEM_STATS
+  printf("  --mem-stats                     dump memory statistics                        \n");
+#endif
+
+#ifdef JERRY_PARSER_DUMP_BYTE_CODE
+  printf("  --dump-byte-code                dump parser byte code                         \n");
+#endif
+
+#ifdef JERRY_DEBUGGER
+  printf("  -d, --start-debug-server        start debug server and wait for a             \n"
+         "                                  connecting client                             \n");
+  printf("  -w, --debugger-wait-source      wait for an executable source from the client \n");
+  printf("  --debug-port=...                debug server port (default: 5001)             \n");
+  printf("  --debug-channel=...             specify the debugger transmission channel     \n"
+         "                                  (default: websocket)                          \n");
+  printf("  --debug-protocol=...            specify the transmission protocol over the    \n"
+         "                                  communication channel (default: tcp)          \n");
+  printf("  --debug-serial-config=...       configure parameters for serial port          \n"
+         "                                  (default: /dev/ttyS0,115200,8,N,1)            \n");
+#endif
+  printf("\n");
 }
