@@ -182,6 +182,8 @@ E(
   ETypeError
 );
 
+E('ERR_UNKNOWN_ENCODING', (self, encoding) => `Unknown encoding: ${encoding}`, ETypeError);
+
 E(
   'ERR_MODULE_NOT_FOUND',
   (self, search) => `Cannot find module '${search}'`

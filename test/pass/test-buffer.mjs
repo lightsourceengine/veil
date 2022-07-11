@@ -14,20 +14,37 @@
 import assert from 'node:assert'
 import { Buffer } from 'node:buffer'
 
-// check all static methods exposed by veil
+test('from() creates a new buffer from string', () => {
+  const buffer = Buffer.from('a', 'utf8')
 
-test('has static from()', () => {
-  assert(typeof Buffer.from === 'function')
+  assert(Buffer.isBuffer(buffer))
+  assert.equal(buffer.length, 1)
 })
 
-test('has static isBuffer()', () => {
-  assert(typeof Buffer.isBuffer === 'function')
+test('isBuffer() returns true for buffer', () => {
+  assert(Buffer.isBuffer(Buffer.from('a', 'utf8')))
 })
 
-test('has static byteLength()', () => {
-  assert(typeof Buffer.byteLength === 'function')
+test('isBuffer() returns false for non-Buffer input', () => {
+  const inputs = [ '', 't', 3, null, undefined, Infinity, {}, [], () => {} ]
+
+  inputs.forEach(input=> assert(!Buffer.isBuffer(input)))
 })
 
-test('has static concat()', () => {
-  assert(typeof Buffer.concat === 'function')
+test('byteLength() returns 1 for a single char UTF-8 string', () => {
+  assert.equal(Buffer.byteLength('a', 'utf8'), 1)
+})
+
+test('byteLength() throws error for non-string input', { skip: true }, () => {
+  assert.throws(() => Buffer.byteLength(5))
+})
+
+test('concat() merges two buffers', () => {
+  const combined = Buffer.concat([Buffer.from('a', 'utf8'), Buffer.from('b', 'utf8')])
+
+  assert.equal(combined.toString(), 'ab')
+})
+
+test('concat() throws error for no arguments', () => {
+  assert.throws(() => Buffer.concat())
 })

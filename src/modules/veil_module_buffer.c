@@ -343,23 +343,26 @@ jerry_value_t iotjs_bufferwrap_create_buffer(size_t len) {
 
   iotjs_jval_set_property_number(jres_buffer, IOTJS_MAGIC_STRING_LENGTH, len);
 
+  // TODO: this should come from env
   // Support for 'instanceof' operator
-  jerry_value_t native_buffer = iotjs_module_get("buffer");
-  jerry_value_t jbuffer =
-      iotjs_jval_get_property(native_buffer, IOTJS_MAGIC_STRING_BUFFER);
+  jerry_value_t jval_global = jerry_current_realm();
+  jerry_value_t jval_buffer =
+      iotjs_jval_get_property(jval_global, IOTJS_MAGIC_STRING_BUFFER);
 
-  if (!jerry_value_is_error(jbuffer) && jerry_value_is_object(jbuffer)) {
+  if (!jerry_value_is_error(jval_buffer) && jerry_value_is_object(jval_buffer)) {
     jerry_value_t jbuffer_proto =
-        iotjs_jval_get_property(jbuffer, IOTJS_MAGIC_STRING_PROTOTYPE);
+        iotjs_jval_get_property(jval_buffer, IOTJS_MAGIC_STRING_PROTOTYPE);
 
-    if (!jerry_value_is_error(jbuffer_proto) &&
-        jerry_value_is_object(jbuffer_proto)) {
-      jerry_object_set_proto(jres_buffer, jbuffer_proto);
+    if (!jerry_value_is_error(jbuffer_proto) && jerry_value_is_object(jbuffer_proto)) {
+      jerry_value_t set = jerry_object_set_proto(jres_buffer, jbuffer_proto);
+      jerry_value_free(set);
     }
 
     jerry_value_free(jbuffer_proto);
   }
-  jerry_value_free(jbuffer);
+
+  jerry_value_free(jval_global);
+  jerry_value_free(jval_buffer);
 
   return jres_buffer;
 }

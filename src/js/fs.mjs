@@ -14,7 +14,10 @@
 import { promisify } from 'util'
 import constants from 'constants'
 import { Readable, Writable } from 'stream'
+import { codes } from 'internal/errors'
+import { validateFunction } from 'internal/validators'
 
+const { ERR_INVALID_ARG_TYPE, ERR_UNKNOWN_ENCODING } = codes
 const fsBuiltin = import.meta.native;
 
 const exists = (path, callback) =>  {
@@ -87,7 +90,7 @@ const open = (...args) =>  {
 
   fsBuiltin.open(checkArgString(path, 'path'),
                  convertFlags(flags),
-                 convertMode(mode, 438),
+                 convertMode(mode, 0o666),
                  checkArgFunction(args[args.length - 1]), 'callback');
 };
 
@@ -95,7 +98,7 @@ const open = (...args) =>  {
 const openSync = (path, flags, mode) =>  {
   return fsBuiltin.open(checkArgString(path, 'path'),
                         convertFlags(flags),
-                        convertMode(mode, 438));
+                        convertMode(mode, 0o666));
 };
 
 
@@ -164,14 +167,16 @@ const writeSync = (fd, buffer, offset, length, position) =>  {
 };
 
 
-const readFile = (path, callback) =>  {
+const readFile = (path, options, callback) =>  {
   checkArgString(path);
-  checkArgFunction(callback);
 
-  var fd;
-  var buffers;
+  callback = maybeCallback(callback || options);
+  options = getOptions(options, { flag: 'r' });
 
-  open(path, 'r', function(err, _fd) {
+  let fd;
+  let buffers;
+
+  open(path, options.flag, (err, _fd) => {
     if (err) {
       return callback(err);
     }
@@ -183,17 +188,16 @@ const readFile = (path, callback) =>  {
     localRead();
   });
 
-  var localRead = function() {
+  const localRead = () => {
     // Read segment of data.
-    var buffer = new Buffer(1023);
-    read(fd, buffer, 0, 1023, -1, afterRead);
+    // TODO: node uses 8192, but nuttx is limited to 1K reads
+    const buffer = new Buffer(8192);
+    read(fd, buffer, 0, 8192, -1, afterRead);
   };
 
-  var afterRead = function(err, bytesRead, buffer) {
+  const afterRead = (err, bytesRead, buffer) => {
     if (err) {
-      close(fd, function(err) {
-        return callback(err);
-      });
+      close(fd, (err) => callback(err));
     }
 
     if (bytesRead === 0) {
@@ -206,25 +210,38 @@ const readFile = (path, callback) =>  {
     }
   };
 
-  var localClose = function() {
-    close(fd, function(err) {
-      return callback(err, Buffer.concat(buffers));
+  const localClose = () => {
+    close(fd, (err) => {
+      let data
+
+      if (buffers) {
+        const { encoding } = options
+        const merged = Buffer.concat(buffers)
+
+        data = !encoding ? merged : merged.toString(encoding)
+      }
+
+      return callback(err, data)
     });
   };
 };
 
 
-const readFileSync = (path) =>  {
-  // TODO: reading in chunks.. not sure this is needed
+const readFileSync = (path, options = undefined) =>  {
+  // TODO: support buffer, url and file handle
+  // TODO: this code needs some work!
   checkArgString(path);
+  options = getOptions(options, { flag: 'r' })
 
-  var fd = openSync(path, 'r', 438);
-  var buffers = [];
+  const fd = openSync(path, options.flag, 0o666);
+  const buffers = [];
 
   while (true) {
     try {
-      var buffer = new Buffer(1023);
-      var bytesRead = readSync(fd, buffer, 0, 1023);
+      // TODO: node uses 8192, but nuttx is limited to 1K reads
+      const buffer = new Buffer(8192);
+      const bytesRead = readSync(fd, buffer, 0, 8192);
+
       if (bytesRead) {
         buffers.push(buffer.slice(0, bytesRead));
       } else {
@@ -234,9 +251,13 @@ const readFileSync = (path) =>  {
       break;
     }
   }
+
   closeSync(fd);
 
-  return Buffer.concat(buffers);
+  const result = Buffer.concat(buffers)
+  const { encoding } = options
+
+  return !encoding ? result : result.toString(encoding)
 };
 
 
@@ -398,7 +419,7 @@ class ReadStream extends Readable {
 
     var self = this;
     if (this._fd === null || this._fd === undefined) {
-      open(this.path, options.flags || 'r', options.mode || 438,
+      open(this.path, options.flags || 'r', options.mode || 0o666,
         function(err, _fd) {
           if (err) {
             throw err;
@@ -452,7 +473,7 @@ class WriteStream extends Writable {
 
     var self = this;
     if (!this._fd) {
-      open(path, options.flags || 'w', options.mode || 438,
+      open(path, options.flags || 'w', options.mode || 0o666,
         function(err, _fd) {
           if (err) {
             throw err;
@@ -558,6 +579,51 @@ const checkArgBuffer = (value, name) => checkArgType(value, name, Buffer.isBuffe
 const checkArgNumber = (value, name) => checkArgType(value, name, (v) => typeof v === 'number')
 const checkArgString = (value, name) => checkArgType(value, name, (v) => typeof v === 'string')
 const checkArgFunction = (value, name) => checkArgType(value, name, (v) => typeof v === 'function')
+
+const maybeCallback = (cb) => {
+  validateFunction(cb, 'cb');
+
+  return cb;
+}
+
+const getOptions = (options, defaultOptions) => {
+  if (options === null || options === undefined || typeof options === 'function') {
+    return defaultOptions;
+  }
+
+  if (typeof options === 'string') {
+    options = { ...defaultOptions, encoding: options };
+  } else if (typeof options !== 'object') {
+    throw new ERR_INVALID_ARG_TYPE('options', ['string', 'Object'], options);
+  }
+
+  let { encoding } = options
+  let invalidEncoding
+
+  if (typeof encoding === 'string') {
+    switch(encoding.toLowerCase()) {
+      case 'utf8':
+      case 'utf-8':
+        options.encoding = 'utf8'
+        break
+      default:
+        invalidEncoding = encoding
+    }
+  } else if (encoding) {
+    invalidEncoding = encoding
+  }
+
+  if (invalidEncoding) {
+    throw new ERR_UNKNOWN_ENCODING(invalidEncoding)
+  }
+
+  // TODO: abort signal not supported in veil
+  // if (options.signal !== undefined) {
+  //   validateAbortSignal(options.signal, 'options.signal');
+  // }
+
+  return Object.assign({}, defaultOptions, options);
+}
 
 const promises = {
   close: promisify(close),

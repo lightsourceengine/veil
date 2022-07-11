@@ -11,12 +11,11 @@
  * specific language governing permissions and limitations under the License.
  */
 
-import { readdir } from 'node:fs/promises'
+import { readdir, readFile } from 'node:fs/promises'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { normalize, join, extname, basename, dirname, isAbsolute, resolve } from 'node:path'
+import { normalize, join, extname, basename, dirname } from 'node:path'
 import { spawn } from 'node:child_process'
 import { isPromise } from 'node:util/types'
-import { createRequire } from 'node:module'
 
 /*
  * Test Runner
@@ -109,15 +108,13 @@ const runOne = async (test) => {
 
 const runAll = async (dirs) => {
   let testSet = []
-  let require = createRequire(import.meta.url)
 
   // find test-*.mjs files. non-recursive
   for (const dir of dirs) {
     let files = await readdir(dir)
 
     try {
-      // XXX: use require, readFile is broken!
-      const localConfig = require(join(dir, 'config.json'))
+      const localConfig = JSON.parse(await readFile(join(dir, 'config.json'), 'utf8'))
 
       for (const [ key, value ] of Object.entries(localConfig)) {
         config[join(dir, key)] = value
