@@ -363,14 +363,12 @@ const from = (value, encoding, length) => {
   fromError()
 }
 
+const allocUnsafe = (size) => new Buffer(size)
+
 Buffer.from = from
-
-Buffer.alloc = (size, fill = 0, encoding = 'utf8') => (new Buffer(size, encoding)).fill(fill)
-
-Buffer.allocUnsafe = (size) => new Buffer(size)
-
-Buffer.allocUnsafeSlow = Buffer.allocUnsafe
-
+Buffer.alloc = (size, fill = 0, encoding = 'utf8') => allocUnsafe(size).fill(fill)
+Buffer.allocUnsafe = allocUnsafe
+Buffer.allocUnsafeSlow = allocUnsafe
 global.Buffer = Buffer
 
 export { Buffer }

@@ -74,3 +74,17 @@ test('has cwd()', () => {
 test('cwd() return path', () => {
   assert(typeof instance.cwd() === 'string')
 })
+
+test('queueMicrotask() callback is called', async () => {
+  await new Promise((resolve, reject) => queueMicrotask(resolve))
+})
+
+test('queueMicrotask() throws if no arg', async () => {
+  assert.throws(() => queueMicrotask())
+})
+
+test('queueMicrotask() throws if callback is not a function', async () => {
+  [null, '', undefined, 's', {}, [], Infinity, 2].forEach((i) => {
+    assert.throws(() => queueMicrotask(i))
+  })
+})

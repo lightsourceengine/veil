@@ -17,3 +17,7 @@ import assert from 'node:assert'
 test('has gc()', () => {
   assert(typeof global.gc === 'function')
 })
+
+test('call gc()', () => {
+  global.gc()
+})
