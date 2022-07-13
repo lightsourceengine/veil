@@ -17,6 +17,7 @@
 
 #include "iotjs.h"
 #include "iotjs_js.h"
+#include "veil_cli.h"
 #include "iotjs_string_ext.h"
 #include "veil_module.h"
 #include "veil_signal_wrap.h"
@@ -301,7 +302,7 @@ int iotjs_entry(int argc, char** argv) {
   srand((unsigned)jerry_port_current_time());
 
   iotjs_environment_t* env = iotjs_environment_get();
-  if (!iotjs_environment_parse_command_line_arguments(env, argc, argv)) {
+  if (!veil_cli_parse(env, argc, argv)) {
     ret_code = 1;
     goto exit;
   }
