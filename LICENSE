@@ -15,6 +15,14 @@ Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
 Apache License Version 2.0 (copy at end of file)
 """
 
+This license applies to parts of veil originating from the https://github.com/jerryscript-project/iotjs/src/napi repository:
+
+"""
+Copyright 2018-present Rokid Co., Ltd. and other contributors
+
+Apache License Version 2.0 (copy at end of file)
+"""
+
 This license applies to parts of veil originating from the https://github.com/nodejs/node repository:
 
 """
