@@ -51,6 +51,14 @@ void iotjs_environment_release(void) {
   cstr_drop(&env->esm_loader_script);
   cstr_drop(&env->esm_specifier_resolution);
   cvec_str_drop(&env->esm_conditions);
+
+  if (env->classes) {
+    for (size_t i = 0; i < VEIL_ENV_CLASS_ENUM_COUNT; i++) {
+      jerry_value_free(env->classes[i]);
+    }
+    free(env->classes);
+  }
+
   initialized = false;
 }
 
@@ -71,6 +79,16 @@ static void initialize(iotjs_environment_t* env) {
   env->esm_loader_script = cstr_init();
   env->esm_conditions = cvec_str_init();
   env->esm_specifier_resolution = cstr_from("explicit");
+}
+
+void iotjs_environment_js_init(iotjs_environment_t* env) {
+  IOTJS_ASSERT(env->classes == NULL);
+
+  env->classes = malloc(VEIL_ENV_CLASS_ENUM_COUNT * sizeof(jerry_value_t));
+
+  for (size_t i = 0; i < VEIL_ENV_CLASS_ENUM_COUNT; i++) {
+    env->classes[i] = jerry_undefined();
+  }
 }
 
 uint32_t iotjs_environment_argc(const iotjs_environment_t* env) {
@@ -120,4 +138,25 @@ void iotjs_environment_set_state(iotjs_environment_t* env, State s) {
 
 bool iotjs_environment_is_exiting(iotjs_environment_t* env) {
   return env->state == kExiting;
+}
+
+void veil_env_set_class(iotjs_environment_t* env, veil_env_class_t type, jerry_value_t js_class) {
+  IOTJS_ASSERT(env != NULL);
+  IOTJS_ASSERT(env->classes != NULL);
+  IOTJS_ASSERT(type >= 0 && type < VEIL_ENV_CLASS_ENUM_COUNT);
+  IOTJS_ASSERT(jerry_value_is_function(js_class));
+
+  env->classes[type] = jerry_value_copy(js_class);
+}
+
+jerry_value_t veil_env_get_class(iotjs_environment_t* env, veil_env_class_t type) {
+  IOTJS_ASSERT(env != NULL);
+  IOTJS_ASSERT(env->classes != NULL);
+  IOTJS_ASSERT(type >= 0 && type < VEIL_ENV_CLASS_ENUM_COUNT);
+
+  jerry_value_t js_class = env->classes[type];
+
+  IOTJS_ASSERT(jerry_value_is_function(js_class));
+
+  return jerry_value_copy(js_class);
 }

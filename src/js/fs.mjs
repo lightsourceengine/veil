@@ -12,13 +12,33 @@
  */
 
 import { promisify } from 'util'
-import constants from 'constants'
+import {
+  S_IFMT,
+  S_IFDIR,
+  S_IFREG,
+  S_IFCHR,
+  S_IFBLK,
+  S_IFIFO,
+  S_IFLNK,
+  S_IFSOCK,
+  O_APPEND,
+  O_CREAT,
+  O_EXCL,
+  O_RDONLY,
+  O_RDWR,
+  O_SYNC,
+  O_TRUNC,
+  O_WRONLY
+} from 'constants'
 import { Readable, Writable } from 'stream'
 import { codes } from 'internal/errors'
 import { validateFunction } from 'internal/validators'
 
 const { ERR_INVALID_ARG_TYPE, ERR_UNKNOWN_ENCODING } = codes
 const fsBuiltin = import.meta.native;
+const { setStats } = fsBuiltin
+const isWindows = process.platform === 'win32'
+const kNsPerMsBigInt = 10n ** 6n;
 
 const exists = (path, callback) =>  {
   if (typeof path !== 'string' && !Buffer.isBuffer(path)) {
@@ -51,25 +71,36 @@ const existsSync = (path) =>  {
 };
 
 
-const stat = (path, callback) =>  {
-  fsBuiltin.stat(checkArgString(path, 'path'),
-                 checkArgFunction(callback, 'callback'));
+const stat = (path, options, callback) =>  {
+  const { bigint } = options ?? {}
+
+  callback = maybeCallback(callback || options);
+
+  fsBuiltin.stat(checkArgString(path, 'path'), !!bigint, checkArgFunction(callback, 'callback'));
 };
 
 
-const statSync = (path) =>  {
-  return fsBuiltin.stat(checkArgString(path, 'path'));
+const statSync = (path, options) =>  {
+  const { bigint } = options ?? {}
+
+  return fsBuiltin.stat(checkArgString(path, 'path'), !!bigint);
 };
 
 
-const fstat = (fd, callback) =>  {
-  fsBuiltin.fstat(checkArgNumber(fd, 'fd'),
+const fstat = (fd, options, callback) =>  {
+  const { bigint } = options ?? {}
+
+  callback = maybeCallback(callback || options);
+
+  fsBuiltin.fstat(checkArgNumber(fd, 'fd'), !!bigint,
                   checkArgFunction(callback, 'callback'));
 };
 
 
-const fstatSync = (fd) =>  {
-  return fsBuiltin.fstat(checkArgNumber(fd, 'fd'));
+const fstatSync = (fd, options) =>  {
+  const { bigint } = options ?? {}
+
+  return fsBuiltin.fstat(checkArgNumber(fd, 'fd'), !!bigint);
 };
 
 
@@ -89,7 +120,7 @@ const open = (...args) =>  {
   const [path, flags, mode/*, callback*/] = args
 
   fsBuiltin.open(checkArgString(path, 'path'),
-                 convertFlags(flags),
+                 convertFlags(flags ?? 'r'),
                  convertMode(mode, 0o666),
                  checkArgFunction(args[args.length - 1]), 'callback');
 };
@@ -97,7 +128,7 @@ const open = (...args) =>  {
 
 const openSync = (path, flags, mode) =>  {
   return fsBuiltin.open(checkArgString(path, 'path'),
-                        convertFlags(flags),
+                        convertFlags(flags ?? 'r'),
                         convertMode(mode, 0o666));
 };
 
@@ -513,17 +544,6 @@ const createReadStream = (path, options) =>  {
 };
 
 function convertFlags(flag) {
-  const {
-    O_APPEND,
-    O_CREAT,
-    O_EXCL,
-    O_RDONLY,
-    O_RDWR,
-    O_SYNC,
-    O_TRUNC,
-    O_WRONLY
-  } = constants
-
   if (typeof flag === 'string') {
     switch (flag) {
       case 'r': return O_RDONLY;
@@ -624,6 +644,169 @@ const getOptions = (options, defaultOptions) => {
 
   return Object.assign({}, defaultOptions, options);
 }
+
+class Stats extends Array {
+  constructor () {
+    super(14)
+  }
+
+  get dev() {
+    return this[0]
+  }
+
+  get ino() {
+    return this[1]
+  }
+
+  get mode() {
+    return this[2]
+  }
+
+  get nlink() {
+    return this[3]
+  }
+
+  get uid() {
+    return this[4]
+  }
+
+  get gid() {
+    return this[5]
+  }
+
+  get rdev() {
+    return this[6]
+  }
+
+  get size() {
+    return this[7]
+  }
+
+  get blksize() {
+    return this[8]
+  }
+
+  get blocks() {
+    return this[9]
+  }
+
+  get atimeMs() {
+    return this._toMs(this[10])
+  }
+
+  get mtimeMs() {
+    return this._toMs(this[11])
+  }
+
+  get ctimeMs() {
+    return this._toMs(this[12])
+  }
+
+  get birthtimeMs() {
+    return this._toMs(this[13])
+  }
+
+  get atime() {
+    return this._toDate(this[10])
+  }
+
+  get mtime() {
+    return this._toDate(this[11])
+  }
+
+  get ctime() {
+    return this._toDate(this[12])
+  }
+
+  get birthtime() {
+    return this._toDate(this[13])
+  }
+
+  isDirectory () {
+    return this._checkModeProperty(S_IFDIR)
+  }
+
+  isFile () {
+    return this._checkModeProperty(S_IFREG)
+  }
+
+  isBlockDevice () {
+    return this._checkModeProperty(S_IFBLK)
+  }
+
+  isCharacterDevice () {
+    return this._checkModeProperty(S_IFCHR)
+  }
+
+  isSymbolicLink () {
+    return this._checkModeProperty(S_IFLNK)
+  }
+
+  isFIFO () {
+    return this._checkModeProperty(S_IFIFO)
+  }
+
+  isSocket () {
+    return this._checkModeProperty(S_IFSOCK)
+  }
+
+  _checkModeProperty(property) {
+    // Some types are not available on Windows
+    if (isWindows && (property === S_IFIFO || property === S_IFBLK || property === S_IFSOCK)) {
+      return false;
+    }
+    return (this.mode & S_IFMT) === property;
+  }
+
+  _toDate(value) {
+    // The Date constructor performs Math.floor() to the timestamp.
+    // https://www.ecma-international.org/ecma-262/#sec-timeclip
+    // Since there may be a precision loss when the timestamp is
+    // converted to a floating point number, we manually round
+    // the timestamp here before passing it to Date().
+    // Refs: https://github.com/nodejs/node/pull/12607
+    return new Date(Number(value) + 0.5)
+  }
+
+  _toMs(value) {
+    return value
+  }
+}
+
+class BigIntStats extends Stats {
+  get atimeNs() {
+    return this[10]
+  }
+
+  get mtimeNs() {
+    return this[11]
+  }
+
+  get ctimeNs() {
+    return this[12]
+  }
+
+  get birthtimeNs() {
+    return this[13]
+  }
+
+  _checkModeProperty (property) {
+    if (isWindows && (property === S_IFIFO || property === S_IFBLK || property === S_IFSOCK)) {
+      return false;  // Some types are not available on Windows
+    }
+    return (this.mode & BigInt(S_IFMT)) === BigInt(property);
+  }
+
+  _toMs(value) {
+    return value / kNsPerMsBigInt
+  }
+
+  _toNs(value) {
+    return value
+  }
+}
+
+setStats(Stats, BigIntStats)
 
 const promises = {
   close: promisify(close),

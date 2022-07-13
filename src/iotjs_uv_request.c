@@ -26,12 +26,7 @@
 #define IOTJS_ALIGNUP(value, alignment) \
   (((value) + ((alignment)-1)) & ~((alignment)-1))
 
-
-uv_req_t* iotjs_uv_request_create(size_t request_size,
-                                  const jerry_value_t jcallback,
-                                  size_t extra_data_size) {
-  IOTJS_ASSERT(jerry_value_is_function(jcallback));
-
+static uv_req_t* create_request(size_t request_size, size_t extra_data_size) {
   /* Make sure that the jerry_value_t is aligned */
   size_t aligned_request_size = IOTJS_ALIGNUP(request_size, 8u);
 
@@ -40,13 +35,28 @@ uv_req_t* iotjs_uv_request_create(size_t request_size,
   uv_req_t* uv_request = (uv_req_t*)request_memory;
   uv_request->data = request_memory + aligned_request_size;
 
-  *IOTJS_UV_REQUEST_JSCALLBACK(uv_request) = jcallback;
-  // avoid unused result warning
-  (void)!jerry_value_copy(jcallback);
+  return uv_request;
+}
+
+uv_req_t* iotjs_uv_request_create(size_t request_size,
+                                  const jerry_value_t jcallback,
+                                  size_t extra_data_size) {
+  IOTJS_ASSERT(jerry_value_is_function(jcallback));
+
+  uv_req_t* uv_request = create_request(request_size, extra_data_size);
+
+  *IOTJS_UV_REQUEST_JSCALLBACK(uv_request) = jerry_value_copy(jcallback);
 
   return uv_request;
 }
 
+uv_req_t* iotjs_uv_request_create_sync(size_t request_size, size_t extra_data_size) {
+  uv_req_t* uv_request = create_request(request_size, extra_data_size);
+
+  *IOTJS_UV_REQUEST_JSCALLBACK(uv_request) = jerry_undefined();
+
+  return uv_request;
+}
 
 void iotjs_uv_request_destroy(uv_req_t* request) {
   jerry_value_free(*IOTJS_UV_REQUEST_JSCALLBACK(request));

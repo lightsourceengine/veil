@@ -1,2 +1,2 @@
-const{native:_}=import.meta,{O_APPEND:O,O_CREAT:R,O_EXCL:t,O_RDONLY:N,O_RDWR:a,O_SYNC:e,O_TRUNC:C,O_WRONLY:D,S_IFMT:E,S_IFDIR:I,S_IFREG:S}=_
-export{O as O_APPEND,R as O_CREAT,t as O_EXCL,N as O_RDONLY,a as O_RDWR,e as O_SYNC,C as O_TRUNC,D as O_WRONLY,I as S_IFDIR,E as S_IFMT,S as S_IFREG,_ as default}
+const{native:_}=import.meta,{O_APPEND:O,O_CREAT:I,O_EXCL:S,O_RDONLY:F,O_RDWR:R,O_SYNC:t,O_TRUNC:C,O_WRONLY:N,S_IFMT:L,S_IFDIR:a,S_IFREG:e,S_IFCHR:D,S_IFBLK:E,S_IFIFO:o,S_IFLNK:K,S_IFSOCK:T}=_
+export{O as O_APPEND,I as O_CREAT,S as O_EXCL,F as O_RDONLY,R as O_RDWR,t as O_SYNC,C as O_TRUNC,N as O_WRONLY,E as S_IFBLK,D as S_IFCHR,a as S_IFDIR,o as S_IFIFO,K as S_IFLNK,L as S_IFMT,e as S_IFREG,T as S_IFSOCK,_ as default}

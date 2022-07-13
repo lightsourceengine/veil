@@ -52,9 +52,35 @@ static void add_fs_constants (jerry_value_t target) {
   VEIL_DEFINE_CONSTANT(target, O_SYNC);
   VEIL_DEFINE_CONSTANT(target, O_TRUNC);
   VEIL_DEFINE_CONSTANT(target, O_WRONLY);
+
   VEIL_DEFINE_CONSTANT(target, S_IFMT);
   VEIL_DEFINE_CONSTANT(target, S_IFDIR);
   VEIL_DEFINE_CONSTANT(target, S_IFREG);
+  VEIL_DEFINE_CONSTANT(target, S_IFCHR);
+
+#ifdef S_IFBLK
+  VEIL_DEFINE_CONSTANT(target, S_IFBLK);
+#else
+  iotjs_jval_set_property_number(target, "S_IFBLK", 0xFFFFFFFF);
+#endif
+
+#ifdef S_IFIFO
+  VEIL_DEFINE_CONSTANT(target, S_IFIFO);
+#else
+  iotjs_jval_set_property_number(target, "S_IFIFO", 0xFFFFFFFF);
+#endif
+
+#ifdef S_IFLNK
+  VEIL_DEFINE_CONSTANT(target, S_IFLNK);
+#else
+  iotjs_jval_set_property_number(target, "S_IFLNK", 0xFFFFFFFF);
+#endif
+
+#ifdef S_IFSOCK
+  VEIL_DEFINE_CONSTANT(target, S_IFSOCK);
+#else
+  iotjs_jval_set_property_number(target, "S_IFSOCK", 0xFFFFFFFF);
+#endif
 }
 
 static jerry_value_t define_uv_errno_constants() {

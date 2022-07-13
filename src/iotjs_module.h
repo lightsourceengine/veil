@@ -30,7 +30,6 @@ extern const iotjs_module_ro_data_t iotjs_module_ro_data[];
 
 void iotjs_module_list_cleanup(void);
 
-jerry_value_t iotjs_module_get(const char* name);
 jerry_value_t iotjs_module_get_copy(const char* name);
 
 #endif /* IOTJS_MODULE_H */

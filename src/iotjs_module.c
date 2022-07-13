@@ -36,20 +36,6 @@ void iotjs_module_list_cleanup(void) {
   }
 }
 
-jerry_value_t iotjs_module_get(const char* name) {
-  for (unsigned i = 0; i < iotjs_module_count; i++) {
-    if (!strcmp(name, iotjs_module_ro_data[i].name)) {
-      if (iotjs_module_rw_data[i].jmodule == 0) {
-        iotjs_module_rw_data[i].jmodule = iotjs_module_ro_data[i].fn_register();
-      }
-
-      return iotjs_module_rw_data[i].jmodule;
-    }
-  }
-
-  return jerry_undefined();
-}
-
 jerry_value_t iotjs_module_get_copy(const char* name) {
   for (unsigned i = 0; i < iotjs_module_count; i++) {
     if (!strcmp(name, iotjs_module_ro_data[i].name)) {

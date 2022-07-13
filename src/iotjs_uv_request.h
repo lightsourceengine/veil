@@ -41,6 +41,8 @@
 uv_req_t* iotjs_uv_request_create(size_t request_size,
                                   const jerry_value_t jcallback,
                                   size_t extra_data_size);
+uv_req_t* iotjs_uv_request_create_sync(size_t request_size, size_t extra_data_size);
+
 void iotjs_uv_request_destroy(uv_req_t* request);
 
 /**

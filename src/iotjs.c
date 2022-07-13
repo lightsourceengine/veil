@@ -134,6 +134,8 @@ bool iotjs_initialize(iotjs_environment_t* env) {
     return false;
   }
 
+  iotjs_environment_js_init(env);
+
   // Set event loop.
   if (!uv_default_loop()) {
     DLOG("iotjs uvloop init failed");

@@ -24,9 +24,16 @@ export const {
   O_SYNC,
   O_TRUNC,
   O_WRONLY,
+
   S_IFMT,
   S_IFDIR,
-  S_IFREG
+  S_IFREG,
+  S_IFCHR,
+
+  S_IFBLK,
+  S_IFIFO,
+  S_IFLNK,
+  S_IFSOCK
 } = native
 
 export default native

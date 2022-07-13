@@ -16,7 +16,13 @@
 #include "veil_module_buffer.h"
 #include "iotjs_uv_request.h"
 
-jerry_value_t make_stat_object(uv_stat_t* statbuf);
+#define MS_PER_SEC 1000
+#define NS_PER_MS 1000000
+#define NS_PER_SEC 1000000000
+
+typedef int32_t fs_extra_type_t;
+
+static jerry_value_t make_stat_object(uv_stat_t* statbuf, bool use_bigint);
 
 
 static jerry_value_t iotjs_create_uv_exception(int errorno,
@@ -63,8 +69,8 @@ static void fs_after_async(uv_fs_t* req) {
       }
       case UV_FS_FSTAT:
       case UV_FS_STAT: {
-        uv_stat_t s = (req->statbuf);
-        jargs[jargc++] = make_stat_object(&s);
+        fs_extra_type_t use_bigint = *((fs_extra_type_t*)IOTJS_UV_REQUEST_EXTRA_DATA(req));
+        jargs[jargc++] = make_stat_object(&req->statbuf, use_bigint);
         break;
       }
       default: { break; }
@@ -97,8 +103,8 @@ static jerry_value_t fs_after_sync(uv_fs_t* req, int err,
       return jerry_number(err);
     case UV_FS_FSTAT:
     case UV_FS_STAT: {
-      uv_stat_t* s = &(req->statbuf);
-      return make_stat_object(s);
+      fs_extra_type_t use_bigint = *((fs_extra_type_t*)IOTJS_UV_REQUEST_EXTRA_DATA(req));
+      return make_stat_object(&req->statbuf, use_bigint);
     }
     case UV_FS_MKDIR:
     case UV_FS_RMDIR:
@@ -134,10 +140,26 @@ static inline bool is_within_bounds(size_t off, size_t len, size_t max) {
   return true;
 }
 
+static uv_fs_t* create_fs_request(jerry_value_t callback, fs_extra_type_t extra_data) {
+  uv_fs_t* req = (uv_fs_t*)iotjs_uv_request_create(
+      sizeof(uv_fs_t), callback, sizeof(fs_extra_type_t));
 
-#define FS_ASYNC(env, syscall, pcallback, ...)                                \
-  uv_fs_t* fs_req =                                                           \
-      (uv_fs_t*)iotjs_uv_request_create(sizeof(uv_fs_t), pcallback, 0);       \
+  *((fs_extra_type_t*)IOTJS_UV_REQUEST_EXTRA_DATA(req)) = extra_data;
+
+  return req;
+}
+
+static uv_fs_t* create_fs_request_sync(fs_extra_type_t extra_data) {
+  uv_fs_t* req = (uv_fs_t*)iotjs_uv_request_create_sync(sizeof(uv_fs_t), sizeof(fs_extra_type_t));
+
+  *((fs_extra_type_t*)IOTJS_UV_REQUEST_EXTRA_DATA(req)) = extra_data;
+
+  return req;
+}
+
+#define FS_ASYNC_EXTRA(env, extra_data, syscall, pcallback, ...)              \
+  uv_fs_t* fs_req = create_fs_request(pcallback, extra_data);                 \
+  *((fs_extra_type_t*)IOTJS_UV_REQUEST_EXTRA_DATA(fs_req)) = extra_data;      \
   int err = uv_fs_##syscall(iotjs_environment_loop(env), fs_req, __VA_ARGS__, \
                             fs_after_async);                                  \
   if (err < 0) {                                                              \
@@ -146,14 +168,18 @@ static inline bool is_within_bounds(size_t off, size_t len, size_t max) {
   }                                                                           \
   ret_value = jerry_null();
 
+#define FS_ASYNC(env, syscall, pcallback, ...)                                \
+  FS_ASYNC_EXTRA(env, 0, syscall, pcallback, __VA_ARGS__)
 
-#define FS_SYNC(env, syscall, ...)                                             \
-  uv_fs_t fs_req;                                                              \
-  int err = uv_fs_##syscall(iotjs_environment_loop(env), &fs_req, __VA_ARGS__, \
-                            NULL);                                             \
-  ret_value = fs_after_sync(&fs_req, err, #syscall);                           \
-  uv_fs_req_cleanup(&fs_req);
+#define FS_SYNC_EXTRA(env, extra_data, syscall, ...)                          \
+  uv_fs_t* fs_req = create_fs_request_sync(extra_data);                       \
+  int err = uv_fs_##syscall(iotjs_environment_loop(env), fs_req, __VA_ARGS__, \
+                            NULL);                                            \
+  ret_value = fs_after_sync(fs_req, err, #syscall);                           \
+  uv_fs_req_cleanup(fs_req);                                                  \
+  iotjs_uv_request_destroy((uv_req_t*)fs_req);
 
+#define FS_SYNC(env, syscall, ...) FS_SYNC_EXTRA(env, 0, syscall, __VA_ARGS__)
 
 JS_FUNCTION(fs_close) {
   DJS_CHECK_THIS();
@@ -256,55 +282,76 @@ JS_FUNCTION(fs_write) {
   return fs_do_read_or_write(call_info_p, jargv, jargc, IOTJS_FS_WRITE);
 }
 
+static void set_by_index(jerry_value_t array, uint32_t index, uint64_t value, bool use_bigint) {
+  jerry_value_t set = use_bigint ? jerry_bigint(&value, 1, false) : jerry_number(value);
 
-jerry_value_t make_stat_object(uv_stat_t* statbuf) {
-  const jerry_value_t fs = iotjs_module_get("fs");
+  iotjs_jval_set_property_by_index(array, index, set);
 
-  jerry_value_t stat_prototype =
-      iotjs_jval_get_property(fs, IOTJS_MAGIC_STRING_STATS);
-  IOTJS_ASSERT(jerry_value_is_object(stat_prototype));
+  jerry_value_free(set);
+}
 
-  jerry_value_t jstat = jerry_object();
-  iotjs_jval_set_prototype(jstat, stat_prototype);
+static void set_timespec_by_index(jerry_value_t array, uint32_t index, uv_timespec_t* timespec, bool use_bigint) {
+  jerry_value_t set;
+  uint64_t value;
 
-  jerry_value_free(stat_prototype);
+  if (use_bigint) {
+    value = timespec->tv_sec * NS_PER_SEC + timespec->tv_nsec;
+    set = jerry_bigint(&value, 1, false);
+  } else {
+    value = timespec->tv_sec * MS_PER_SEC + timespec->tv_nsec / NS_PER_MS;
+    set = jerry_number(value);
+  }
 
+  iotjs_jval_set_property_by_index(array, index, set);
 
-#define X(statobj, name) \
-  iotjs_jval_set_property_number(statobj, #name, statbuf->st_##name);
+  jerry_value_free(set);
+}
 
-  X(jstat, dev)
-  X(jstat, mode)
-  X(jstat, nlink)
-  X(jstat, uid)
-  X(jstat, gid)
-  X(jstat, rdev)
-  X(jstat, blksize)
-  X(jstat, ino)
-  X(jstat, size)
-  X(jstat, blocks)
+static jerry_value_t make_stat_object(uv_stat_t* statbuf, bool use_bigint) {
+  iotjs_environment_t* env = iotjs_environment_get();
+  jerry_value_t stats_constructor = veil_env_get_class(
+      env, use_bigint ? VEIL_ENV_CLASS_BIG_INT_STATS : VEIL_ENV_CLASS_STATS);
+  jerry_value_t stats = jerry_construct(stats_constructor, NULL, 0);
+  uint32_t i = 0;
 
-#undef X
+  set_by_index(stats, i++, statbuf->st_dev, use_bigint);
+  set_by_index(stats, i++, statbuf->st_ino, use_bigint);
+  set_by_index(stats, i++, statbuf->st_mode, use_bigint);
+  set_by_index(stats, i++, statbuf->st_nlink, use_bigint);
+  set_by_index(stats, i++, statbuf->st_uid, use_bigint);
+  set_by_index(stats, i++, statbuf->st_gid, use_bigint);
+  set_by_index(stats, i++, statbuf->st_rdev, use_bigint);
+  set_by_index(stats, i++, statbuf->st_size, use_bigint);
+  set_by_index(stats, i++, statbuf->st_blksize, use_bigint);
+  set_by_index(stats, i++, statbuf->st_blocks, use_bigint);
 
-  return jstat;
+  set_timespec_by_index(stats, i++, &statbuf->st_atim, use_bigint);
+  set_timespec_by_index(stats, i++, &statbuf->st_mtim, use_bigint);
+  set_timespec_by_index(stats, i++, &statbuf->st_ctim, use_bigint);
+  set_timespec_by_index(stats, i, &statbuf->st_birthtim, use_bigint);
+
+  jerry_value_free(stats_constructor);
+
+  return stats;
 }
 
 
 JS_FUNCTION(fs_stat) {
   DJS_CHECK_THIS();
-  DJS_CHECK_ARGS(1, string);
+  DJS_CHECK_ARGS(2, string, boolean);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
   const iotjs_environment_t* env = iotjs_environment_get();
 
   cstr path = JS_GET_ARG(0, string);
-  const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
+  bool use_bigint = JS_GET_ARG(1, boolean);
+  const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(2, function);
 
   jerry_value_t ret_value;
   if (!jerry_value_is_null(jcallback)) {
-    FS_ASYNC(env, stat, jcallback, cstr_str_safe(&path));
+    FS_ASYNC_EXTRA(env, use_bigint, stat, jcallback, cstr_str_safe(&path));
   } else {
-    FS_SYNC(env, stat, cstr_str_safe(&path));
+    FS_SYNC_EXTRA(env, use_bigint, stat, cstr_str_safe(&path));
   }
 
   cstr_drop(&path);
@@ -314,19 +361,20 @@ JS_FUNCTION(fs_stat) {
 
 JS_FUNCTION(fs_fstat) {
   DJS_CHECK_THIS();
-  DJS_CHECK_ARGS(1, number);
-  DJS_CHECK_ARG_IF_EXIST(1, function);
+  DJS_CHECK_ARGS(2, number, boolean);
+  DJS_CHECK_ARG_IF_EXIST(2, function);
 
   const iotjs_environment_t* env = iotjs_environment_get();
 
-  int fd = JS_GET_ARG(0, number);
-  const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
+  int32_t fd = JS_GET_ARG(0, number);
+  bool use_bigint = JS_GET_ARG(1, boolean);
+  const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(2, function);
 
   jerry_value_t ret_value;
   if (!jerry_value_is_null(jcallback)) {
-    FS_ASYNC(env, fstat, jcallback, fd);
+    FS_ASYNC_EXTRA(env, use_bigint, fstat, jcallback, fd);
   } else {
-    FS_SYNC(env, fstat, fd);
+    FS_SYNC_EXTRA(env, use_bigint, fstat, fd);
   }
   return ret_value;
 }
@@ -444,35 +492,21 @@ JS_FUNCTION(fs_read_dir) {
   return ret_value;
 }
 
-static jerry_value_t stats_is_typeof(jerry_value_t stats, int type) {
-  jerry_value_t mode = iotjs_jval_get_property(stats, IOTJS_MAGIC_STRING_MODE);
+JS_FUNCTION(js_fs_set_stats) {
+  DJS_CHECK_ARGS(2, function, function);
 
-  if (!jerry_value_is_number(mode)) {
-    jerry_value_free(mode);
-    return JS_CREATE_ERROR(TYPE, "fstat: file mode should be a number");
-  }
+  iotjs_environment_t* env = iotjs_environment_get();
 
-  int mode_number = (int)iotjs_jval_as_number(mode);
+  veil_env_set_class(env, VEIL_ENV_CLASS_STATS, jargv[0]);
+  veil_env_set_class(env, VEIL_ENV_CLASS_BIG_INT_STATS, jargv[1]);
 
-  jerry_value_free(mode);
-
-  return jerry_boolean((mode_number & S_IFMT) == type);
-}
-
-JS_FUNCTION(fs_stats_is_directory) {
-  DJS_CHECK_THIS();
-  jerry_value_t stats = JS_GET_THIS();
-  return stats_is_typeof(stats, S_IFDIR);
-}
-
-JS_FUNCTION(fs_stats_is_file) {
-  DJS_CHECK_THIS();
-  jerry_value_t stats = JS_GET_THIS();
-  return stats_is_typeof(stats, S_IFREG);
+  return jerry_undefined();
 }
 
 jerry_value_t veil_init_fs(void) {
   jerry_value_t fs = jerry_object();
+
+  iotjs_jval_set_method(fs, "setStats", js_fs_set_stats);
 
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_CLOSE, fs_close);
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_OPEN, fs_open);
@@ -485,16 +519,6 @@ jerry_value_t veil_init_fs(void) {
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_UNLINK, fs_unlink);
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_RENAME, fs_rename);
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_READDIR, fs_read_dir);
-
-  jerry_value_t stats_prototype = jerry_object();
-
-  iotjs_jval_set_method(stats_prototype, IOTJS_MAGIC_STRING_ISDIRECTORY,
-                        fs_stats_is_directory);
-  iotjs_jval_set_method(stats_prototype, IOTJS_MAGIC_STRING_ISFILE,
-                        fs_stats_is_file);
-
-  iotjs_jval_set_property_jval(fs, IOTJS_MAGIC_STRING_STATS, stats_prototype);
-  jerry_value_free(stats_prototype);
 
   return fs;
 }

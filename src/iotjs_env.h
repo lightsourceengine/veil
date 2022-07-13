@@ -50,6 +50,11 @@ typedef enum {
   kExiting,
 } State;
 
+typedef enum {
+  VEIL_ENV_CLASS_STATS = 0,
+  VEIL_ENV_CLASS_BIG_INT_STATS = 1,
+  VEIL_ENV_CLASS_ENUM_COUNT
+} veil_env_class_t;
 
 typedef struct {
   // Number of application arguments including 'iotjs' and app name.
@@ -85,14 +90,15 @@ typedef struct {
   // specifier resolution algorithm. values: explicit (default), node
   cstr esm_specifier_resolution;
 
+  // array of js class constructors for native code to create js objects, like Stats of Buffer.
+  // length: VEIL_ENV_CLASS_ENUM_COUNT, index by veil_env_class_t enums.
+  jerry_value_t* classes;
+
 } iotjs_environment_t;
 
 
 iotjs_environment_t* iotjs_environment_get(void);
 void iotjs_environment_release(void);
-
-bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
-                                                    int argc, char** argv);
 
 uint32_t iotjs_environment_argc(const iotjs_environment_t* env);
 const char* iotjs_environment_argv(const iotjs_environment_t* env,
@@ -106,7 +112,12 @@ const Config* iotjs_environment_config(const iotjs_environment_t* env);
 const DebuggerConfig* iotjs_environment_dconfig(const iotjs_environment_t* env);
 #endif
 
+void iotjs_environment_js_init(iotjs_environment_t* env);
+
 void iotjs_environment_set_state(iotjs_environment_t* env, State s);
 bool iotjs_environment_is_exiting(iotjs_environment_t* env);
+
+void veil_env_set_class(iotjs_environment_t* env, veil_env_class_t type, jerry_value_t js_class);
+jerry_value_t veil_env_get_class(iotjs_environment_t* env, veil_env_class_t type);
 
 #endif /* IOTJS_ENV_H */
