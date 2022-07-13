@@ -189,9 +189,7 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
         env->config.expose_internals = true;
         break;
       case OPT_LOADER:
-        cstr_drop(&env->esm_loader_script);
-        env->esm_loader_script = cstr_from(opt.arg);
-        // TODO: assign seg faults: cstr_assign(&env->loader_script, opt.arg);
+        cstr_assign_safe(&env->esm_loader_script, opt.arg);
         break;
       case OPT_CONDITIONS:
         cvec_str_emplace_back(&env->esm_conditions, opt.arg);
@@ -199,10 +197,8 @@ bool iotjs_environment_parse_command_line_arguments(iotjs_environment_t* env,
       case OPT_ESM_SPECIFIER_RESOLUTION: {
         const char* algorithm = opt.arg;
 
-        cstr_clear(&env->esm_specifier_resolution);
-
         if (strcmp("explicit", algorithm) == 0 || strcmp("node", algorithm) == 0) {
-          cstr_assign(&env->esm_specifier_resolution, algorithm);
+          cstr_assign_safe(&env->esm_specifier_resolution, algorithm);
         } else {
           fprintf(stderr, "veil: --es-module-specifier-resolution requires an argument\n");
           return false;

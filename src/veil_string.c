@@ -67,8 +67,7 @@ cstr veil_string_utf8_from_utf16(const uint16_t* utf16_str, size_t length) {
   size_t written = utf16_to_utf8(&utf16_str, &buffer, cstr_size(result), length);
 
   if (written != length) {
-    cstr_drop(&result);
-    result = cstr_init();
+    cstr_clear(&result);
   }
 
   return result;
@@ -144,6 +143,20 @@ char cstr_at(const cstr* str, size_t index) {
 
 bool cstr_eq_raw(const cstr* s1, const char* s2) {
   return strcmp(cstr_str_safe(s1), s2) == 0;
+}
+
+void cstr_assign_safe(cstr* a, const char* b) {
+  cstr_assign_n_safe(a, b, strlen(b));
+}
+
+void cstr_assign_n_safe(cstr* a, const char* b, size_t size) {
+  cstr_reserve(a, size);
+  cstr_assign_n(a, b, size);
+}
+
+void cstr_assign_cstr_safe(cstr* a, const cstr* b) {
+  cstr_reserve(a, cstr_size(*b));
+  cstr_assign_n(a, cstr_str_safe(b), cstr_size(*b));
 }
 
 cstr cstr_from_file(const char* path) {

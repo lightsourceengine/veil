@@ -33,3 +33,6 @@ const char* cstr_str_safe(const cstr* str);
 cstr* cstr_append_char(cstr* str, char ch);
 char cstr_at(const cstr* str, size_t index);
 bool cstr_eq_raw(const cstr* s1, const char* s2);
+void cstr_assign_safe(cstr* a, const char* b);
+void cstr_assign_n_safe(cstr* a, const char* b, size_t size);
+void cstr_assign_cstr_safe(cstr* a, const cstr* b);
