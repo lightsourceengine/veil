@@ -68,9 +68,14 @@ static void fs_after_async(uv_fs_t* req) {
         break;
       }
       case UV_FS_FSTAT:
+      case UV_FS_LSTAT:
       case UV_FS_STAT: {
         fs_extra_type_t use_bigint = *((fs_extra_type_t*)IOTJS_UV_REQUEST_EXTRA_DATA(req));
         jargs[jargc++] = make_stat_object(&req->statbuf, use_bigint);
+        break;
+      }
+      case UV_FS_REALPATH: {
+        jargs[jargc++] = jerry_string_sz(req->ptr);
         break;
       }
       default: { break; }
@@ -102,6 +107,7 @@ static jerry_value_t fs_after_sync(uv_fs_t* req, int err,
     case UV_FS_WRITE:
       return jerry_number(err);
     case UV_FS_FSTAT:
+    case UV_FS_LSTAT:
     case UV_FS_STAT: {
       fs_extra_type_t use_bigint = *((fs_extra_type_t*)IOTJS_UV_REQUEST_EXTRA_DATA(req));
       return make_stat_object(&req->statbuf, use_bigint);
@@ -359,6 +365,29 @@ JS_FUNCTION(fs_stat) {
 }
 
 
+JS_FUNCTION(fs_lstat) {
+  DJS_CHECK_THIS();
+  DJS_CHECK_ARGS(2, string, boolean);
+  DJS_CHECK_ARG_IF_EXIST(1, function);
+
+  const iotjs_environment_t* env = iotjs_environment_get();
+
+  cstr path = JS_GET_ARG(0, string);
+  bool use_bigint = JS_GET_ARG(1, boolean);
+  const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(2, function);
+
+  jerry_value_t ret_value;
+  if (!jerry_value_is_null(jcallback)) {
+    FS_ASYNC_EXTRA(env, use_bigint, lstat, jcallback, cstr_str_safe(&path));
+  } else {
+    FS_SYNC_EXTRA(env, use_bigint, lstat, cstr_str_safe(&path));
+  }
+
+  cstr_drop(&path);
+  return ret_value;
+}
+
+
 JS_FUNCTION(fs_fstat) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(2, number, boolean);
@@ -506,7 +535,7 @@ JS_FUNCTION(js_fs_set_stats) {
 jerry_value_t veil_init_fs(void) {
   jerry_value_t fs = jerry_object();
 
-  iotjs_jval_set_method(fs, "setStats", js_fs_set_stats);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_SET_STATS, js_fs_set_stats);
 
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_CLOSE, fs_close);
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_OPEN, fs_open);
@@ -514,6 +543,7 @@ jerry_value_t veil_init_fs(void) {
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_WRITE, fs_write);
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_STAT, fs_stat);
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_FSTAT, fs_fstat);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_LSTAT, fs_lstat);
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_MKDIR, fs_mkdir);
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_RMDIR, fs_rmdir);
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_UNLINK, fs_unlink);

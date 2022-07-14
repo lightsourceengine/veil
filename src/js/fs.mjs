@@ -109,6 +109,22 @@ const statSync = (path, options) =>  {
 };
 
 
+const lstat = (path, options, callback) =>  {
+  const { bigint } = options ?? {}
+
+  callback = maybeCallback(callback || options);
+
+  fsBuiltin.lstat(checkArgString(path, 'path'), !!bigint, checkArgFunction(callback, 'callback'));
+};
+
+
+const lstatSync = (path, options) =>  {
+  const { bigint } = options ?? {}
+
+  return fsBuiltin.lstat(checkArgString(path, 'path'), !!bigint);
+};
+
+
 const fstat = (fd, options, callback) =>  {
   const { bigint } = options ?? {}
 
@@ -813,6 +829,7 @@ const promises = {
   close: promisify(close),
   exists: promisify(exists),
   fstat: promisify(fstat),
+  lstat: promisify(lstat),
   mkdir: promisify(mkdir),
   open: promisify(open),
   readdir: promisify(readdir),
@@ -835,6 +852,8 @@ export {
   existsSync,
   fstat,
   fstatSync,
+  lstat,
+  lstatSync,
   mkdir,
   mkdirSync,
   open,

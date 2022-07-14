@@ -17,6 +17,7 @@ export const {
   close,
   exists,
   fstat,
+  lstat,
   mkdir,
   open,
   readdir,

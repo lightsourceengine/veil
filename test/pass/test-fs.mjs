@@ -13,7 +13,18 @@
 
 import assert from 'node:assert'
 import { dirname } from 'node:path'
-import { closeSync, fstat, fstatSync, readFile, readFileSync, openSync, stat, statSync } from 'node:fs'
+import {
+  closeSync,
+  fstat,
+  fstatSync,
+  lstat,
+  lstatSync,
+  readFile,
+  readFileSync,
+  openSync,
+  stat,
+  statSync
+} from 'node:fs'
 
 const testFile = './assets/test.json'
 
@@ -59,6 +70,28 @@ test('statSync() stat directory (bigint Stats)', () => {
 
 test('statSync() file not found', () => {
   assert.throws(() => statSync('does not exist'))
+})
+
+// lstatSync()
+
+test('lstatSync() stat file', () => {
+  checkStatsForFile(lstatSync(testFile))
+})
+
+test('lstatSync() stat directory', () => {
+  checkStatsForDirectory(lstatSync(dirname(testFile)))
+})
+
+test('lstatSync() stat file (bigint Stats)', () => {
+  checkStatsForFile(lstatSync(testFile, { bigint: true }), 'bigint')
+})
+
+test('lstatSync() stat directory (bigint Stats)', () => {
+  checkStatsForDirectory(lstatSync(dirname(testFile), { bigint: true }), 'bigint')
+})
+
+test('lstatSync() file not found', () => {
+  assert.throws(() => lstatSync('does not exist'))
 })
 
 // readFileSync()
@@ -137,6 +170,28 @@ test('stat() stat directory (bigint Stats)', async () => {
 
 test('stat() file not found', async () => {
   await rejects(asyncWrap(stat, 'does not exist'))
+})
+
+// lstat()
+
+test('lstat() stat file', async () => {
+  checkStatsForFile(await asyncWrap(lstat, testFile))
+})
+
+test('lstat() stat directory', async () => {
+  checkStatsForDirectory(await asyncWrap(lstat, dirname(testFile)))
+})
+
+test('lstat() stat file (bigint Stats)', async () => {
+  checkStatsForFile(await asyncWrap(lstat, testFile, { bigint: true }), 'bigint')
+})
+
+test('lstat() stat directory (bigint Stats)', async () => {
+  checkStatsForDirectory(await asyncWrap(lstat, dirname(testFile), { bigint: true }), 'bigint')
+})
+
+test('lstat() file not found', async () => {
+  await rejects(asyncWrap(lstat, 'does not exist'))
 })
 
 // fstat()

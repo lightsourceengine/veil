@@ -90,6 +90,7 @@
 #define IOTJS_MAGIC_STRING_FINISHREQUEST "finishRequest"
 #endif
 #define IOTJS_MAGIC_STRING_FSTAT "fstat"
+#define IOTJS_MAGIC_STRING_LSTAT "lstat"
 #define IOTJS_MAGIC_STRING_GC "gc"
 #define IOTJS_MAGIC_STRING_GET_NAMESPACE "getNamespace"
 #define IOTJS_MAGIC_STRING_GET_REQUESTS "getRequests"
@@ -199,6 +200,7 @@
 #define IOTJS_MAGIC_STRING_CONFIGURE "configure"
 #endif
 #define IOTJS_MAGIC_STRING_SETKEEPALIVE "setKeepAlive"
+#define IOTJS_MAGIC_STRING_SET_STATS "setStats"
 #define IOTJS_MAGIC_STRING_SETTIMEOUT "setTimeout"
 #if ENABLE_MODULE_CRYPTO
 #define IOTJS_MAGIC_STRING_SHAENCODE "shaEncode"

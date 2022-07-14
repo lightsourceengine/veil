@@ -12,7 +12,7 @@
  */
 
 import assert from 'node:assert'
-import { readFile, stat } from 'node:fs/promises'
+import { lstat, readFile, stat } from 'node:fs/promises'
 import { dirname } from 'node:path'
 
 const testFile = './assets/test.json'
@@ -65,6 +65,28 @@ test('stat() stat directory (bigint Stats)', async () => {
 
 test('stat() file not found', async () => {
   await rejects(stat('does not exist'))
+})
+
+// lstat()
+
+test('lstat() stat file', async () => {
+  checkStatsForFile(await lstat(testFile))
+})
+
+test('lstat() stat directory', async () => {
+  checkStatsForDirectory(await lstat(dirname(testFile)))
+})
+
+test('lstat() stat file (bigint Stats)', async () => {
+  checkStatsForFile(await lstat(testFile, { bigint: true }), 'bigint')
+})
+
+test('lstat() stat directory (bigint Stats)', async () => {
+  checkStatsForDirectory(await lstat(dirname(testFile), { bigint: true }), 'bigint')
+})
+
+test('lstat() file not found', async () => {
+  await rejects(lstat('does not exist'))
 })
 
 // test utils
