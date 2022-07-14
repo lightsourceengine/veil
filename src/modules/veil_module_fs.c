@@ -37,14 +37,15 @@ static void fs_after_async(uv_fs_t* req) {
   const jerry_value_t cb = *IOTJS_UV_REQUEST_JSCALLBACK(req);
   IOTJS_ASSERT(jerry_value_is_function(cb));
 
-  jerry_value_t jargs[2] = { 0 };
+  jerry_value_t jargs[2] = { jerry_undefined(), jerry_undefined() };
   size_t jargc = 0;
   if (req->result < 0) {
-    jerry_value_t jerror = iotjs_create_uv_exception(req->result, "open");
+    jerry_value_t jerror = iotjs_create_uv_exception((int32_t)req->result, "open");
     jargs[jargc++] = jerror;
   } else {
     jargs[jargc++] = jerry_null();
     switch (req->fs_type) {
+      case UV_FS_SYMLINK:
       case UV_FS_CLOSE: {
         break;
       }
@@ -74,10 +75,10 @@ static void fs_after_async(uv_fs_t* req) {
         jargs[jargc++] = make_stat_object(&req->statbuf, use_bigint);
         break;
       }
-      case UV_FS_REALPATH: {
+      case UV_FS_READLINK:
+      case UV_FS_REALPATH:
         jargs[jargc++] = jerry_string_sz(req->ptr);
         break;
-      }
       default: { break; }
     }
   }
@@ -100,8 +101,6 @@ static jerry_value_t fs_after_sync(uv_fs_t* req, int err,
   }
 
   switch (req->fs_type) {
-    case UV_FS_CLOSE:
-      break;
     case UV_FS_OPEN:
     case UV_FS_READ:
     case UV_FS_WRITE:
@@ -112,11 +111,9 @@ static jerry_value_t fs_after_sync(uv_fs_t* req, int err,
       fs_extra_type_t use_bigint = *((fs_extra_type_t*)IOTJS_UV_REQUEST_EXTRA_DATA(req));
       return make_stat_object(&req->statbuf, use_bigint);
     }
-    case UV_FS_MKDIR:
-    case UV_FS_RMDIR:
-    case UV_FS_UNLINK:
-    case UV_FS_RENAME:
-      return jerry_undefined();
+    case UV_FS_READLINK:
+    case UV_FS_REALPATH:
+      return jerry_string_sz(req->ptr);
     case UV_FS_SCANDIR: {
       int r;
       uv_dirent_t ent;
@@ -130,12 +127,18 @@ static jerry_value_t fs_after_sync(uv_fs_t* req, int err,
       }
       return ret;
     }
+    case UV_FS_CLOSE:
+    case UV_FS_MKDIR:
+    case UV_FS_RMDIR:
+    case UV_FS_UNLINK:
+    case UV_FS_RENAME:
+    case UV_FS_SYMLINK:
+      return jerry_undefined();
     default: {
       IOTJS_ASSERT(false);
-      break;
+      return jerry_undefined();
     }
   }
-  return jerry_undefined();
 }
 
 
@@ -524,6 +527,27 @@ JS_FUNCTION(fs_symlink) {
   return ret_value;
 }
 
+JS_FUNCTION(fs_readlink) {
+  DJS_CHECK_THIS();
+  DJS_CHECK_ARGS(1, string);
+  DJS_CHECK_ARG_IF_EXIST(1, function);
+
+  const iotjs_environment_t* env = iotjs_environment_get();
+
+  cstr path = JS_GET_ARG(0, string);
+  const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
+
+  jerry_value_t ret_value;
+  if (!jerry_value_is_null(jcallback)) {
+    FS_ASYNC(env, readlink, jcallback, cstr_str_safe(&path));
+  } else {
+    FS_SYNC(env, readlink, cstr_str_safe(&path));
+  }
+
+  cstr_drop(&path);
+  return ret_value;
+}
+
 JS_FUNCTION(fs_read_dir) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(1, string);
@@ -571,6 +595,7 @@ jerry_value_t veil_init_fs(void) {
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_UNLINK, fs_unlink);
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_RENAME, fs_rename);
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_READDIR, fs_read_dir);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_READLINK, fs_readlink);
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_SYMLINK, fs_symlink);
 
   VEIL_DEFINE_CONSTANT(fs, UV_FS_SYMLINK_DIR);

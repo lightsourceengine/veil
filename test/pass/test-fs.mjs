@@ -11,6 +11,16 @@
  * specific language governing permissions and limitations under the License.
  */
 
+import {
+  fsAsyncWrap,
+  checkStatsForDirectory,
+  checkStatsForFile,
+  checkStatsForSymbolicLink,
+  emptyTestLink,
+  ensureTestLink,
+  rejects,
+  testLinkDestination
+} from '@veil/testing'
 import assert from 'node:assert'
 import { dirname } from 'node:path'
 import {
@@ -19,11 +29,15 @@ import {
   fstatSync,
   lstat,
   lstatSync,
+  readlink,
+  readlinkSync,
   readFile,
   readFileSync,
   openSync,
   stat,
-  statSync
+  statSync,
+  symlink,
+  symlinkSync
 } from 'node:fs'
 
 const testFile = './assets/test.json'
@@ -78,12 +92,20 @@ test('lstatSync() stat file', () => {
   checkStatsForFile(lstatSync(testFile))
 })
 
+test('lstatSync() stat link', () => {
+  checkStatsForSymbolicLink(lstatSync(ensureTestLink()))
+})
+
 test('lstatSync() stat directory', () => {
   checkStatsForDirectory(lstatSync(dirname(testFile)))
 })
 
 test('lstatSync() stat file (bigint Stats)', () => {
   checkStatsForFile(lstatSync(testFile, { bigint: true }), 'bigint')
+})
+
+test('lstatSync() stat link (bigint Stats)', () => {
+  checkStatsForSymbolicLink(lstatSync(ensureTestLink(), { bigint: true }), 'bigint')
 })
 
 test('lstatSync() stat directory (bigint Stats)', () => {
@@ -122,76 +144,109 @@ test('readFileSync() with { encoding: utf8 }', () => {
   JSON.parse(readFileSync(testFile, { encoding: 'utf8' }))
 })
 
+// symlinkSync
+test('symlinkSync()', () => {
+  const p = emptyTestLink()
+  symlinkSync(testLinkDestination, p)
+
+  assert(lstatSync(p).isSymbolicLink())
+})
+
+// readlinkSync()
+
+test('readlinkSync()', () => {
+  const p = ensureTestLink()
+  const destination = readlinkSync(p)
+
+  assert.equal(destination, testLinkDestination)
+})
+
+test('readlinkSync() from a normal file', () => {
+  assert.throws(() => readlinkSync(testFile))
+})
+
+test('readlinkSync() file not found', () => {
+  assert.throws(() => readlinkSync('does not exist'))
+})
+
 // readFile()
 
 test('readFile() file not found', async () => {
-  await rejects(asyncWrap(readFile, 'does not exist'))
+  await rejects(fsAsyncWrap(readFile, 'does not exist'))
 })
 
 test('readFile() with no options', async () => {
-  const buffer = await asyncWrap(readFile, testFile)
+  const buffer = await fsAsyncWrap(readFile, testFile)
 
   assert(Buffer.isBuffer(buffer))
   JSON.parse(buffer.toString('utf8'))
 })
 
 test('readFile() with { encoding: null }', async () => {
-  const buffer = await asyncWrap(readFile, testFile, { encoding: null })
+  const buffer = await fsAsyncWrap(readFile, testFile, { encoding: null })
 
   assert(Buffer.isBuffer(buffer))
   JSON.parse(buffer.toString('utf8'))
 })
 
 test('readFile() with utf8', async () => {
-  JSON.parse(await asyncWrap(readFile, testFile, 'utf8'))
+  JSON.parse(await fsAsyncWrap(readFile, testFile, 'utf8'))
 })
 
 test('readFile() with { encoding: utf8 }', async () => {
-  JSON.parse(await asyncWrap(readFile, testFile, { encoding: 'utf8' }))
+  JSON.parse(await fsAsyncWrap(readFile, testFile, { encoding: 'utf8' }))
 })
 
 // stat()
 
 test('stat() stat file', async () => {
-  checkStatsForFile(await asyncWrap(stat, testFile))
+  checkStatsForFile(await fsAsyncWrap(stat, testFile))
 })
 
 test('stat() stat directory', async () => {
-  checkStatsForDirectory(await asyncWrap(stat, dirname(testFile)))
+  checkStatsForDirectory(await fsAsyncWrap(stat, dirname(testFile)))
 })
 
 test('stat() stat file (bigint Stats)', async () => {
-  checkStatsForFile(await asyncWrap(stat, testFile, { bigint: true }), 'bigint')
+  checkStatsForFile(await fsAsyncWrap(stat, testFile, { bigint: true }), 'bigint')
 })
 
 test('stat() stat directory (bigint Stats)', async () => {
-  checkStatsForDirectory(await asyncWrap(stat, dirname(testFile), { bigint: true }), 'bigint')
+  checkStatsForDirectory(await fsAsyncWrap(stat, dirname(testFile), { bigint: true }), 'bigint')
 })
 
 test('stat() file not found', async () => {
-  await rejects(asyncWrap(stat, 'does not exist'))
+  await rejects(fsAsyncWrap(stat, 'does not exist'))
 })
 
 // lstat()
 
 test('lstat() stat file', async () => {
-  checkStatsForFile(await asyncWrap(lstat, testFile))
+  checkStatsForFile(await fsAsyncWrap(lstat, testFile))
+})
+
+test('lstat() stat link', async () => {
+  checkStatsForSymbolicLink(await fsAsyncWrap(lstat, ensureTestLink()))
 })
 
 test('lstat() stat directory', async () => {
-  checkStatsForDirectory(await asyncWrap(lstat, dirname(testFile)))
+  checkStatsForDirectory(await fsAsyncWrap(lstat, dirname(testFile)))
 })
 
 test('lstat() stat file (bigint Stats)', async () => {
-  checkStatsForFile(await asyncWrap(lstat, testFile, { bigint: true }), 'bigint')
+  checkStatsForFile(await fsAsyncWrap(lstat, testFile, { bigint: true }), 'bigint')
+})
+
+test('lstat() stat link (bigint Stats)', async () => {
+  checkStatsForSymbolicLink(await fsAsyncWrap(lstat, ensureTestLink(), { bigint: true }), 'bigint')
 })
 
 test('lstat() stat directory (bigint Stats)', async () => {
-  checkStatsForDirectory(await asyncWrap(lstat, dirname(testFile), { bigint: true }), 'bigint')
+  checkStatsForDirectory(await fsAsyncWrap(lstat, dirname(testFile), { bigint: true }), 'bigint')
 })
 
 test('lstat() file not found', async () => {
-  await rejects(asyncWrap(lstat, 'does not exist'))
+  await rejects(fsAsyncWrap(lstat, 'does not exist'))
 })
 
 // fstat()
@@ -200,7 +255,7 @@ test('fstat() stat file', async () => {
   const fd = openSync(testFile);
 
   try {
-    checkStatsForFile(await asyncWrap(fstat, fd))
+    checkStatsForFile(await fsAsyncWrap(fstat, fd))
   } finally {
     closeSync(fd);
   }
@@ -210,56 +265,35 @@ test('fstat() stat file (bigint Stats)', async () => {
   const fd = openSync(testFile);
 
   try {
-    checkStatsForFile(await asyncWrap(fstat, fd, { bigint: true }), 'bigint')
+    checkStatsForFile(await fsAsyncWrap(fstat, fd, { bigint: true }), 'bigint')
   } finally {
     closeSync(fd);
   }
 })
 
-// test utils
+// readlink()
 
-const asyncWrap = async (func, ...args) => {
-  return await new Promise((resolve, reject) => {
-    func(...args, (err, data) => {
-      if (err) {
-        reject(err)
-      } else {
-        resolve(data)
-      }
-    })
-  })
-}
+test('readlink()', async () => {
+  const p = ensureTestLink()
+  const destination = await fsAsyncWrap(readlink, p)
 
-const rejects = async (promise) => {
-  try {
-    await promise
-  } catch {
-    return
-  }
+  assert.equal(destination, testLinkDestination)
+})
 
-  assert.fail('exception expected')
-}
+test('readlink() from a normal file', async () => {
+  await rejects(fsAsyncWrap(readlink, testFile))
+})
 
-const checkStatsForFile = (stats, expectedType = 'number') => {
-  assert(stats)
-  assert.equal(typeof stats.mode, expectedType)
-  assert.equal(stats.isFile(), true)
-  assert.equal(stats.isDirectory(), false)
-  assert.equal(stats.isBlockDevice(), false)
-  assert.equal(stats.isFIFO(), false)
-  assert.equal(stats.isCharacterDevice(), false)
-  assert.equal(stats.isSocket(), false)
-  assert.equal(stats.isSymbolicLink(), false)
-}
+test('readlink() file not found', async () => {
+  await rejects(fsAsyncWrap(readlink, 'does not exist'))
+})
 
-const checkStatsForDirectory = (stats, expectedType = 'number') => {
-  assert(stats)
-  assert.equal(typeof stats.mode, expectedType)
-  assert.equal(stats.isFile(), false)
-  assert.equal(stats.isDirectory(), true)
-  assert.equal(stats.isBlockDevice(), false)
-  assert.equal(stats.isFIFO(), false)
-  assert.equal(stats.isCharacterDevice(), false)
-  assert.equal(stats.isSocket(), false)
-  assert.equal(stats.isSymbolicLink(), false)
-}
+// symlink()
+
+test('symlink()', async () => {
+  const p = emptyTestLink()
+
+  await fsAsyncWrap(symlink, testLinkDestination, p)
+
+  assert(lstatSync(p).isSymbolicLink())
+})

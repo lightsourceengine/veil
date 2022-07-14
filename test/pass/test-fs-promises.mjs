@@ -11,9 +11,17 @@
  * specific language governing permissions and limitations under the License.
  */
 
+import {
+  checkStatsForDirectory,
+  checkStatsForFile,
+  emptyTestLink, ensureTestLink,
+  rejects,
+  testLinkDestination
+} from '@veil/testing'
 import assert from 'node:assert'
-import { lstat, readFile, stat } from 'node:fs/promises'
+import { lstat, readlink, readFile, stat, symlink } from 'node:fs/promises'
 import { dirname } from 'node:path'
+import { lstatSync } from 'node:fs'
 
 const testFile = './assets/test.json'
 
@@ -89,40 +97,29 @@ test('lstat() file not found', async () => {
   await rejects(lstat('does not exist'))
 })
 
-// test utils
+// symlink()
 
-// TODO: in test-fs as well.. move to a lib
+test('symlink()', async () => {
+  const p = emptyTestLink()
 
-const rejects = async (promise) => {
-  try {
-    await promise
-  } catch {
-    return
-  }
+  await symlink(testLinkDestination, p)
 
-  assert.fail('exception expected')
-}
+  assert(lstatSync(p).isSymbolicLink())
+})
 
-const checkStatsForFile = (stats, expectedType = 'number') => {
-  assert(stats)
-  assert.equal(typeof stats.mode, expectedType)
-  assert.equal(stats.isFile(), true)
-  assert.equal(stats.isDirectory(), false)
-  assert.equal(stats.isBlockDevice(), false)
-  assert.equal(stats.isFIFO(), false)
-  assert.equal(stats.isCharacterDevice(), false)
-  assert.equal(stats.isSocket(), false)
-  assert.equal(stats.isSymbolicLink(), false)
-}
+// readlink()
 
-const checkStatsForDirectory = (stats, expectedType = 'number') => {
-  assert(stats)
-  assert.equal(typeof stats.mode, expectedType)
-  assert.equal(stats.isFile(), false)
-  assert.equal(stats.isDirectory(), true)
-  assert.equal(stats.isBlockDevice(), false)
-  assert.equal(stats.isFIFO(), false)
-  assert.equal(stats.isCharacterDevice(), false)
-  assert.equal(stats.isSocket(), false)
-  assert.equal(stats.isSymbolicLink(), false)
-}
+test('readlink()', async () => {
+  const p = ensureTestLink()
+  const destination = await readlink(p)
+
+  assert.equal(destination, testLinkDestination)
+})
+
+test('readlink() from a normal file', async () => {
+  await rejects(readlink(testFile))
+})
+
+test('readlink() file not found', async () => {
+  await rejects(readlink('does not exist'))
+})

@@ -484,6 +484,25 @@ const closeFile = (stream) => {
   });
 };
 
+const readlink = (path, options, callback) => {
+  path = checkArgString(path, 'path');
+  callback = maybeCallback(options || callback)
+
+  const { encoding } = getOptions(options, {});
+
+  fsBuiltin.readlink(toNamespacedPath(path), (err, data) => {
+    callback(err, data && encoding === 'buffer' ? Buffer.from(data, 'utf8') : data)
+  });
+}
+
+const readlinkSync = (path, options) => {
+  path = checkArgString(path, 'path');
+
+  const { encoding } = getOptions(options, {});
+  const result = fsBuiltin.readlink(toNamespacedPath(path));
+
+  return (encoding === 'buffer') ? Buffer.from(result, 'utf8') : result
+}
 
 const symlink = (target, path, type, callback)  => {
   let flags
@@ -525,7 +544,7 @@ const symlink = (target, path, type, callback)  => {
   }
 
   fsBuiltin.symlink(
-    isWindows ? preprocessSymlinkDestinationWin(target, type, path) : path,
+    isWindows ? preprocessSymlinkDestinationWin(target, type, path) : target,
     toNamespacedPath(path),
     flags ?? 0,
     callback);
@@ -568,7 +587,7 @@ const symlinkSync = (target, path, type)  => {
   }
 
   fsBuiltin.symlink(
-    isWindows ? preprocessSymlinkDestinationWin(target, type, path) : path,
+    isWindows ? preprocessSymlinkDestinationWin(target, type, path) : target,
     toNamespacedPath(path),
     flags ?? 0);
 }
@@ -967,6 +986,7 @@ const promises = {
   mkdir: promisify(mkdir),
   open: promisify(open),
   readdir: promisify(readdir),
+  readlink: promisify(readlink),
   readFile: promisify(readFile),
   read: promisify(read),
   rename: promisify(rename),
@@ -995,6 +1015,8 @@ export {
   openSync,
   readdir,
   readdirSync,
+  readlink,
+  readlinkSync,
   readFile,
   readFileSync,
   read,
@@ -1031,6 +1053,8 @@ export default {
   openSync,
   readdir,
   readdirSync,
+  readlink,
+  readlinkSync,
   readFile,
   readFileSync,
   read,

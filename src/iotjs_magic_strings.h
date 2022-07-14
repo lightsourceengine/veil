@@ -167,6 +167,7 @@
 #define IOTJS_MAGIC_STRING_PROCESS "process"
 #define IOTJS_MAGIC_STRING_PROTOTYPE "prototype"
 #define IOTJS_MAGIC_STRING_READDIR "readdir"
+#define IOTJS_MAGIC_STRING_READLINK "readlink"
 #define IOTJS_MAGIC_STRING_READ "read"
 #define IOTJS_MAGIC_STRING_READ_FILE_SYNC "readFileSync"
 #define IOTJS_MAGIC_STRING_READSOURCE "readSource"
