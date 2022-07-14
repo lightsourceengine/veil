@@ -501,6 +501,28 @@ JS_FUNCTION(fs_rename) {
   return ret_value;
 }
 
+JS_FUNCTION(fs_symlink) {
+  DJS_CHECK_ARGS(3, string, string, number);
+  DJS_CHECK_ARG_IF_EXIST(3, function);
+
+  const iotjs_environment_t* env = iotjs_environment_get();
+  cstr target = JS_GET_ARG(0, string);
+  cstr path = JS_GET_ARG(1, string);
+  int32_t flags = (int32_t)JS_GET_ARG(2, number);
+  const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(2, function);
+  jerry_value_t ret_value;
+
+  if (!jerry_value_is_null(jcallback)) {
+    FS_ASYNC(env, symlink, jcallback, cstr_str_safe(&target), cstr_str_safe(&path), flags);
+  } else {
+    FS_SYNC(env, symlink, cstr_str_safe(&target), cstr_str_safe(&path), flags);
+  }
+
+  cstr_drop(&target);
+  cstr_drop(&path);
+
+  return ret_value;
+}
 
 JS_FUNCTION(fs_read_dir) {
   DJS_CHECK_THIS();
@@ -549,6 +571,10 @@ jerry_value_t veil_init_fs(void) {
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_UNLINK, fs_unlink);
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_RENAME, fs_rename);
   iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_READDIR, fs_read_dir);
+  iotjs_jval_set_method(fs, IOTJS_MAGIC_STRING_SYMLINK, fs_symlink);
+
+  VEIL_DEFINE_CONSTANT(fs, UV_FS_SYMLINK_DIR);
+  VEIL_DEFINE_CONSTANT(fs, UV_FS_SYMLINK_JUNCTION);
 
   return fs;
 }

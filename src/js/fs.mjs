@@ -33,10 +33,19 @@ import {
 import { Readable, Writable } from 'stream'
 import { codes } from 'internal/errors'
 import { validateFunction } from 'internal/validators'
+import { isAbsolute, toNamespacedPath, resolve } from 'path'
 
-const { ERR_INVALID_ARG_TYPE, ERR_UNKNOWN_ENCODING } = codes
+const {
+  ERR_INVALID_ARG_TYPE,
+  ERR_UNKNOWN_ENCODING,
+  ERR_FS_INVALID_SYMLINK_TYPE
+} = codes
 const fsBuiltin = import.meta.native;
-const { setStats } = fsBuiltin
+const {
+  UV_FS_SYMLINK_JUNCTION,
+  UV_FS_SYMLINK_DIR,
+  setStats
+} = fsBuiltin
 const isWindows = process.platform === 'win32'
 const kNsPerMsBigInt = 10n ** 6n
 
@@ -475,6 +484,129 @@ const closeFile = (stream) => {
   });
 };
 
+
+const symlink = (target, path, type, callback)  => {
+  let flags
+
+  checkArgString(target);
+  checkArgString(path);
+  callback = maybeCallback(type || callback)
+  type = (typeof type === 'string' ? type : null);
+
+  if (isWindows) {
+    if (type === null) {
+      // Symlinks targets can be relative to the newly created path.
+      // Calculate absolute file name of the symlink target, and check
+      // if it is a directory. Ignore resolve error to keep symlink
+      // errors consistent between platforms if invalid path is
+      // provided.
+      let absoluteTarget
+
+      try {
+        absoluteTarget = resolve(`${path}`, '..', `${target}`);
+      } catch {
+        // ignore
+      }
+
+      if (absoluteTarget !== undefined) {
+        stat(absoluteTarget, (err, stat) => {
+          const resolvedType = !err && stat.isDirectory() ? 'dir' : 'file';
+          const resolvedFlags = stringToSymlinkType(resolvedType);
+          const destination = preprocessSymlinkDestinationWin(target, resolvedType, path);
+
+          fsBuiltin.symlink(destination, toNamespacedPath(path), resolvedFlags, callback);
+        });
+
+        return
+      }
+    }
+
+    flags = stringToSymlinkType(type)
+  }
+
+  fsBuiltin.symlink(
+    isWindows ? preprocessSymlinkDestinationWin(target, type, path) : path,
+    toNamespacedPath(path),
+    flags ?? 0,
+    callback);
+}
+
+const symlinkSync = (target, path, type)  => {
+  let flags
+
+  checkArgString(target);
+  checkArgString(path);
+  type = (typeof type === 'string' ? type : null);
+
+  if (isWindows) {
+    if (type === null) {
+      // Symlinks targets can be relative to the newly created path.
+      // Calculate absolute file name of the symlink target, and check
+      // if it is a directory. Ignore resolve error to keep symlink
+      // errors consistent between platforms if invalid path is
+      // provided.
+      let absoluteTarget
+
+      try {
+        absoluteTarget = resolve(`${path}`, '..', `${target}`);
+      } catch {
+        // ignore
+      }
+
+      if (absoluteTarget !== undefined) {
+        try {
+          if (statSync(absoluteTarget).isDirectory()) {
+            type = 'dir'
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+
+    flags = stringToSymlinkType(type)
+  }
+
+  fsBuiltin.symlink(
+    isWindows ? preprocessSymlinkDestinationWin(target, type, path) : path,
+    toNamespacedPath(path),
+    flags ?? 0);
+}
+
+// No preprocessing is needed on Unix.
+const preprocessSymlinkDestinationWin = (path, type, linkPath) => {
+  path = '' + path;
+  if (type === 'junction') {
+    // Junctions paths need to be absolute and \\?\-prefixed.
+    // A relative target is relative to the link's parent directory.
+    path = resolve(linkPath, '..', path);
+    return toNamespacedPath(path);
+  }
+  if (isAbsolute(path)) {
+    // If the path is absolute, use the \\?\-prefix to enable long filenames
+    return toNamespacedPath(path);
+  }
+  // Windows symlinks don't tolerate forward slashes.
+  return path.replace(/\//g, '\\');
+}
+
+const stringToSymlinkType = (type) => {
+  if (typeof type === 'string') {
+    if (type === 'dir') {
+      return UV_FS_SYMLINK_DIR
+    }
+
+    if (type === 'junction') {
+      return UV_FS_SYMLINK_JUNCTION
+    }
+
+    if (type !== 'file') {
+      throw new ERR_FS_INVALID_SYMLINK_TYPE(type)
+    }
+  }
+  return 0;
+}
+
 class ReadStream extends Readable {
   constructor (path, options = {}) {
     super({defaultEncoding: options.encoding || null})
@@ -677,6 +809,8 @@ const fileTimestampToDate = (timestamp) => new Date(Number(timestamp) + 0.5)
 // Some types are not available on Windows
 const isStatFlagUnsupportedOnWin = (flag) => flag === S_IFIFO || flag === S_IFBLK || flag === S_IFSOCK
 
+const kCheckModeProperty = Symbol('_checkModeProperty')
+
 class Stats extends Array {
   constructor () {
     super(14)
@@ -755,34 +889,34 @@ class Stats extends Array {
   }
 
   isDirectory () {
-    return this._checkModeProperty(S_IFDIR)
+    return this[kCheckModeProperty](S_IFDIR)
   }
 
   isFile () {
-    return this._checkModeProperty(S_IFREG)
+    return this[kCheckModeProperty](S_IFREG)
   }
 
   isBlockDevice () {
-    return this._checkModeProperty(S_IFBLK)
+    return this[kCheckModeProperty](S_IFBLK)
   }
 
   isCharacterDevice () {
-    return this._checkModeProperty(S_IFCHR)
+    return this[kCheckModeProperty](S_IFCHR)
   }
 
   isSymbolicLink () {
-    return this._checkModeProperty(S_IFLNK)
+    return this[kCheckModeProperty](S_IFLNK)
   }
 
   isFIFO () {
-    return this._checkModeProperty(S_IFIFO)
+    return this[kCheckModeProperty](S_IFIFO)
   }
 
   isSocket () {
-    return this._checkModeProperty(S_IFSOCK)
+    return this[kCheckModeProperty](S_IFSOCK)
   }
 
-  _checkModeProperty(property) {
+  [kCheckModeProperty](property) {
     if (isWindows && isStatFlagUnsupportedOnWin(property)) {
       return false;
     }
@@ -811,7 +945,7 @@ class BigIntStats extends Stats {
     return this[13]
   }
 
-  _checkModeProperty (property) {
+  [kCheckModeProperty] (property) {
     if (isWindows && isStatFlagUnsupportedOnWin(property)) {
       return false;  // Some types are not available on Windows
     }
@@ -838,6 +972,7 @@ const promises = {
   rename: promisify(rename),
   rmdir: promisify(rmdir),
   stat: promisify(stat),
+  symlink: promisify(symlink),
   unlink: promisify(unlink),
   write: promisify(write),
   writeFile: promisify(writeFile),
@@ -870,6 +1005,8 @@ export {
   rmdirSync,
   stat,
   statSync,
+  symlink,
+  symlinkSync,
   unlink,
   unlinkSync,
   write,
@@ -904,6 +1041,8 @@ export default {
   rmdirSync,
   stat,
   statSync,
+  symlink,
+  symlinkSync,
   unlink,
   unlinkSync,
   write,

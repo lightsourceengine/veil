@@ -182,6 +182,11 @@ E(
   ETypeError
 );
 
+E(
+  'ERR_FS_INVALID_SYMLINK_TYPE',
+  (self, type) => `Symlink type must be one of ["dir", "file", "junction"]. Received "${type}"`
+);
+
 E('ERR_UNKNOWN_ENCODING', (self, encoding) => `Unknown encoding: ${encoding}`, ETypeError);
 
 E(
