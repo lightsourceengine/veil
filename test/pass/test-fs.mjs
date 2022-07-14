@@ -194,6 +194,7 @@ const checkStatsForFile = (stats, expectedType = 'number') => {
   assert.equal(stats.isFIFO(), false)
   assert.equal(stats.isCharacterDevice(), false)
   assert.equal(stats.isSocket(), false)
+  assert.equal(stats.isSymbolicLink(), false)
 }
 
 const checkStatsForDirectory = (stats, expectedType = 'number') => {
@@ -205,4 +206,5 @@ const checkStatsForDirectory = (stats, expectedType = 'number') => {
   assert.equal(stats.isFIFO(), false)
   assert.equal(stats.isCharacterDevice(), false)
   assert.equal(stats.isSocket(), false)
+  assert.equal(stats.isSymbolicLink(), false)
 }

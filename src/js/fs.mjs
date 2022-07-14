@@ -38,7 +38,29 @@ const { ERR_INVALID_ARG_TYPE, ERR_UNKNOWN_ENCODING } = codes
 const fsBuiltin = import.meta.native;
 const { setStats } = fsBuiltin
 const isWindows = process.platform === 'win32'
-const kNsPerMsBigInt = 10n ** 6n;
+const kNsPerMsBigInt = 10n ** 6n
+
+// string flag -> mask
+const kFlagMap = new Map([
+  [ 'r', O_RDONLY ],
+  [ 'rs', O_RDONLY | O_SYNC ],
+  [ 'sr', O_RDONLY | O_SYNC ],
+  [ 'r+', O_RDWR ],
+  [ 'rs+', O_RDWR | O_SYNC ],
+  [ 'sr+', O_RDWR | O_SYNC ],
+  [ 'w', O_TRUNC | O_CREAT | O_WRONLY ],
+  [ 'wx', O_TRUNC | O_CREAT | O_WRONLY | O_EXCL],
+  [ 'xw', O_TRUNC | O_CREAT | O_WRONLY | O_EXCL],
+  [ 'w+', O_TRUNC | O_CREAT | O_RDWR ],
+  [ 'wx+', O_TRUNC | O_CREAT | O_RDWR | O_EXCL ],
+  [ 'xw+', O_TRUNC | O_CREAT | O_RDWR | O_EXCL ],
+  [ 'a', O_APPEND | O_CREAT | O_WRONLY ],
+  [ 'ax', O_APPEND | O_CREAT | O_WRONLY | O_EXCL ],
+  [ 'xa', O_APPEND | O_CREAT | O_WRONLY | O_EXCL ],
+  [ 'a+', O_APPEND | O_CREAT | O_RDWR ],
+  [ 'ax+', O_APPEND | O_CREAT | O_RDWR | O_EXCL ],
+  [ 'xa+', O_APPEND | O_CREAT | O_RDWR | O_EXCL ]
+])
 
 const exists = (path, callback) =>  {
   if (typeof path !== 'string' && !Buffer.isBuffer(path)) {
@@ -544,43 +566,26 @@ const createReadStream = (path, options) =>  {
 };
 
 function convertFlags(flag) {
-  if (typeof flag === 'string') {
-    switch (flag) {
-      case 'r': return O_RDONLY;
-      case 'rs':
-      case 'sr': return O_RDONLY | O_SYNC;
+  const mask = kFlagMap.get(flag)
 
-      case 'r+': return O_RDWR;
-      case 'rs+':
-      case 'sr+': return O_RDWR | O_SYNC;
-
-      case 'w': return O_TRUNC | O_CREAT | O_WRONLY;
-      case 'wx':
-      case 'xw': return O_TRUNC | O_CREAT | O_WRONLY | O_EXCL;
-
-      case 'w+': return O_TRUNC | O_CREAT | O_RDWR;
-      case 'wx+':
-      case 'xw+': return O_TRUNC | O_CREAT | O_RDWR | O_EXCL;
-
-      case 'a': return O_APPEND | O_CREAT | O_WRONLY;
-      case 'ax':
-      case 'xa': return O_APPEND | O_CREAT | O_WRONLY | O_EXCL;
-
-      case 'a+': return O_APPEND | O_CREAT | O_RDWR;
-      case 'ax+':
-      case 'xa+': return O_APPEND | O_CREAT | O_RDWR | O_EXCL;
-    }
+  if (mask === undefined) {
+    throw new TypeError('Bad argument: flags');
   }
-  throw new TypeError('Bad argument: flags');
+
+  return mask
 }
 
 function convertMode(mode, def) {
   if (typeof mode === 'number') {
     return mode;
-  } else if (typeof mode === 'string') {
+  }
+
+  if (typeof mode === 'string') {
     return parseInt(mode, 8);
-  } else if (def) {
-    return convertMode(def);
+  }
+
+  if (def) {
+    return def;
   }
 }
 
@@ -589,7 +594,7 @@ const ensureBuffer = (data) => Buffer.isBuffer(data) ? data : new Buffer(data + 
 
 const checkArgType = (value, name, checkFunc) => {
   if (!checkFunc(value)) {
-    throw new TypeError(`Bad arguments: ${name}`);
+    throw TypeError(`Bad arguments: ${name}`);
   }
 
   return value;
@@ -644,6 +649,17 @@ const getOptions = (options, defaultOptions) => {
 
   return Object.assign({}, defaultOptions, options);
 }
+
+// The Date constructor performs Math.floor() to the timestamp.
+// https://www.ecma-international.org/ecma-262/#sec-timeclip
+// Since there may be a precision loss when the timestamp is
+// converted to a floating point number, we manually round
+// the timestamp here before passing it to Date().
+// Refs: https://github.com/nodejs/node/pull/12607
+const fileTimestampToDate = (timestamp) => new Date(Number(timestamp) + 0.5)
+
+// Some types are not available on Windows
+const isStatFlagUnsupportedOnWin = (flag) => flag === S_IFIFO || flag === S_IFBLK || flag === S_IFSOCK
 
 class Stats extends Array {
   constructor () {
@@ -707,19 +723,19 @@ class Stats extends Array {
   }
 
   get atime() {
-    return this._toDate(this[10])
+    return fileTimestampToDate(this[10])
   }
 
   get mtime() {
-    return this._toDate(this[11])
+    return fileTimestampToDate(this[11])
   }
 
   get ctime() {
-    return this._toDate(this[12])
+    return fileTimestampToDate(this[12])
   }
 
   get birthtime() {
-    return this._toDate(this[13])
+    return fileTimestampToDate(this[13])
   }
 
   isDirectory () {
@@ -751,21 +767,10 @@ class Stats extends Array {
   }
 
   _checkModeProperty(property) {
-    // Some types are not available on Windows
-    if (isWindows && (property === S_IFIFO || property === S_IFBLK || property === S_IFSOCK)) {
+    if (isWindows && isStatFlagUnsupportedOnWin(property)) {
       return false;
     }
     return (this.mode & S_IFMT) === property;
-  }
-
-  _toDate(value) {
-    // The Date constructor performs Math.floor() to the timestamp.
-    // https://www.ecma-international.org/ecma-262/#sec-timeclip
-    // Since there may be a precision loss when the timestamp is
-    // converted to a floating point number, we manually round
-    // the timestamp here before passing it to Date().
-    // Refs: https://github.com/nodejs/node/pull/12607
-    return new Date(Number(value) + 0.5)
   }
 
   _toMs(value) {
@@ -791,7 +796,7 @@ class BigIntStats extends Stats {
   }
 
   _checkModeProperty (property) {
-    if (isWindows && (property === S_IFIFO || property === S_IFBLK || property === S_IFSOCK)) {
+    if (isWindows && isStatFlagUnsupportedOnWin(property)) {
       return false;  // Some types are not available on Windows
     }
     return (this.mode & BigInt(S_IFMT)) === BigInt(property);
@@ -799,10 +804,6 @@ class BigIntStats extends Stats {
 
   _toMs(value) {
     return value / kNsPerMsBigInt
-  }
-
-  _toNs(value) {
-    return value
   }
 }
 
