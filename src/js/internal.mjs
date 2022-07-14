@@ -140,6 +140,8 @@ const getIntrinsicPackageConfig = (packageName, specifier, base) => {
   return emptyConfig
 }
 
+const realpathCache = new Map()
+
 export {
   fastStat,
   STAT_IS_FILE,
@@ -149,5 +151,6 @@ export {
   canBeImportedByUsers,
   canBeImportedWithoutScheme,
   getOptionValue,
-  getIntrinsicPackageConfig
+  getIntrinsicPackageConfig,
+  realpathCache
 }

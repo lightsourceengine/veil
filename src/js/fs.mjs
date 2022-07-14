@@ -34,6 +34,7 @@ import { Readable, Writable } from 'stream'
 import { codes } from 'internal/errors'
 import { validateFunction } from 'internal/validators'
 import { isAbsolute, toNamespacedPath, resolve } from 'path'
+import { CHAR_FORWARD_SLASH, CHAR_BACKWARD_SLASH } from './internal/constants.mjs'
 
 const {
   ERR_INVALID_ARG_TYPE,
@@ -48,6 +49,7 @@ const {
 } = fsBuiltin
 const isWindows = process.platform === 'win32'
 const kNsPerMsBigInt = 10n ** 6n
+const kRealpathCacheKey = Symbol.for('realpathCacheKey')
 
 // string flag -> mask
 const kFlagMap = new Map([
@@ -488,7 +490,7 @@ const readlink = (path, options, callback) => {
   path = checkArgString(path, 'path');
   callback = maybeCallback(options || callback)
 
-  const { encoding } = getOptions(options, {});
+  const { encoding } = getOptions(options, emptyObj);
 
   fsBuiltin.readlink(toNamespacedPath(path), (err, data) => {
     callback(err, data && encoding === 'buffer' ? Buffer.from(data, 'utf8') : data)
@@ -498,7 +500,7 @@ const readlink = (path, options, callback) => {
 const readlinkSync = (path, options) => {
   path = checkArgString(path, 'path');
 
-  const { encoding } = getOptions(options, {});
+  const { encoding } = getOptions(options, emptyObj);
   const result = fsBuiltin.readlink(toNamespacedPath(path));
 
   return (encoding === 'buffer') ? Buffer.from(result, 'utf8') : result
@@ -591,6 +593,304 @@ const symlinkSync = (target, path, type)  => {
     toNamespacedPath(path),
     flags ?? 0);
 }
+
+let splitRoot;
+if (isWindows) {
+  // Regex to find the device root on Windows (e.g. 'c:\\'), including trailing
+  // slash.
+  const splitRootRe = /^(?:[a-zA-Z]:|[\\/]{2}[^\\/]+[\\/][^\\/]+)?[\\/]*/;
+  splitRoot = (str) => splitRootRe.exec(str)[0]
+} else {
+  splitRoot = (str) => {
+    for (let i = 0; i < str.length; ++i) {
+      if (str.charCodeAt(i) !== CHAR_FORWARD_SLASH)
+        return str.slice(0, i);
+    }
+    return str;
+  };
+}
+
+const encodeRealpathResult = (result, options) =>
+  (options?.encoding === 'buffer') ? Buffer.from(result, 'utf8') : result
+
+// Finds the next portion of a (partial) path, up to the next path delimiter
+let nextPart;
+if (isWindows) {
+  nextPart = (p, i) => {
+    for (; i < p.length; ++i) {
+      const ch = p.charCodeAt(i);
+
+      // Check for a separator character
+      if (ch === CHAR_BACKWARD_SLASH || ch === CHAR_FORWARD_SLASH)
+        return i;
+    }
+    return -1;
+  }
+} else {
+  nextPart = (p, i) => p.indexOf('/', i)
+}
+
+const emptyObj = Object.freeze({});
+
+const realpathSync = (p, options) => {
+  p = resolve(checkArgString(p, 'path'))
+
+  const cache = options?.[kRealpathCacheKey] ?? new Map();
+  const maybeCachedResult = cache.get(p);
+  if (maybeCachedResult) {
+    return maybeCachedResult;
+  }
+
+  const seenLinks = {};
+  const knownHard = {};
+  const knownMode = {}
+  const original = p;
+
+  // Current character position in p
+  let pos;
+  // The partial path so far, including a trailing slash if any
+  let current;
+  // The partial path without a trailing slash (except when pointing at a root)
+  let base;
+  // The partial path scanned in the previous round, with slash
+  let previous;
+
+  // Skip over roots
+  current = base = splitRoot(p);
+  pos = current.length;
+
+  // On windows, check that the root exists. On unix there is no need.
+  if (isWindows) {
+    const s = lstatSync(toNamespacedPath(base), { bigint: true })
+    knownMode[base] = s.mode
+    knownHard[base] = true
+  }
+
+  // Walk down the path, swapping out linked path parts for their real
+  // values
+  // NB: p.length changes.
+  while (pos < p.length) {
+    // find the next part
+    const result = nextPart(p, pos);
+    previous = current;
+    if (result === -1) {
+      const last = p.slice(pos);
+      current += last;
+      base = previous + last;
+      pos = p.length;
+    } else {
+      current += p.slice(pos, result + 1);
+      base = previous + p.slice(pos, result);
+      pos = result + 1;
+    }
+
+    // Continue if not a symlink, break if a pipe/socket
+    if (knownHard[base] || cache.get(base) === base) {
+      const mode = knownMode[base] || statSync(base, { bigint: true })
+      if (isFileTypeBigInt(mode, S_IFIFO) || isFileTypeBigInt(mode, S_IFSOCK)) {
+        break;
+      }
+      continue;
+    }
+
+    let resolvedLink;
+    const maybeCachedResolved = cache.get(base);
+    if (maybeCachedResolved) {
+      resolvedLink = maybeCachedResolved;
+    } else {
+      // Use stats array directly to avoid creating an fs.Stats instance just
+      // for our internal use.
+
+      const baseLong = toNamespacedPath(base);
+      const stats = lstatSync(baseLong, { bigint: true });
+
+      if (!isFileTypeBigInt(stats, S_IFLNK)) {
+        knownHard[base] = true;
+        knownMode[base] = stats.mode
+        cache.set(base, base);
+        continue;
+      }
+
+      // Read the link if it wasn't read before
+      // dev/ino always return 0 on windows, so skip the check.
+      let linkTarget = null;
+      let id;
+      if (!isWindows) {
+        const dev = stats.dev.toString(32)
+        const ino = stats.ino.toString(32)
+        id = `${dev}:${ino}`;
+        if (seenLinks[id]) {
+          linkTarget = seenLinks[id];
+        }
+      }
+      if (linkTarget === null) {
+        statSync(baseLong);
+        linkTarget = readlinkSync(baseLong);
+      }
+      resolvedLink = resolve(previous, linkTarget);
+
+      cache.set(base, resolvedLink);
+      knownMode[base] = stats.mode
+      if (!isWindows) seenLinks[id] = linkTarget;
+    }
+
+    // Resolve the link, then start over
+    p = resolve(resolvedLink, p.slice(pos));
+
+    // Skip over roots
+    current = base = splitRoot(p);
+    pos = current.length;
+
+    // On windows, check that the root exists. On unix there is no need.
+    if (isWindows && !knownHard[base]) {
+      const s = lstatSync(toNamespacedPath(base), { bigint: true })
+      knownMode[base] = s.mode
+      knownHard[base] = true;
+    }
+  }
+
+  cache.set(original, p);
+  return encodeRealpathResult(p, options);
+}
+
+realpathSync.native = (path, options) => {
+  path = checkArgString(path, 'path');
+
+  const result = fsBuiltin.realpath(toNamespacedPath(path));
+
+  return encodeRealpathResult(result, options)
+};
+
+function realpath(p, options, callback) {
+  p = resolve(checkArgString(p, 'path'))
+  options = getOptions(options, emptyObj);
+  callback = maybeCallback(callback)
+
+  const seenLinks = {};
+  const knownHard = {};
+
+  // Current character position in p
+  let pos;
+  // The partial path so far, including a trailing slash if any
+  let current;
+  // The partial path without a trailing slash (except when pointing at a root)
+  let base;
+  // The partial path scanned in the previous round, with slash
+  let previous;
+
+  current = base = splitRoot(p);
+  pos = current.length;
+
+  // On windows, check that the root exists. On unix there is no need.
+  if (isWindows && !knownHard[base]) {
+    lstat(base, (err, stats) => {
+      if (err) return callback(err);
+      knownHard[base] = true;
+      LOOP();
+    });
+  } else {
+    process.nextTick(LOOP);
+  }
+
+  // Walk down the path, swapping out linked path parts for their real
+  // values
+  function LOOP() {
+    // Stop if scanned past end of path
+    if (pos >= p.length) {
+      return callback(null, encodeRealpathResult(p, options));
+    }
+
+    // find the next part
+    const result = nextPart(p, pos);
+    previous = current;
+    if (result === -1) {
+      const last = p.slice(pos);
+      current += last;
+      base = previous + last;
+      pos = p.length;
+    } else {
+      current += p.slice(pos, result + 1);
+      base = previous + p.slice(pos, result);
+      pos = result + 1;
+    }
+
+    // Continue if not a symlink, break if a pipe/socket
+    if (knownHard[base]) {
+      const mode = statSync(base, { bigint: true })
+      if (isFileTypeBigInt(mode, S_IFIFO) || isFileTypeBigInt(mode, S_IFSOCK)) {
+        return callback(null, encodeRealpathResult(p, options));
+      }
+      return process.nextTick(LOOP);
+    }
+
+    return lstat(base, { bigint: true }, gotStat);
+  }
+
+  function gotStat(err, stats) {
+    if (err) return callback(err);
+
+    // If not a symlink, skip to the next path part
+    if (!stats.isSymbolicLink()) {
+      knownHard[base] = true;
+      return process.nextTick(LOOP);
+    }
+
+    // Stat & read the link if not read before.
+    // Call `gotTarget()` as soon as the link target is known.
+    // `dev`/`ino` always return 0 on windows, so skip the check.
+    let id;
+    if (!isWindows) {
+      const dev = stats.dev.toString(32);
+      const ino = stats.ino.toString(32);
+      id = `${dev}:${ino}`;
+      if (seenLinks[id]) {
+        return gotTarget(null, seenLinks[id]);
+      }
+    }
+    stat(base, (err) => {
+      if (err) return callback(err);
+
+      readlink(base, (err, target) => {
+        if (!isWindows) seenLinks[id] = target;
+        gotTarget(err, target);
+      });
+    });
+  }
+
+  function gotTarget(err, target) {
+    if (err) return callback(err);
+
+    gotResolvedLink(resolve(previous, target));
+  }
+
+  function gotResolvedLink(resolvedLink) {
+    // Resolve the link, then start over
+    p = resolve(resolvedLink, p.slice(pos));
+    current = base = splitRoot(p);
+    pos = current.length;
+
+    // On windows, check that the root exists. On unix there is no need.
+    if (isWindows && !knownHard[base]) {
+      lstat(base, (err) => {
+        if (err) return callback(err);
+        knownHard[base] = true;
+        LOOP();
+      });
+    } else {
+      process.nextTick(LOOP);
+    }
+  }
+}
+
+realpath.native = (path, options, callback) => {
+  path = checkArgString(path, 'path');
+  options = getOptions(options, emptyObj)
+  callback = maybeCallback(options || callback)
+
+  fsBuiltin.realpath(toNamespacedPath(path), (err, data) => {
+    callback(err, encodeRealpathResult(data, options))
+  });
+};
 
 // No preprocessing is needed on Unix.
 const preprocessSymlinkDestinationWin = (path, type, linkPath) => {
@@ -817,6 +1117,8 @@ const getOptions = (options, defaultOptions) => {
   return Object.assign({}, defaultOptions, options);
 }
 
+const isFileTypeBigInt = (stats, fileType) => (stats.mode & BigInt(S_IFMT)) === BigInt(fileType)
+
 // The Date constructor performs Math.floor() to the timestamp.
 // https://www.ecma-international.org/ecma-262/#sec-timeclip
 // Since there may be a precision loss when the timestamp is
@@ -987,6 +1289,7 @@ const promises = {
   open: promisify(open),
   readdir: promisify(readdir),
   readlink: promisify(readlink),
+  realpath: promisify(realpath),
   readFile: promisify(readFile),
   read: promisify(read),
   rename: promisify(rename),
@@ -1017,6 +1320,8 @@ export {
   readdirSync,
   readlink,
   readlinkSync,
+  realpath,
+  realpathSync,
   readFile,
   readFileSync,
   read,
@@ -1055,6 +1360,8 @@ export default {
   readdirSync,
   readlink,
   readlinkSync,
+  realpath,
+  realpathSync,
   readFile,
   readFileSync,
   read,

@@ -19,11 +19,13 @@ import {
   canBeImportedByUsers,
   canBeImportedWithoutScheme,
   fastStat,
+  realpathCache,
   STAT_IS_FILE,
   STAT_IS_DIR
 } from 'internal'
-import { resolve, extname, basename, relative } from 'path'
+import { resolve, extname, basename, relative, sep } from 'path'
 import { URL, pathToFileURL, fileURLToPath } from 'url'
+import { realpathSync } from 'fs'
 import { codes } from 'internal/errors';
 
 const {
@@ -46,6 +48,7 @@ const SafeSet = Set
 const SafeMap = Map
 const ArrayIsArray = Array.isArray
 const RegExpPrototypeSymbolReplace = (...args) => RegExp.prototype[Symbol.replace].call(...args)
+const kRealpathCacheKey = Symbol.for('realpathCacheKey')
 
 const preserveSymlinks = getOptionValue('--preserve-symlinks');
 const preserveSymlinksMain = getOptionValue('--preserve-symlinks-main');
@@ -264,16 +267,15 @@ function finalizeResolution(resolved, base, preserveSymlinks) {
       path || resolved.pathname, base && fileURLToPath(base), 'module');
   }
 
-  // TODO: implement realpath in fs
-  // if (!preserveSymlinks) {
-  //   const real = realpathSync(path, {
-  //     [internalFS.realpathCacheKey]: realpathCache
-  //   });
-  //   const { search, hash } = resolved;
-  //   resolved = pathToFileURL(real + (path.endsWith(sep) ? '/' : ''));
-  //   resolved.search = search;
-  //   resolved.hash = hash;
-  // }
+  if (!preserveSymlinks) {
+    const real = realpathSync(path, {
+      [kRealpathCacheKey]: realpathCache
+    });
+    const { search, hash } = resolved;
+    resolved = pathToFileURL(real + (path.endsWith(sep) ? '/' : ''));
+    resolved.search = search;
+    resolved.hash = hash;
+  }
 
   return resolved;
 }

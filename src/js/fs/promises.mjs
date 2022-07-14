@@ -22,6 +22,7 @@ export const {
   open,
   readdir,
   readlink,
+  realpath,
   readFile,
   read,
   rename,

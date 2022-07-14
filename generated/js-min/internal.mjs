@@ -19,6 +19,6 @@ const i=v(s(t),e)
 if(i.exists)return i
 const r=t
 if(t=new n('../package.json',t),t.pathname===r.pathname)break}const o=s(t),i={pjsonPath:o,exists:false,main:void 0,name:void 0,type:'none',exports:void 0,imports:void 0}
-return c.set(o,i),i},x=new Set(f),g=e=>x.has(e.replace('node:','')),j=e=>true,y=(process.env.VEIL_INTRINSIC_PATH??'').split(e).filter(Boolean),k={exists:false},w=(e,t,n)=>{for(const s of y){const i=v(o(s,e,'package.json'),t,n)
-if(i.exists)return i}return k}
-export{l as STAT_IS_DIR,d as STAT_IS_FILE,g as canBeImportedByUsers,j as canBeImportedWithoutScheme,u as fastStat,w as getIntrinsicPackageConfig,p as getOptionValue,v as getPackageConfig,h as getPackageScopeConfig}
+return c.set(o,i),i},x=new Set(f),g=e=>x.has(e.replace('node:','')),j=e=>true,w=(process.env.VEIL_INTRINSIC_PATH??'').split(e).filter(Boolean),y={exists:false},k=(e,t,n)=>{for(const s of w){const i=v(o(s,e,'package.json'),t,n)
+if(i.exists)return i}return y},I=new Map
+export{l as STAT_IS_DIR,d as STAT_IS_FILE,g as canBeImportedByUsers,j as canBeImportedWithoutScheme,u as fastStat,k as getIntrinsicPackageConfig,p as getOptionValue,v as getPackageConfig,h as getPackageScopeConfig,I as realpathCache}
