@@ -72,24 +72,23 @@ else wt=(t,e)=>t.indexOf('/',e)
 const _t=Object.freeze({}),St=(t,e)=>{t=S(Et(t,'path'))
 const s=(null==e?void 0:e[$])??new Map,o=s.get(t)
 if(o)return o
-const f={},u={},a={},l=t
-let c,h,d,g
-if(h=d=yt(t),c=h.length,D){const t=K(_(d),{bigint:true})
-a[d]=t.mode,u[d]=true}while(c<t.length){const e=wt(t,c)
-if(g=h,-1===e){const e=t.slice(c)
-h+=e,d=g+e,c=t.length}else h+=t.slice(c,e+1),d=g+t.slice(c,e),c=e+1
-if(u[d]||s.get(d)===d){const t=a[d]||j(d,{bigint:true})
+const f={},u={},a=t
+let l,c,h,d
+if(c=h=yt(t),l=c.length,D)K(_(h),{bigint:true}),u[h]=true
+while(l<t.length){const e=wt(t,l)
+if(d=c,-1===e){const e=t.slice(l)
+c+=e,h=d+e,l=t.length}else c+=t.slice(l,e+1),h=d+t.slice(l,e),l=e+1
+if(u[h]||s.get(h)===h){const{mode:t}=j(h,{bigint:true})
 if(At(t,n)||At(t,r))break
 continue}let o
-const l=s.get(d)
-if(l)o=l
-else{const t=_(d),e=K(t,{bigint:true})
-if(!At(e,i)){u[d]=true,a[d]=e.mode,s.set(d,d)
+const a=s.get(h)
+if(a)o=a
+else{const t=_(h),e=K(t,{bigint:true})
+if(!At(e.mode,i)){u[h]=true,s.set(h,h)
 continue}let r=null,n
 if(!D){const t=e.dev.toString(32),i=e.ino.toString(32)
 if(n=`${t}:${i}`,f[n])r=f[n]}if(null===r)j(t),r=pt(t)
-if(o=S(g,r),s.set(d,o),a[d]=e.mode,!D)f[n]=r}if(t=S(o,t.slice(c)),h=d=yt(t),c=h.length,D&&!u[d]){const t=K(_(d),{bigint:true})
-a[d]=t.mode,u[d]=true}}return s.set(l,t),kt(t,e)}
+if(o=S(d,r),s.set(h,o),!D)f[n]=r}if(t=S(o,t.slice(l)),c=h=yt(t),l=c.length,D&&!u[h])K(_(h),{bigint:true}),u[h]=true}return s.set(a,t),kt(t,e)}
 function vt(t,e,i){t=S(Et(t,'path')),e=Ot(e,_t),i=Lt(i)
 const s={},o={}
 let f,u,a,l
@@ -100,7 +99,7 @@ function c(){if(f>=t.length)return i(null,kt(t,e))
 const s=wt(t,f)
 if(l=u,-1===s){const e=t.slice(f)
 u+=e,a=l+e,f=t.length}else u+=t.slice(f,s+1),a=l+t.slice(f,s),f=s+1
-if(o[a]){const s=j(a,{bigint:true})
+if(o[a]){const{mode:s}=j(a,{bigint:true})
 if(At(s,n)||At(s,r))return i(null,kt(t,e))
 return process.nextTick(c)}return z(a,{bigint:true},h)}function h(t,e){if(t)return i(t)
 if(!e.isSymbolicLink())return o[a]=true,process.nextTick(c)
@@ -146,7 +145,7 @@ if('string'===typeof r)switch(r.toLowerCase()){case'utf8':case'utf-8':t.encoding
 break
 default:i=r}else if(r)i=r
 if(i)throw new I(i)
-return Object.assign({},e,t)},At=(t,r)=>(t.mode&BigInt(e))===BigInt(r),Wt=t=>new Date(Number(t)+.5),jt=t=>t===n||t===f||t===r,zt=Symbol('_checkModeProperty')
+return Object.assign({},e,t)},At=(t,r)=>(t&BigInt(e))===BigInt(r),Wt=t=>new Date(Number(t)+.5),jt=t=>t===n||t===f||t===r,zt=Symbol('_checkModeProperty')
 class Stats extends Array{constructor(){super(14)}get dev(){return this[0]}get ino(){return this[1]}get mode(){return this[2]}get nlink(){return this[3]}get uid(){return this[4]}get gid(){return this[5]}get rdev(){return this[6]}get size(){return this[7]}get blksize(){return this[8]}get blocks(){return this[9]}get atimeMs(){return this._toMs(this[10])}get mtimeMs(){return this._toMs(this[11])}get ctimeMs(){return this._toMs(this[12])}get birthtimeMs(){return this._toMs(this[13])}get atime(){return Wt(this[10])}get mtime(){return Wt(this[11])}get ctime(){return Wt(this[12])}get birthtime(){return Wt(this[13])}isDirectory(){return this[zt](s)}isFile(){return this[zt](o)}isBlockDevice(){return this[zt](f)}isCharacterDevice(){return this[zt](u)}isSymbolicLink(){return this[zt](i)}isFIFO(){return this[zt](n)}isSocket(){return this[zt](r)}[zt](t){if(D&&jt(t))return false
 return(this.mode&e)===t}_toMs(t){return t}}class BigIntStats extends Stats{get atimeNs(){return this[10]}get mtimeNs(){return this[11]}get ctimeNs(){return this[12]}get birthtimeNs(){return this[13]}[zt](t){if(D&&jt(t))return false
 return(this.mode&BigInt(e))===BigInt(t)}_toMs(t){return t/E}}T(Stats,BigIntStats)

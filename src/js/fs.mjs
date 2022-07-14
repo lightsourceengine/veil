@@ -643,7 +643,6 @@ const realpathSync = (p, options) => {
 
   const seenLinks = {};
   const knownHard = {};
-  const knownMode = {}
   const original = p;
 
   // Current character position in p
@@ -661,8 +660,7 @@ const realpathSync = (p, options) => {
 
   // On windows, check that the root exists. On unix there is no need.
   if (isWindows) {
-    const s = lstatSync(toNamespacedPath(base), { bigint: true })
-    knownMode[base] = s.mode
+    lstatSync(toNamespacedPath(base), { bigint: true })
     knownHard[base] = true
   }
 
@@ -686,7 +684,7 @@ const realpathSync = (p, options) => {
 
     // Continue if not a symlink, break if a pipe/socket
     if (knownHard[base] || cache.get(base) === base) {
-      const mode = knownMode[base] || statSync(base, { bigint: true })
+      const { mode } = statSync(base, { bigint: true })
       if (isFileTypeBigInt(mode, S_IFIFO) || isFileTypeBigInt(mode, S_IFSOCK)) {
         break;
       }
@@ -704,9 +702,8 @@ const realpathSync = (p, options) => {
       const baseLong = toNamespacedPath(base);
       const stats = lstatSync(baseLong, { bigint: true });
 
-      if (!isFileTypeBigInt(stats, S_IFLNK)) {
+      if (!isFileTypeBigInt(stats.mode, S_IFLNK)) {
         knownHard[base] = true;
-        knownMode[base] = stats.mode
         cache.set(base, base);
         continue;
       }
@@ -730,7 +727,7 @@ const realpathSync = (p, options) => {
       resolvedLink = resolve(previous, linkTarget);
 
       cache.set(base, resolvedLink);
-      knownMode[base] = stats.mode
+
       if (!isWindows) seenLinks[id] = linkTarget;
     }
 
@@ -743,8 +740,7 @@ const realpathSync = (p, options) => {
 
     // On windows, check that the root exists. On unix there is no need.
     if (isWindows && !knownHard[base]) {
-      const s = lstatSync(toNamespacedPath(base), { bigint: true })
-      knownMode[base] = s.mode
+      lstatSync(toNamespacedPath(base), { bigint: true })
       knownHard[base] = true;
     }
   }
@@ -816,7 +812,7 @@ function realpath(p, options, callback) {
 
     // Continue if not a symlink, break if a pipe/socket
     if (knownHard[base]) {
-      const mode = statSync(base, { bigint: true })
+      const { mode } = statSync(base, { bigint: true })
       if (isFileTypeBigInt(mode, S_IFIFO) || isFileTypeBigInt(mode, S_IFSOCK)) {
         return callback(null, encodeRealpathResult(p, options));
       }
@@ -1117,7 +1113,7 @@ const getOptions = (options, defaultOptions) => {
   return Object.assign({}, defaultOptions, options);
 }
 
-const isFileTypeBigInt = (stats, fileType) => (stats.mode & BigInt(S_IFMT)) === BigInt(fileType)
+const isFileTypeBigInt = (mode, fileType) => (mode & BigInt(S_IFMT)) === BigInt(fileType)
 
 // The Date constructor performs Math.floor() to the timestamp.
 // https://www.ecma-international.org/ecma-262/#sec-timeclip
