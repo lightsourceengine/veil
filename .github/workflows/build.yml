@@ -12,23 +12,24 @@ jobs:
       run:
         shell: bash
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: macos-10.15
             args: --jerry-heaplimit=8192 --jerry-lto
             build_tag: x86_64-darwin
             package_tag: macos-x64
-            host_veil: ./build/x86_64-darwin/release/bin/veil
+            host_veil: build/x86_64-darwin/release/bin/veil
           - os: ubuntu-18.04
             args: --jerry-heaplimit=8192 --jerry-lto
             build_tag: x86_64-linux
             package_tag: linux-x64
-            host_veil: ./build/x86_64-linux/release/bin/veil
+            host_veil: build/x86_64-linux/release/bin/veil
           - os: windows-2019
             args: --jerry-heaplimit=8192
             build_tag: x86_64-windows
             package_tag: windows-x64
-            host_veil: ./build/x86_64-windows/release/bin/Release/veil.exe
+            host_veil: build/x86_64-windows/release/bin/Release/veil.exe
           - os: ubuntu-18.04
             args: --jerry-heaplimit=8192 --target-os=linux --target-arch=arm --target-board=rpiv6
             build_tag: arm-linux-rpi
@@ -76,8 +77,7 @@ jobs:
             cd $(dirname "${{matrix.host_veil}}")
             7z a -r -tzip "${GITHUB_WORKSPACE}/build/package/${VEIL_PACKAGE_NAME}.zip" $(basename "${{matrix.host_veil}}")
           else
-            cd build/package
-            tar -cfz "${VEIL_PACKAGE_NAME}.tgz" -C $(dirname "${{matrix.host_veil}}") "${{matrix.host_veil}}"
+            tar -czf "build/package/${VEIL_PACKAGE_NAME}.tgz" -C $(dirname "${{matrix.host_veil}}") veil
           fi
 
       - name: Upload Runtime
