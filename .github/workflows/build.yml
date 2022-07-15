@@ -16,34 +16,33 @@ jobs:
       matrix:
         include:
           - os: macos-11
-            args: --jerry-heaplimit=8192 --jerry-lto
+            args: --jerry-lto
             build_tag: x86_64-darwin
-            package_tag: macos-x64
+            package_tag: default
             host_veil: build/x86_64-darwin/release/bin/veil
           - os: ubuntu-18.04
-            args: --jerry-heaplimit=8192 --jerry-lto
+            args: --jerry-lto
             build_tag: x86_64-linux
-            package_tag: linux-x64
+            package_tag: default
             host_veil: build/x86_64-linux/release/bin/veil
           - os: windows-2019
-            args: --jerry-heaplimit=8192
             build_tag: x86_64-windows
-            package_tag: windows-x64
+            package_tag: default
             host_veil: build/x86_64-windows/release/bin/Release/veil.exe
           - os: ubuntu-18.04
-            args: --jerry-heaplimit=8192 --target-os=linux --target-arch=arm --target-board=rpiv6
+            args: --target-os=linux --target-arch=arm --target-board=rpiv6
             build_tag: arm-linux-rpi
             package_tag: pi-armv6l
             toolchain: arm-rpi
             toolchain_version: 4.9.4
           - os: ubuntu-18.04
-            args: --jerry-heaplimit=8192 --target-os=linux --target-arch=arm --target-board=rpiv7
+            args: --target-os=linux --target-arch=arm --target-board=rpiv7
             build_tag: arm-linux-rpi
             package_tag: pi-armv7l
             toolchain: arm-rpi
             toolchain_version: 4.9.4
           - os: ubuntu-18.04
-            args: --jerry-heaplimit=8192 --target-os=linux --target-arch=aarch64 --target-board=rpiv8
+            args: --target-os=linux --target-arch=aarch64 --target-board=rpiv8
             build_tag: aarch64-linux-rpi
             package_tag: pi-arm64
             toolchain: aarch64
@@ -67,18 +66,10 @@ jobs:
 
       - name: Test
         if: matrix.host_veil
-        run: ${{matrix.host_veil}} tools/js/test-runner.mjs
+        run: ${{ matrix.host_veil }} tools/js/test-runner.mjs
 
       - name: Package
-        run: |
-          VEIL_PACKAGE_NAME="veil-$(cat config/version)-${{matrix.package_tag}}"
-          mkdir -p build/package
-          if [[ "${{matrix.package_tag}}" == *"windows"* ]]; then
-            cd "build/${{matrix.build_tag}}/release/bin/Release"
-            7z a -r -tzip "${GITHUB_WORKSPACE}/build/package/${VEIL_PACKAGE_NAME}.zip" veil.exe
-          else
-            tar -czf "build/package/${VEIL_PACKAGE_NAME}.tgz" -C "build/${{matrix.build_tag}}/release/bin" veil
-          fi
+        run: ./tools/create-packages.sh "${{ matrix.build_tag }}" "${{ matrix.package_tag }}" release
 
       - name: Upload Runtime
         uses: actions/upload-artifact@v3
