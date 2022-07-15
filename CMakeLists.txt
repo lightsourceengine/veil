@@ -231,6 +231,17 @@ if(NOT ${EXTERNAL_LIBC_INTERFACE} STREQUAL "")
   iotjs_add_compile_flags(-isystem ${EXTERNAL_LIBC_INTERFACE})
 endif()
 
+# get version from $SRCROOT/config/version and create semver version defines
+file(READ config/version VEIL_VERSION_STRING)
+STRING(REGEX REPLACE "^([0-9]+)\\.[0-9]+\\.[0-9]+" "\\1" VEIL_VERSION_MAJOR "${VEIL_VERSION_STRING}")
+STRING(REGEX REPLACE "^[0-9]+\\.([0-9])+\\.[0-9]+" "\\1" VEIL_VERSION_MINOR "${VEIL_VERSION_STRING}")
+STRING(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+)" "\\1" VEIL_VERSION_PATCH "${VEIL_VERSION_STRING}")
+iotjs_add_compile_flags(
+  -DVEIL_VERSION_MAJOR=${VEIL_VERSION_MAJOR}
+  -DVEIL_VERSION_MINOR=${VEIL_VERSION_MINOR}
+  -DVEIL_VERSION_PATCH=${VEIL_VERSION_PATCH}
+)
+
 # Include external projects
 include(cmake/jerry.cmake)
 include(cmake/http-parser.cmake)

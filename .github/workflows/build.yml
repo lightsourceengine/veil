@@ -69,7 +69,16 @@ jobs:
         run: ${{matrix.host_veil}} tools/js/test-runner.mjs
 
       - name: Package
-        run: ./tools/create-package.sh ${{ matrix.build_tag }} ${{ matrix.package_tag }}
+        run: |
+          VEIL_PACKAGE_NAME="veil-$(cat config/version)-${{matrix.package_tag}}"
+          mkdir -p build/package
+          if [[ "${{matrix.package_tag}}" == *"windows"* ]]; then
+            cd $(dirname "${{matrix.host_veil}}")
+            7z a -r -tzip "${GITHUB_WORKSPACE}/build/package/${VEIL_PACKAGE_NAME}.zip" $(basename "${{matrix.host_veil}}")
+          else
+            cd build/package
+            tar -cfz "${VEIL_PACKAGE_NAME}.tgz" -C $(dirname "${{matrix.host_veil}}") "${{matrix.host_veil}}"
+          fi
 
       - name: Upload Runtime
         uses: actions/upload-artifact@v3
