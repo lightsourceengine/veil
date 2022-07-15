@@ -15,13 +15,13 @@
 
 #include "iotjs_def.h"
 
-#include "iotjs.h"
 #include "iotjs_js.h"
-#include "veil_cli.h"
 #include "iotjs_string_ext.h"
+#include "jerryscript-ext/debugger.h"
+#include "veil.h"
+#include "veil_cli.h"
 #include "veil_module.h"
 #include "veil_signal_wrap.h"
-#include "jerryscript-ext/debugger.h"
 #if ENABLE_MODULE_NAPI
 #include "internal/node_api_internal.h"
 #endif
@@ -296,7 +296,7 @@ void iotjs_terminate(iotjs_environment_t* env) {
   jerry_cleanup();
 }
 
-int iotjs_entry(int argc, char** argv) {
+int veil_entry(int argc, char** argv) {
   int ret_code = 0;
 
   // Initialize debug log and environments

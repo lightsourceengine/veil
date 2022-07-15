@@ -72,11 +72,11 @@ def init_options():
     argv = argv + sys.argv[1:]
 
     # Prepare argument parser.
-    parser = argparse.ArgumentParser(description='Building tool for IoT.js '
+    parser = argparse.ArgumentParser(description='Building tool for veil '
         'JavaScript framework for embedded systems.')
 
-    iotjs_group = parser.add_argument_group('Arguments of IoT.js',
-        'The following arguments are related to the IoT.js framework.')
+    iotjs_group = parser.add_argument_group('Arguments of veil',
+        'The following arguments are related to the veil framework.')
     iotjs_group.add_argument('--buildtype',
         choices=['debug', 'release'], default='debug', type=str.lower,
         help='Specify the build type (default: %(default)s).')

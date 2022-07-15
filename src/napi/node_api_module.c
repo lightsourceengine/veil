@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-#include "iotjs.h"
-#include "jerryscript-ext/handle-scope.h"
 #include "internal/node_api_internal.h"
+#include "jerryscript-ext/handle-scope.h"
+#include "veil.h"
 
 static napi_module* mod_pending;
 

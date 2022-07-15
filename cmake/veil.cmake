@@ -471,16 +471,16 @@ set(IOTJS_INCLUDE_DIRS
 
 if(NOT BUILD_LIB_ONLY)
   if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
-    iotjs_add_link_flags("-Xlinker -map -Xlinker iotjs.map")
+    iotjs_add_link_flags("-Xlinker -map -Xlinker veil.map")
   elseif(USING_MSVC)
-    iotjs_add_link_flags("/MAP:iotjs.map")
+    iotjs_add_link_flags("/MAP:veil.map")
   else()
-    iotjs_add_link_flags("-Xlinker -Map -Xlinker iotjs.map")
+    iotjs_add_link_flags("-Xlinker -Map -Xlinker veil.map")
   endif()
 endif()
 
 # Print out some configs
-message("IoT.js configured with:")
+message("veil configured with:")
 message(STATUS "BUILD_LIB_ONLY           ${BUILD_LIB_ONLY}")
 message(STATUS "CMAKE_BUILD_TYPE         ${CMAKE_BUILD_TYPE}")
 message(STATUS "CMAKE_C_FLAGS            ${CMAKE_C_FLAGS}")
@@ -522,20 +522,22 @@ file(GLOB JERRY_HEADERS "${ROOT_DIR}/deps/jerry/jerry-core/include/*.h")
 file(GLOB LIBUV_HEADERS "${ROOT_DIR}/deps/libtuv/include/*.h")
 
 set(IOTJS_PUBLIC_HEADERS
-  "include/iotjs.h"
-  "include/node_api.h"
-  "include/node_api_types.h"
+  "include/veil.h"
+  "deps/node-api-headers/include/node_api.h"
+  "deps/node-api-headers/include/node_api_types.h"
+  "deps/node-api-headers/include/js_native_api.h"
+  "deps/node-api-headers/include/js_native_api_types.h"
   ${IOTJS_HEADERS}
   ${JERRY_HEADERS}
   ${LIBUV_HEADERS}
 )
 
 # Configure the libveil
-set(TARGET_LIB_IOTJS libveil)
+set(TARGET_LIB_VEIL libveil)
 if(CREATE_SHARED_LIB)
-  add_library(${TARGET_LIB_IOTJS} SHARED ${LIB_IOTJS_SRC})
+  add_library(${TARGET_LIB_VEIL} SHARED ${LIB_IOTJS_SRC})
 else()
-  add_library(${TARGET_LIB_IOTJS} STATIC ${LIB_IOTJS_SRC})
+  add_library(${TARGET_LIB_VEIL} STATIC ${LIB_IOTJS_SRC})
 
   # FIXME: module specific condition should not be in the main cmake
   if(${ENABLE_MODULE_NAPI})
@@ -565,7 +567,7 @@ else()
   endif()
 endif(CREATE_SHARED_LIB)
 
-add_dependencies(${TARGET_LIB_IOTJS}
+add_dependencies(${TARGET_LIB_VEIL}
   ${JERRY_LIBS}
   ${TUV_LIBS}
   libhttp-parser
@@ -574,7 +576,7 @@ add_dependencies(${TARGET_LIB_IOTJS}
   stc
 )
 
-set_target_properties(${TARGET_LIB_IOTJS} PROPERTIES
+set_target_properties(${TARGET_LIB_VEIL} PROPERTIES
   OUTPUT_NAME veil
   ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
@@ -583,7 +585,7 @@ set_target_properties(${TARGET_LIB_IOTJS} PROPERTIES
 
 if(NOT USING_MSVC)
   target_compile_options(
-      ${TARGET_LIB_IOTJS}
+      ${TARGET_LIB_VEIL}
       PRIVATE
       -Wno-missing-field-initializers
       -Wno-missing-braces
@@ -592,9 +594,9 @@ if(NOT USING_MSVC)
   )
 endif()
 
-target_include_directories(${TARGET_LIB_IOTJS}
+target_include_directories(${TARGET_LIB_VEIL}
   PRIVATE ${IOTJS_INCLUDE_DIRS})
-target_link_libraries(${TARGET_LIB_IOTJS}
+target_link_libraries(${TARGET_LIB_VEIL}
   ${CMAKE_DL_LIBS}
   ${JERRY_LIBS}
   ${JERRY_NATIVE_LIBS}
@@ -621,24 +623,24 @@ endif()
 
 # Configure the iotjs executable
 if(NOT BUILD_LIB_ONLY)
-  set(TARGET_IOTJS veil)
+  set(TARGET_VEIL veil)
   message(STATUS "CMAKE_BINARY_DIR        ${CMAKE_BINARY_DIR}")
   message(STATUS "BINARY_INSTALL_DIR      ${INSTALL_PREFIX}/${BIN_INSTALL_DIR}")
   message(STATUS "LIBRARY_INSTALL_DIR     ${INSTALL_PREFIX}/${LIB_INSTALL_DIR}")
   message(STATUS "INCLUDE_INSTALL_DIR     ${INSTALL_PREFIX}/${INC_INSTALL_DIR}")
 
-  add_executable(${TARGET_IOTJS} ${ROOT_DIR}/src/platform/linux/iotjs_linux.c)
-  set_target_properties(${TARGET_IOTJS} PROPERTIES
+  add_executable(${TARGET_VEIL} ${ROOT_DIR}/src/platform/linux/veil_linux.c)
+  set_target_properties(${TARGET_VEIL} PROPERTIES
     LINK_FLAGS "${IOTJS_LINKER_FLAGS}"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
   )
-  target_include_directories(${TARGET_IOTJS} PRIVATE ${IOTJS_INCLUDE_DIRS})
-  target_link_libraries(${TARGET_IOTJS} ${TARGET_LIB_IOTJS})
-  install(TARGETS ${TARGET_IOTJS} ${TARGET_LIB_IOTJS}
+  target_include_directories(${TARGET_VEIL} PRIVATE ${IOTJS_INCLUDE_DIRS})
+  target_link_libraries(${TARGET_VEIL} ${TARGET_LIB_VEIL})
+  install(TARGETS ${TARGET_VEIL} ${TARGET_LIB_VEIL}
           RUNTIME DESTINATION "${BIN_INSTALL_DIR}"
           ARCHIVE DESTINATION "${LIB_INSTALL_DIR}"
           LIBRARY DESTINATION "${LIB_INSTALL_DIR}"
           PUBLIC_HEADER DESTINATION "${INC_INSTALL_DIR}")
 else()
-  install(TARGETS ${TARGET_LIB_IOTJS} DESTINATION ${LIB_INSTALL_DIR})
+  install(TARGETS ${TARGET_LIB_VEIL} DESTINATION ${LIB_INSTALL_DIR})
 endif()
