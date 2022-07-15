@@ -69,7 +69,7 @@ jobs:
         run: ${{ matrix.host_veil }} tools/js/test-runner.mjs
 
       - name: Package
-        run: ./tools/create-packages.sh "${{ matrix.build_tag }}" "${{ matrix.package_tag }}" release
+        run: ./tools/create-package.sh "${{ matrix.build_tag }}" "${{ matrix.package_tag }}" release
 
       - name: Upload Runtime
         uses: actions/upload-artifact@v3
