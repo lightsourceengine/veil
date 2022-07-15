@@ -74,10 +74,10 @@ jobs:
           VEIL_PACKAGE_NAME="veil-$(cat config/version)-${{matrix.package_tag}}"
           mkdir -p build/package
           if [[ "${{matrix.package_tag}}" == *"windows"* ]]; then
-            cd $(dirname "${{matrix.host_veil}}")
-            7z a -r -tzip "${GITHUB_WORKSPACE}/build/package/${VEIL_PACKAGE_NAME}.zip" $(basename "${{matrix.host_veil}}")
+            cd "build/${{matrix.build_tag}}/release/bin/Release"
+            7z a -r -tzip "${GITHUB_WORKSPACE}/build/package/${VEIL_PACKAGE_NAME}.zip" veil.exe
           else
-            tar -czf "build/package/${VEIL_PACKAGE_NAME}.tgz" -C $(dirname "${{matrix.host_veil}}") veil
+            tar -czf "build/package/${VEIL_PACKAGE_NAME}.tgz" -C "build/${{matrix.build_tag}}/release/bin" veil
           fi
 
       - name: Upload Runtime
