@@ -25,7 +25,7 @@ set(IOTJS_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
 string(TOLOWER ${CMAKE_SYSTEM_NAME} IOTJS_SYSTEM_OS)
 set(PLATFORM_OS_DIR
     "${IOTJS_SOURCE_DIR}/platform/${IOTJS_SYSTEM_OS}")
-file(GLOB IOTJS_PLATFORM_SRC "${PLATFORM_OS_DIR}/iotjs_*.c")
+file(GLOB IOTJS_PLATFORM_SRC "${PLATFORM_OS_DIR}/veil_*.c")
 
 # Module configuration - listup all possible native C modules
 function(getListOfVars prefix pattern varResult)
@@ -164,7 +164,7 @@ set(IOTJS_MODULE_DEFINES)
 set(VEIL_JS_GEN_DIR "${ROOT_DIR}/generated/js-min")
 #set(VEIL_JS_GEN_DIR "${ROOT_DIR}/src/js")
 
-message("IoT.js module configuration:")
+message("veil module configuration:")
 getListOfVars("ENABLE_MODULE_" "([A-Za-z0-9_]+)" IOTJS_ENABLED_MODULES)
 foreach(MODULE ${IOTJS_ENABLED_MODULES})
   set(MODULE_DEFINE_VAR "ENABLE_MODULE_${MODULE}")
@@ -480,7 +480,7 @@ if(NOT BUILD_LIB_ONLY)
 endif()
 
 # Print out some configs
-message("veil configured with:")
+message(STATUS "veil configured with:")
 message(STATUS "BUILD_LIB_ONLY           ${BUILD_LIB_ONLY}")
 message(STATUS "CMAKE_BUILD_TYPE         ${CMAKE_BUILD_TYPE}")
 message(STATUS "CMAKE_C_FLAGS            ${CMAKE_C_FLAGS}")
@@ -618,10 +618,10 @@ if("${BIN_INSTALL_DIR}" STREQUAL "")
 endif()
 
 if("${INC_INSTALL_DIR}" STREQUAL "")
-  set(INC_INSTALL_DIR "include/iotjs")
+  set(INC_INSTALL_DIR "include/veil")
 endif()
 
-# Configure the iotjs executable
+# Configure the veil executable
 if(NOT BUILD_LIB_ONLY)
   set(TARGET_VEIL veil)
   message(STATUS "CMAKE_BINARY_DIR        ${CMAKE_BINARY_DIR}")

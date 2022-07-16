@@ -17,13 +17,9 @@ include(CheckCCompilerFlag)
 
 project(veil C)
 
-set(IOTJS_VERSION_MAJOR 1)
-set(IOTJS_VERSION_MINOR 0)
-
 if(NOT DEFINED TARGET_OS)
   string(TOLOWER ${CMAKE_SYSTEM_NAME} TARGET_OS)
-  message(
-    "TARGET_OS not specified, using '${TARGET_OS}' from CMAKE_SYSTEM_NAME")
+  message("TARGET_OS not specified, using '${TARGET_OS}' from CMAKE_SYSTEM_NAME")
 endif()
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -236,7 +232,7 @@ file(READ config/version VEIL_VERSION_STRING)
 STRING(REGEX REPLACE "^([0-9]+)\\.[0-9]+\\.[0-9]+" "\\1" VEIL_VERSION_MAJOR "${VEIL_VERSION_STRING}")
 STRING(REGEX REPLACE "^[0-9]+\\.([0-9])+\\.[0-9]+" "\\1" VEIL_VERSION_MINOR "${VEIL_VERSION_STRING}")
 STRING(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+)" "\\1" VEIL_VERSION_PATCH "${VEIL_VERSION_STRING}")
-iotjs_add_compile_flags(
+add_definitions(
   -DVEIL_VERSION_MAJOR=${VEIL_VERSION_MAJOR}
   -DVEIL_VERSION_MINOR=${VEIL_VERSION_MINOR}
   -DVEIL_VERSION_PATCH=${VEIL_VERSION_PATCH}

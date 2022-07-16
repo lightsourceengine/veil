@@ -138,7 +138,7 @@ def init_options():
         help='The location of the development tree root directory (sysroot). '
              'Must be compatible with used toolchain.')
     iotjs_group.add_argument('--target-arch',
-        choices=['arm', 'aarch64', 'x86', 'i686', 'x86_64', 'x64', 'mips', 'noarch'],
+        choices=['arm', 'aarch64', 'arm64', 'x86', 'i686', 'x86_64', 'x64', 'mips', 'noarch'],
         default=platform.arch(),
         help='Specify the target architecture (default: %(default)s).')
     iotjs_group.add_argument('--target-board',
@@ -224,7 +224,11 @@ def adjust_options(options):
     # Then add calculated options.
     options.host_tuple = '%s-%s' % (platform.arch(), platform.os())
 
-    if options.target_board in ['rpiv6', 'rpiv7']:
+    if platform.os() == 'darwin' and platform.arch() != options.target_arch:
+        cmake_path = fs.join(path.PROJECT_ROOT, 'cmake', 'config', 'cross', '%s.cmake')
+        options.target_tuple = '%s-%s' % (options.target_arch, options.target_os)
+        options.cmake_toolchain_file = cmake_path % options.target_tuple
+    elif options.target_board in ['rpiv6', 'rpiv7']:
         cmake_path = fs.join(path.PROJECT_ROOT, 'cmake', 'config', 'cross', '%s.cmake')
         options.target_tuple = '%s-%s-%s' % (options.target_arch, options.target_os, 'rpi')
         options.cmake_toolchain_file = cmake_path % options.target_tuple

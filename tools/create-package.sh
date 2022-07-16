@@ -55,6 +55,24 @@ mkdir -p build/package
 
 echo "creating ${VEIL_PACKAGE_NAME}..."
 
+# special case for macos plus size binary
+if [[ "${BUILD_TAG}" == "macos" ]]; then
+  MACOS_VEIL=build/macos/release/bin/veil
+  MACOS_ARM64_VEIL=build/arm64-darwin/release/bin/veil
+  MACOS_X64_VEIL=build/x86_64-darwin/release/bin/veil
+
+  # clean the build directory
+  mkdir -p "$(dirname ${MACOS_VEIL})"
+  rm -f "${MACOS_VEIL}"
+
+  # verify the binaries exist
+  lipo -info "${MACOS_ARM64_VEIL}"
+  lipo -info "${MACOS_X64_VEIL}"
+
+  # merge
+  lipo "${MACOS_ARM64_VEIL}" "${MACOS_X64_VEIL}" -create -output "${MACOS_VEIL}"
+fi
+
 if [[ "${PACKAGE_TAG}" == *"windows"* ]]; then
   VEIL_PACKAGE_FILE="build/package/${VEIL_PACKAGE_NAME}.zip"
   rm -f "${VEIL_PACKAGE_FILE}"

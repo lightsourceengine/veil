@@ -17,8 +17,8 @@ jobs:
         include:
           - os: macos-11
             args: --jerry-lto
-            build_tag: x86_64-darwin
-            package_tag: default
+            build_tag: macos
+            package_tag: macos
             host_veil: build/x86_64-darwin/release/bin/veil
           - os: ubuntu-18.04
             args: --jerry-lto
@@ -63,6 +63,10 @@ jobs:
 
       - name: Build
         run: ./tools/build.py --buildtype=release --jerry-mem-stats ${{ matrix.args }}
+
+      - name: Build (M1)
+        if: startsWith(matrix.host, 'macos')
+        run: ./tools/build.py --buildtype=release --jerry-mem-stats --target-arch=arm64 ${{ matrix.args }}
 
       - name: Test
         if: matrix.host_veil
