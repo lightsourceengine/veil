@@ -16,7 +16,7 @@
 #include "veil_module_buffer.h"
 #include "veil_module_tcp.h"
 #include "veil_uv.h"
-#include "iotjs_uv_request.h"
+#include "veil_uv_request.h"
 
 static void udp_finalize(void* native_p, jerry_object_native_info_t* native_info);
 static const jerry_object_native_info_t this_module_native_info = { &udp_finalize, 0, 0 };
@@ -25,7 +25,7 @@ static void udp_finalize(void* native_p, jerry_object_native_info_t* native_info
   veil_uv_destroy_handle((uv_handle_t*)native_p);
 }
 
-int32_t iotjs_udp_object_init(jerry_value_t judp) {
+int32_t veil_udp_object_init(jerry_value_t judp) {
   uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
   uv_handle_t* handle = veil_uv_create_handle(sizeof(uv_udp_t), NULL, judp, &this_module_native_info);
   int32_t err = uv_udp_init(loop, (uv_udp_t*)handle);
@@ -45,7 +45,7 @@ JS_FUNCTION(udp_constructor) {
 
   jerry_value_t judp = JS_GET_THIS();
 
-  if (iotjs_udp_object_init(judp) != 0) {
+  if (veil_udp_object_init(judp) != 0) {
     return jerry_throw_sz(JERRY_ERROR_COMMON, "error creating udp handle");
   }
 
@@ -170,10 +170,10 @@ static void on_send(uv_udp_send_t* req, int status) {
   IOTJS_ASSERT(req != NULL);
 
   // Take callback function object.
-  jerry_value_t jcallback = *IOTJS_UV_REQUEST_JSCALLBACK(req);
+  jerry_value_t jcallback = *VEIL_UV_REQUEST_JSCALLBACK(req);
 
   if (jerry_value_is_function(jcallback)) {
-    size_t msg_size = *((size_t*)IOTJS_UV_REQUEST_EXTRA_DATA(req));
+    size_t msg_size = *((size_t*)VEIL_UV_REQUEST_EXTRA_DATA(req));
     jerry_value_t jargs[2] = { jerry_number(status),
                                jerry_number(msg_size) };
 
@@ -182,7 +182,7 @@ static void on_send(uv_udp_send_t* req, int status) {
     jerry_value_free(jargs[1]);
   }
 
-  iotjs_uv_request_destroy((uv_req_t*)req);
+  veil_uv_request_destroy((uv_req_t*)req);
 }
 
 
@@ -213,8 +213,8 @@ JS_FUNCTION(udp_send) {
   size_t len = iotjs_bufferwrap_length(buffer_wrap);
 
   uv_req_t* req_send =
-      iotjs_uv_request_create(sizeof(uv_udp_send_t), jcallback, sizeof(len));
-  *((size_t*)IOTJS_UV_REQUEST_EXTRA_DATA(req_send)) = len;
+      veil_uv_request_create(sizeof(uv_udp_send_t), jcallback, sizeof(len));
+  *((size_t*)VEIL_UV_REQUEST_EXTRA_DATA(req_send)) = len;
 
   uv_buf_t buf;
   buf.base = buffer_wrap->buffer;
@@ -230,7 +230,7 @@ JS_FUNCTION(udp_send) {
   }
 
   if (err) {
-    iotjs_uv_request_destroy(req_send);
+    veil_uv_request_destroy(req_send);
   }
 
   cstr_drop(&address);

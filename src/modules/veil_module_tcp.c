@@ -13,10 +13,9 @@
 
 #include "iotjs_def.h"
 #include "veil_module_tcp.h"
-
 #include "veil_module_buffer.h"
 #include "veil_uv.h"
-#include "iotjs_uv_request.h"
+#include "veil_uv_request.h"
 
 static void tcp_finalize(void* native_p, jerry_object_native_info_t* native_info);
 static void tcp_on_close(uv_handle_t* handle);
@@ -27,7 +26,7 @@ static void tcp_finalize(void* native_p, jerry_object_native_info_t* native_info
   veil_uv_destroy_handle((uv_handle_t*)native_p);
 }
 
-int32_t iotjs_tcp_object_init(jerry_value_t jtcp) {
+int32_t veil_tcp_object_init(jerry_value_t jtcp) {
   uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
 
   uv_handle_t* handle = veil_uv_create_handle(sizeof(uv_tcp_t), &tcp_on_close,jtcp, &this_module_native_info);
@@ -44,10 +43,10 @@ int32_t iotjs_tcp_object_init(jerry_value_t jtcp) {
 }
 
 
-static void iotjs_tcp_report_req_result(uv_req_t* req, int status) {
+static void veil_tcp_report_req_result(uv_req_t* req, int status) {
   IOTJS_ASSERT(req != NULL);
   // Take callback function object.
-  jerry_value_t jcallback = *IOTJS_UV_REQUEST_JSCALLBACK(req);
+  jerry_value_t jcallback = *VEIL_UV_REQUEST_JSCALLBACK(req);
 
   // Only parameter is status code.
   jerry_value_t jstatus = jerry_number(status);
@@ -59,7 +58,7 @@ static void iotjs_tcp_report_req_result(uv_req_t* req, int status) {
   jerry_value_free(jstatus);
 
   // Release request.
-  iotjs_uv_request_destroy(req);
+  veil_uv_request_destroy(req);
 }
 
 
@@ -67,7 +66,7 @@ JS_FUNCTION(tcp_constructor) {
   DJS_CHECK_THIS();
 
   jerry_value_t jtcp = JS_GET_THIS();
-  iotjs_tcp_object_init(jtcp);
+  veil_tcp_object_init(jtcp);
   return jerry_undefined();
 }
 
@@ -123,7 +122,7 @@ JS_FUNCTION(tcp_bind) {
 
 // Connection request result handler.
 static void after_connect(uv_connect_t* req, int status) {
-  iotjs_tcp_report_req_result((uv_req_t*)req, status);
+  veil_tcp_report_req_result((uv_req_t*)req, status);
 }
 
 // Create a connection using the socket.
@@ -145,14 +144,14 @@ JS_FUNCTION(tcp_connect) {
   if (err == 0) {
     // Create connection request and configure request data.
     uv_req_t* req_connect =
-        iotjs_uv_request_create(sizeof(uv_connect_t), jcallback, 0);
+        veil_uv_request_create(sizeof(uv_connect_t), jcallback, 0);
 
     // Create connection request.
     err = uv_tcp_connect((uv_connect_t*)req_connect, tcp_handle,
                          (const sockaddr*)(&addr), after_connect);
 
     if (err) {
-      iotjs_uv_request_destroy(req_connect);
+      veil_uv_request_destroy(req_connect);
     }
   }
 
@@ -225,7 +224,7 @@ JS_FUNCTION(tcp_listen) {
 
 
 void AfterWrite(uv_write_t* req, int status) {
-  iotjs_tcp_report_req_result((uv_req_t*)req, status);
+  veil_tcp_report_req_result((uv_req_t*)req, status);
 }
 
 
@@ -242,12 +241,12 @@ JS_FUNCTION(tcp_write) {
   buf.len = len;
 
   jerry_value_t arg1 = JS_GET_ARG(1, object);
-  uv_req_t* req_write = iotjs_uv_request_create(sizeof(uv_write_t), arg1, 0);
+  uv_req_t* req_write = veil_uv_request_create(sizeof(uv_write_t), arg1, 0);
 
   int err = uv_write((uv_write_t*)req_write, tcp_handle, &buf, 1, AfterWrite);
 
   if (err) {
-    iotjs_uv_request_destroy((uv_req_t*)req_write);
+    veil_uv_request_destroy((uv_req_t*)req_write);
   }
 
   return jerry_number(err);
@@ -321,8 +320,8 @@ JS_FUNCTION(tcp_read_start) {
 }
 
 
-static void AfterShutdown(uv_shutdown_t* req, int status) {
-  iotjs_tcp_report_req_result((uv_req_t*)req, status);
+static void after_shutdown(uv_shutdown_t* req, int status) {
+  veil_tcp_report_req_result((uv_req_t*)req, status);
 }
 
 
@@ -333,12 +332,12 @@ JS_FUNCTION(tcp_shutdown) {
 
   jerry_value_t arg0 = JS_GET_ARG(0, object);
   uv_shutdown_t* req_shutdown =
-      (uv_shutdown_t*)iotjs_uv_request_create(sizeof(uv_shutdown_t), arg0, 0);
+      (uv_shutdown_t*)veil_uv_request_create(sizeof(uv_shutdown_t), arg0, 0);
 
-  int err = uv_shutdown(req_shutdown, tcp_handle, AfterShutdown);
+  int err = uv_shutdown(req_shutdown, tcp_handle, after_shutdown);
 
   if (err) {
-    iotjs_uv_request_destroy((uv_req_t*)req_shutdown);
+    veil_uv_request_destroy((uv_req_t*)req_shutdown);
   }
 
   return jerry_number(err);

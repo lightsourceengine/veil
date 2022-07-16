@@ -13,7 +13,7 @@
 
 #include "iotjs_def.h"
 
-#include "iotjs_uv_request.h"
+#include "veil_uv_request.h"
 
 #if !defined(__NUTTX__)
 char* getaddrinfo_error_str(int status) {
@@ -103,14 +103,14 @@ static void after_get_addr_info(uv_getaddrinfo_t* req, int status,
   uv_freeaddrinfo(res);
 
   // Make the callback into JavaScript
-  jerry_value_t jcallback = *IOTJS_UV_REQUEST_JSCALLBACK(req);
+  jerry_value_t jcallback = *VEIL_UV_REQUEST_JSCALLBACK(req);
   iotjs_invoke_callback(jcallback, jerry_undefined(), args, argc);
 
   for (size_t i = 0; i < argc; i++) {
     jerry_value_free(args[i]);
   }
 
-  iotjs_uv_request_destroy((uv_req_t*)req);
+  veil_uv_request_destroy((uv_req_t*)req);
 }
 #endif
 
@@ -177,7 +177,7 @@ JS_FUNCTION(get_address_info) {
   IOTJS_UNUSED(flags);
 #else
   uv_req_t* req_addr =
-      iotjs_uv_request_create(sizeof(uv_getaddrinfo_t), jcallback, 0);
+      veil_uv_request_create(sizeof(uv_getaddrinfo_t), jcallback, 0);
 
   static const struct addrinfo empty_hints;
   struct addrinfo hints = empty_hints;
@@ -190,7 +190,7 @@ JS_FUNCTION(get_address_info) {
                          cstr_str(&hostname), NULL, &hints);
 
   if (error) {
-    iotjs_uv_request_destroy(req_addr);
+    veil_uv_request_destroy(req_addr);
   }
 #endif
 

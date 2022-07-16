@@ -14,7 +14,7 @@
 #include "iotjs_def.h"
 
 #include "veil_module_buffer.h"
-#include "iotjs_uv_request.h"
+#include "veil_uv_request.h"
 
 #define MS_PER_SEC 1000
 #define NS_PER_MS 1000000
@@ -25,7 +25,7 @@ typedef int32_t fs_extra_type_t;
 static jerry_value_t make_stat_object(uv_stat_t* statbuf, bool use_bigint);
 
 
-static jerry_value_t iotjs_create_uv_exception(int errorno,
+static jerry_value_t veil_create_uv_exception(int errorno,
                                                const char* syscall) {
   static char msg[256];
   snprintf(msg, sizeof(msg), "'%s' %s", syscall, uv_strerror(errorno));
@@ -34,13 +34,13 @@ static jerry_value_t iotjs_create_uv_exception(int errorno,
 
 
 static void fs_after_async(uv_fs_t* req) {
-  const jerry_value_t cb = *IOTJS_UV_REQUEST_JSCALLBACK(req);
+  const jerry_value_t cb = *VEIL_UV_REQUEST_JSCALLBACK(req);
   IOTJS_ASSERT(jerry_value_is_function(cb));
 
   jerry_value_t jargs[2] = { jerry_undefined(), jerry_undefined() };
   size_t jargc = 0;
   if (req->result < 0) {
-    jerry_value_t jerror = iotjs_create_uv_exception((int32_t)req->result, "open");
+    jerry_value_t jerror = veil_create_uv_exception((int32_t)req->result, "open");
     jargs[jargc++] = jerror;
   } else {
     jargs[jargc++] = jerry_null();
@@ -71,7 +71,7 @@ static void fs_after_async(uv_fs_t* req) {
       case UV_FS_FSTAT:
       case UV_FS_LSTAT:
       case UV_FS_STAT: {
-        fs_extra_type_t use_bigint = *((fs_extra_type_t*)IOTJS_UV_REQUEST_EXTRA_DATA(req));
+        fs_extra_type_t use_bigint = *((fs_extra_type_t*)VEIL_UV_REQUEST_EXTRA_DATA(req));
         jargs[jargc++] = make_stat_object(&req->statbuf, use_bigint);
         break;
       }
@@ -88,14 +88,14 @@ static void fs_after_async(uv_fs_t* req) {
   jerry_value_free(jargs[0]);
   jerry_value_free(jargs[1]);
   uv_fs_req_cleanup(req);
-  iotjs_uv_request_destroy((uv_req_t*)req);
+  veil_uv_request_destroy((uv_req_t*)req);
 }
 
 
 static jerry_value_t fs_after_sync(uv_fs_t* req, int err,
                                    const char* syscall_name) {
   if (err < 0) {
-    jerry_value_t jvalue = iotjs_create_uv_exception(err, syscall_name);
+    jerry_value_t jvalue = veil_create_uv_exception(err, syscall_name);
     jerry_value_t jerror = jerry_throw_value(jvalue, true);
     return jerror;
   }
@@ -108,7 +108,7 @@ static jerry_value_t fs_after_sync(uv_fs_t* req, int err,
     case UV_FS_FSTAT:
     case UV_FS_LSTAT:
     case UV_FS_STAT: {
-      fs_extra_type_t use_bigint = *((fs_extra_type_t*)IOTJS_UV_REQUEST_EXTRA_DATA(req));
+      fs_extra_type_t use_bigint = *((fs_extra_type_t*)VEIL_UV_REQUEST_EXTRA_DATA(req));
       return make_stat_object(&req->statbuf, use_bigint);
     }
     case UV_FS_READLINK:
@@ -150,25 +150,25 @@ static inline bool is_within_bounds(size_t off, size_t len, size_t max) {
 }
 
 static uv_fs_t* create_fs_request(jerry_value_t callback, fs_extra_type_t extra_data) {
-  uv_fs_t* req = (uv_fs_t*)iotjs_uv_request_create(
+  uv_fs_t* req = (uv_fs_t*)veil_uv_request_create(
       sizeof(uv_fs_t), callback, sizeof(fs_extra_type_t));
 
-  *((fs_extra_type_t*)IOTJS_UV_REQUEST_EXTRA_DATA(req)) = extra_data;
+  *((fs_extra_type_t*)VEIL_UV_REQUEST_EXTRA_DATA(req)) = extra_data;
 
   return req;
 }
 
 static uv_fs_t* create_fs_request_sync(fs_extra_type_t extra_data) {
-  uv_fs_t* req = (uv_fs_t*)iotjs_uv_request_create_sync(sizeof(uv_fs_t), sizeof(fs_extra_type_t));
+  uv_fs_t* req = (uv_fs_t*)veil_uv_request_create_sync(sizeof(uv_fs_t), sizeof(fs_extra_type_t));
 
-  *((fs_extra_type_t*)IOTJS_UV_REQUEST_EXTRA_DATA(req)) = extra_data;
+  *((fs_extra_type_t*)VEIL_UV_REQUEST_EXTRA_DATA(req)) = extra_data;
 
   return req;
 }
 
 #define FS_ASYNC_EXTRA(env, extra_data, syscall, pcallback, ...)              \
   uv_fs_t* fs_req = create_fs_request(pcallback, extra_data);                 \
-  *((fs_extra_type_t*)IOTJS_UV_REQUEST_EXTRA_DATA(fs_req)) = extra_data;      \
+  *((fs_extra_type_t*)VEIL_UV_REQUEST_EXTRA_DATA(fs_req)) = extra_data;       \
   int err = uv_fs_##syscall(iotjs_environment_loop(env), fs_req, __VA_ARGS__, \
                             fs_after_async);                                  \
   if (err < 0) {                                                              \
@@ -186,7 +186,7 @@ static uv_fs_t* create_fs_request_sync(fs_extra_type_t extra_data) {
                             NULL);                                            \
   ret_value = fs_after_sync(fs_req, err, #syscall);                           \
   uv_fs_req_cleanup(fs_req);                                                  \
-  iotjs_uv_request_destroy((uv_req_t*)fs_req);
+  veil_uv_request_destroy((uv_req_t*)fs_req);
 
 #define FS_SYNC(env, syscall, ...) FS_SYNC_EXTRA(env, 0, syscall, __VA_ARGS__)
 

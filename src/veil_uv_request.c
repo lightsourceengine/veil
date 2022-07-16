@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 
-#include "iotjs_uv_request.h"
-
 #include "iotjs_def.h"
+#include "veil_uv_request.h"
 
 /**
  * Aligns @a value to @a alignment. @a must be the power of 2.
@@ -23,12 +22,12 @@
  * Returns minimum positive value, that divides @a alignment and is more than or
  * equal to @a value
  */
-#define IOTJS_ALIGNUP(value, alignment) \
+#define VEIL_ALIGNUP(value, alignment) \
   (((value) + ((alignment)-1)) & ~((alignment)-1))
 
 static uv_req_t* create_request(size_t request_size, size_t extra_data_size) {
   /* Make sure that the jerry_value_t is aligned */
-  size_t aligned_request_size = IOTJS_ALIGNUP(request_size, 8u);
+  size_t aligned_request_size = VEIL_ALIGNUP(request_size, 8u);
 
   char* request_memory = iotjs_buffer_allocate(
       aligned_request_size + sizeof(jerry_value_t) + extra_data_size);
@@ -38,27 +37,27 @@ static uv_req_t* create_request(size_t request_size, size_t extra_data_size) {
   return uv_request;
 }
 
-uv_req_t* iotjs_uv_request_create(size_t request_size,
+uv_req_t* veil_uv_request_create(size_t request_size,
                                   const jerry_value_t jcallback,
                                   size_t extra_data_size) {
   IOTJS_ASSERT(jerry_value_is_function(jcallback));
 
   uv_req_t* uv_request = create_request(request_size, extra_data_size);
 
-  *IOTJS_UV_REQUEST_JSCALLBACK(uv_request) = jerry_value_copy(jcallback);
+  *VEIL_UV_REQUEST_JSCALLBACK(uv_request) = jerry_value_copy(jcallback);
 
   return uv_request;
 }
 
-uv_req_t* iotjs_uv_request_create_sync(size_t request_size, size_t extra_data_size) {
+uv_req_t* veil_uv_request_create_sync(size_t request_size, size_t extra_data_size) {
   uv_req_t* uv_request = create_request(request_size, extra_data_size);
 
-  *IOTJS_UV_REQUEST_JSCALLBACK(uv_request) = jerry_undefined();
+  *VEIL_UV_REQUEST_JSCALLBACK(uv_request) = jerry_undefined();
 
   return uv_request;
 }
 
-void iotjs_uv_request_destroy(uv_req_t* request) {
-  jerry_value_free(*IOTJS_UV_REQUEST_JSCALLBACK(request));
+void veil_uv_request_destroy(uv_req_t* request) {
+  jerry_value_free(*VEIL_UV_REQUEST_JSCALLBACK(request));
   IOTJS_RELEASE(request);
 }
