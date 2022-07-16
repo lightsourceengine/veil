@@ -348,7 +348,7 @@ static jerry_value_t make_stat_object(uv_stat_t* statbuf, bool use_bigint) {
 JS_FUNCTION(fs_stat) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(2, string, boolean);
-  DJS_CHECK_ARG_IF_EXIST(1, function);
+  DJS_CHECK_ARG_IF_EXIST(2, function);
 
   const iotjs_environment_t* env = iotjs_environment_get();
 
@@ -371,7 +371,7 @@ JS_FUNCTION(fs_stat) {
 JS_FUNCTION(fs_lstat) {
   DJS_CHECK_THIS();
   DJS_CHECK_ARGS(2, string, boolean);
-  DJS_CHECK_ARG_IF_EXIST(1, function);
+  DJS_CHECK_ARG_IF_EXIST(2, function);
 
   const iotjs_environment_t* env = iotjs_environment_get();
 
