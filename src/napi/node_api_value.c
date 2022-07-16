@@ -35,8 +35,8 @@ const char* const napi_err_no_typedarray =
 const char* const napi_err_invalid_deferred =
     "Invalid deferred object. Please refer to the documentation.";
 
-static void iotjs_napi_buffer_external_free_cb(void* native_p) {
-  iotjs_buffer_external_info_t* info = (iotjs_buffer_external_info_t*)native_p;
+static void veil_napi_buffer_external_free_cb(void* native_p) {
+  veil_buffer_external_info_t* info = (veil_buffer_external_info_t*)native_p;
 
   napi_env env = info->env;
   void* external_data = info->external_data;
@@ -89,7 +89,7 @@ napi_status napi_create_arraybuffer(napi_env env, size_t byte_length,
   NAPI_RETURN(napi_ok);
 }
 
-static void iotjs_napi_arraybuffer_external_free_cb(void* native_p) {
+static void veil_napi_arraybuffer_external_free_cb(void* native_p) {
   IOTJS_UNUSED(native_p);
 }
 
@@ -112,10 +112,10 @@ napi_status napi_create_external_arraybuffer(napi_env env, void* external_data,
   JERRYX_CREATE(jval_arrbuf, jerry_arraybuffer_external(
                                  external_data,
                                  byte_length,
-                                 iotjs_napi_arraybuffer_external_free_cb));
+                                 veil_napi_arraybuffer_external_free_cb));
 
-  iotjs_object_info_t* info =
-      iotjs_get_object_native_info(jval_arrbuf, sizeof(iotjs_object_info_t));
+  veil_object_info_t* info =
+      veil_get_object_native_info(jval_arrbuf, sizeof(veil_object_info_t));
   info->env = env;
   info->native_object = external_data;
   info->finalize_hint = finalize_hint;
@@ -215,7 +215,7 @@ napi_status napi_create_dataview(napi_env env, size_t byte_length,
 }
 
 static void napi_external_destroy(void *native_p, struct jerry_object_native_info_t *info_p) {
-  iotjs_object_info_t* info = native_p;
+  veil_object_info_t* info = native_p;
 
   if (info->finalize_cb != NULL) {
     info->finalize_cb(info->env, info->native_object, info->finalize_hint);
@@ -234,8 +234,8 @@ napi_status napi_create_external(napi_env env, void* data,
   NAPI_TRY_ENV(env);
   napi_value nval;
   NAPI_INTERNAL_CALL(napi_create_object(env, &nval));
-  iotjs_object_info_t* info =
-      (iotjs_object_info_t*)iotjs_buffer_allocate(sizeof(iotjs_object_info_t));
+  veil_object_info_t* info =
+      (veil_object_info_t*)iotjs_buffer_allocate(sizeof(veil_object_info_t));
   info->native_object = data;
   info->finalize_cb = finalize_cb;
   info->finalize_hint = finalize_hint;
@@ -258,8 +258,7 @@ napi_status napi_create_external_buffer(napi_env env, size_t length, void* data,
 
   jerry_value_t jbuffer = AS_JERRY_VALUE(res);
   iotjs_bufferwrap_t* bufferwrap = iotjs_bufferwrap_from_jbuffer(jbuffer);
-  iotjs_buffer_external_info_t* info =
-      IOTJS_ALLOC(iotjs_buffer_external_info_t);
+  veil_buffer_external_info_t* info = IOTJS_ALLOC(veil_buffer_external_info_t);
 
   info->env = env;
   info->external_data = data;
@@ -267,7 +266,7 @@ napi_status napi_create_external_buffer(napi_env env, size_t length, void* data,
   info->finalize_cb = finalize_cb;
 
   iotjs_bufferwrap_set_external_callback(bufferwrap,
-                                         iotjs_napi_buffer_external_free_cb,
+                                         veil_napi_buffer_external_free_cb,
                                          info);
 
   NAPI_ASSIGN(result, res);
@@ -605,7 +604,7 @@ napi_status napi_get_value_external(napi_env env, napi_value value,
                                     void** result) {
   NAPI_TRY_ENV(env);
   jerry_value_t jval = AS_JERRY_VALUE(value);
-  iotjs_object_info_t* info = jerry_object_get_native_ptr(jval, &napi_external_native_info);
+  veil_object_info_t* info = jerry_object_get_native_ptr(jval, &napi_external_native_info);
   if (!info) {
     NAPI_ASSIGN(result, NULL);
     NAPI_RETURN_WITH_MSG(napi_invalid_arg,

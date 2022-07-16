@@ -35,7 +35,7 @@ int napi_module_init_pending(jerry_value_t* exports) {
     return napi_module_no_nm_register_func;
   }
 
-  napi_env env = iotjs_get_current_napi_env();
+  napi_env env = veil_get_current_napi_env();
 
   jerryx_handle_scope scope;
   jerryx_open_handle_scope(&scope);
@@ -59,11 +59,11 @@ int napi_module_init_pending(jerry_value_t* exports) {
 
   mod_pending = NULL;
 
-  if (iotjs_napi_is_exception_pending(env)) {
+  if (veil_napi_is_exception_pending(env)) {
     jerry_value_t jval_err;
-    jval_err = iotjs_napi_env_get_and_clear_exception(env);
+    jval_err = veil_napi_env_get_and_clear_exception(env);
     if (jval_err == (uintptr_t)NULL) {
-      jval_err = iotjs_napi_env_get_and_clear_fatal_exception(env);
+      jval_err = veil_napi_env_get_and_clear_fatal_exception(env);
     }
     jerry_value_free(jval_exports);
     *exports = jval_err;

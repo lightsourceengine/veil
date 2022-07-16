@@ -17,11 +17,11 @@
 #include <stdlib.h>
 #include "internal/node_api_internal.h"
 
-IOTJS_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(object_info);
+VEIL_DEFINE_NATIVE_HANDLE_INFO_THIS_MODULE(object_info);
 
-static void iotjs_object_info_destroy(void *native_p, struct jerry_object_native_info_t *info_p) {
-  iotjs_object_info_t* info = native_p;
-  iotjs_reference_t* comp = info->ref_start;
+static void veil_object_info_destroy(void *native_p, struct jerry_object_native_info_t *info_p) {
+  veil_object_info_t* info = native_p;
+  veil_reference_t* comp = info->ref_start;
   while (comp != NULL) {
     comp->jval = jerry_undefined();
     comp = comp->next;
@@ -46,7 +46,7 @@ inline napi_status jerryx_status_to_napi_status(
   }
 }
 
-iotjs_object_info_t* iotjs_get_object_native_info(jerry_value_t jval,
+veil_object_info_t* veil_get_object_native_info(jerry_value_t jval,
                                                   size_t native_info_size) {
   void* info = jerry_object_get_native_ptr(jval, &this_module_native_info);
   if (!info) {
@@ -54,14 +54,14 @@ iotjs_object_info_t* iotjs_get_object_native_info(jerry_value_t jval,
     jerry_object_set_native_ptr(jval, &this_module_native_info, info);
   }
 
-  return (iotjs_object_info_t*)info;
+  return (veil_object_info_t*)info;
 }
 
-iotjs_object_info_t* iotjs_try_get_object_native_info(jerry_value_t jval,
+veil_object_info_t* veil_try_get_object_native_info(jerry_value_t jval,
                                                       size_t native_info_size) {
   void* info = jerry_object_get_native_ptr(jval, &this_module_native_info);
 
-  return (iotjs_object_info_t*)info;
+  return (veil_object_info_t*)info;
 }
 
 napi_status napi_open_handle_scope(napi_env env, napi_handle_scope* result) {
@@ -123,10 +123,10 @@ napi_status napi_create_reference(napi_env env, napi_value value,
   NAPI_WEAK_ASSERT(napi_invalid_arg, result != NULL);
 
   jerry_value_t jval = AS_JERRY_VALUE(value);
-  iotjs_object_info_t* info =
-      iotjs_get_object_native_info(jval, sizeof(iotjs_object_info_t));
+  veil_object_info_t* info =
+      veil_get_object_native_info(jval, sizeof(veil_object_info_t));
 
-  iotjs_reference_t* ref = IOTJS_ALLOC(iotjs_reference_t);
+  veil_reference_t* ref = IOTJS_ALLOC(veil_reference_t);
   ref->refcount = initial_refcount;
   ref->jval = AS_JERRY_VALUE(value);
   ref->next = NULL;
@@ -153,16 +153,16 @@ napi_status napi_create_reference(napi_env env, napi_value value,
 
 napi_status napi_delete_reference(napi_env env, napi_ref ref) {
   NAPI_TRY_ENV(env);
-  iotjs_reference_t* iotjs_ref = (iotjs_reference_t*)ref;
-  if (jerry_value_is_object(iotjs_ref->jval)) {
-    jerry_value_t jval = iotjs_ref->jval;
-    iotjs_object_info_t* info =
-        iotjs_get_object_native_info(jval, sizeof(iotjs_object_info_t));
+  veil_reference_t* veil_ref = (veil_reference_t*)ref;
+  if (jerry_value_is_object(veil_ref->jval)) {
+    jerry_value_t jval = veil_ref->jval;
+    veil_object_info_t* info =
+        veil_get_object_native_info(jval, sizeof(veil_object_info_t));
 
     bool found = false;
-    iotjs_reference_t* comp = info->ref_start;
+    veil_reference_t* comp = info->ref_start;
     while (comp != NULL) {
-      if (comp == iotjs_ref) {
+      if (comp == veil_ref) {
         found = true;
         break;
       }
@@ -170,57 +170,57 @@ napi_status napi_delete_reference(napi_env env, napi_ref ref) {
     }
 
     NAPI_WEAK_ASSERT(napi_invalid_arg, found);
-    if (info->ref_start == iotjs_ref) {
-      info->ref_start = iotjs_ref->next;
+    if (info->ref_start == veil_ref) {
+      info->ref_start = veil_ref->next;
     }
-    if (info->ref_end == iotjs_ref) {
-      info->ref_end = iotjs_ref->prev;
+    if (info->ref_end == veil_ref) {
+      info->ref_end = veil_ref->prev;
     }
-    if (iotjs_ref->prev != NULL) {
-      iotjs_ref->prev->next = iotjs_ref->next;
+    if (veil_ref->prev != NULL) {
+      veil_ref->prev->next = veil_ref->next;
     }
-    if (iotjs_ref->next != NULL) {
-      iotjs_ref->next->prev = iotjs_ref->prev;
+    if (veil_ref->next != NULL) {
+      veil_ref->next->prev = veil_ref->prev;
     }
   }
 
-  for (uint32_t i = 0; i < iotjs_ref->refcount; ++i) {
-    jerry_value_free(iotjs_ref->jval);
+  for (uint32_t i = 0; i < veil_ref->refcount; ++i) {
+    jerry_value_free(veil_ref->jval);
   }
-  IOTJS_RELEASE(iotjs_ref);
+  IOTJS_RELEASE(veil_ref);
   NAPI_RETURN(napi_ok);
 }
 
 napi_status napi_reference_ref(napi_env env, napi_ref ref, uint32_t* result) {
   NAPI_TRY_ENV(env);
-  iotjs_reference_t* iotjs_ref = (iotjs_reference_t*)ref;
-  NAPI_WEAK_ASSERT(napi_invalid_arg, jerry_value_is_object(iotjs_ref->jval));
+  veil_reference_t* veil_ref = (veil_reference_t*)ref;
+  NAPI_WEAK_ASSERT(napi_invalid_arg, jerry_value_is_object(veil_ref->jval));
 
   // avoid unused result warning
-  (void)!jerry_value_copy(iotjs_ref->jval);
-  iotjs_ref->refcount += 1;
+  (void)!jerry_value_copy(veil_ref->jval);
+  veil_ref->refcount += 1;
 
-  NAPI_ASSIGN(result, iotjs_ref->refcount);
+  NAPI_ASSIGN(result, veil_ref->refcount);
   NAPI_RETURN(napi_ok);
 }
 
 napi_status napi_reference_unref(napi_env env, napi_ref ref, uint32_t* result) {
   NAPI_TRY_ENV(env);
-  iotjs_reference_t* iotjs_ref = (iotjs_reference_t*)ref;
-  NAPI_WEAK_ASSERT(napi_invalid_arg, (iotjs_ref->refcount > 0));
+  veil_reference_t* veil_ref = (veil_reference_t*)ref;
+  NAPI_WEAK_ASSERT(napi_invalid_arg, (veil_ref->refcount > 0));
 
-  jerry_value_free(iotjs_ref->jval);
-  iotjs_ref->refcount -= 1;
+  jerry_value_free(veil_ref->jval);
+  veil_ref->refcount -= 1;
 
-  NAPI_ASSIGN(result, iotjs_ref->refcount);
+  NAPI_ASSIGN(result, veil_ref->refcount);
   NAPI_RETURN(napi_ok);
 }
 
 napi_status napi_get_reference_value(napi_env env, napi_ref ref,
                                      napi_value* result) {
   NAPI_TRY_ENV(env);
-  iotjs_reference_t* iotjs_ref = (iotjs_reference_t*)ref;
-  return napi_assign_nvalue(iotjs_ref->jval, result);
+  veil_reference_t* veil_ref = (veil_reference_t*)ref;
+  return napi_assign_nvalue(veil_ref->jval, result);
 }
 
 napi_status napi_open_callback_scope(napi_env env, napi_value resource_object,
@@ -238,9 +238,9 @@ napi_status napi_close_callback_scope(napi_env env, napi_callback_scope scope) {
 napi_status napi_add_env_cleanup_hook(napi_env env, void (*fun)(void* arg),
                                       void* arg) {
   NAPI_TRY_ENV(env);
-  iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
-  iotjs_cleanup_hook_t* memo = NULL;
-  iotjs_cleanup_hook_t* hook = curr_env->cleanup_hook;
+  veil_napi_env_t* curr_env = (veil_napi_env_t*)env;
+  veil_cleanup_hook_t* memo = NULL;
+  veil_cleanup_hook_t* hook = curr_env->cleanup_hook;
 
   while (hook != NULL) {
     if (fun == hook->fn) {
@@ -250,7 +250,7 @@ napi_status napi_add_env_cleanup_hook(napi_env env, void (*fun)(void* arg),
     hook = hook->next;
   }
 
-  iotjs_cleanup_hook_t* new_hook = IOTJS_ALLOC(iotjs_cleanup_hook_t);
+  veil_cleanup_hook_t* new_hook = IOTJS_ALLOC(veil_cleanup_hook_t);
   new_hook->fn = fun;
   new_hook->arg = arg;
   new_hook->next = NULL;
@@ -267,9 +267,9 @@ napi_status napi_add_env_cleanup_hook(napi_env env, void (*fun)(void* arg),
 napi_status napi_remove_env_cleanup_hook(napi_env env, void (*fun)(void* arg),
                                          void* arg) {
   NAPI_TRY_ENV(env);
-  iotjs_napi_env_t* curr_env = (iotjs_napi_env_t*)env;
-  iotjs_cleanup_hook_t* memo = NULL;
-  iotjs_cleanup_hook_t* hook = curr_env->cleanup_hook;
+  veil_napi_env_t* curr_env = (veil_napi_env_t*)env;
+  veil_cleanup_hook_t* memo = NULL;
+  veil_cleanup_hook_t* hook = curr_env->cleanup_hook;
   bool found = false;
   while (hook != NULL) {
     if (fun == hook->fn && arg == hook->arg) {
@@ -290,17 +290,17 @@ napi_status napi_remove_env_cleanup_hook(napi_env env, void (*fun)(void* arg),
   NAPI_RETURN(napi_ok);
 }
 
-void iotjs_setup_napi() {
-  iotjs_napi_env_t* env = (iotjs_napi_env_t*)iotjs_get_current_napi_env();
+void veil_setup_napi() {
+  veil_napi_env_t* env = (veil_napi_env_t*)veil_get_current_napi_env();
   env->main_thread = uv_thread_self();
 }
 
-void iotjs_cleanup_napi() {
-  iotjs_napi_env_t* env = (iotjs_napi_env_t*)iotjs_get_current_napi_env();
-  iotjs_cleanup_hook_t* hook = env->cleanup_hook;
+void veil_cleanup_napi() {
+  veil_napi_env_t* env = (veil_napi_env_t*)veil_get_current_napi_env();
+  veil_cleanup_hook_t* hook = env->cleanup_hook;
   while (hook != NULL) {
     hook->fn(hook->arg);
-    iotjs_cleanup_hook_t* memo = hook;
+    veil_cleanup_hook_t* memo = hook;
     hook = hook->next;
     IOTJS_RELEASE(memo);
   }

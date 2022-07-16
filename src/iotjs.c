@@ -202,7 +202,7 @@ static int iotjs_start(iotjs_environment_t* env) {
   iotjs_environment_set_state(env, kRunningMain);
 
 #if ENABLE_MODULE_NAPI
-  iotjs_setup_napi();
+  veil_setup_napi();
 #endif
 
   // boot: init js environment and run the js file from the commandline
@@ -283,7 +283,7 @@ void iotjs_terminate(iotjs_environment_t* env) {
   iotjs_module_list_cleanup();
 
 #if ENABLE_MODULE_NAPI
-  iotjs_cleanup_napi();
+  veil_cleanup_napi();
 #endif
 
   veil_module_cleanup();

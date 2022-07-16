@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef IOTJS_NODE_API_H
-#define IOTJS_NODE_API_H
+#ifndef VEIL_NODE_API_H
+#define VEIL_NODE_API_H
 
 #include "iotjs_def.h"
 #include "jerryscript-ext/handle-scope.h"
@@ -37,14 +37,14 @@
  */
 #define NAPI_RETURN_WITH_MSG(status, message)                                \
   do {                                                                       \
-    iotjs_napi_set_error_info(iotjs_get_current_napi_env(), status, message, \
+    veil_napi_set_error_info(veil_get_current_napi_env(), status, message,   \
                               0, NULL);                                      \
     return status;                                                           \
   } while (0)
 
 #define NAPI_RETURN(status)                                                  \
   do {                                                                       \
-    iotjs_napi_set_error_info(iotjs_get_current_napi_env(), status, NULL, 0, \
+    veil_napi_set_error_info(veil_get_current_napi_env(), status, NULL, 0,   \
                               NULL);                                         \
     return status;                                                           \
   } while (0)
@@ -91,7 +91,7 @@
  */
 #define NAPI_TRY_NO_PENDING_EXCEPTION(env) \
   NAPI_WEAK_ASSERT(napi_pending_exception, \
-                   !iotjs_napi_is_exception_pending(env))
+                   !veil_napi_is_exception_pending(env))
 /** MARK: - N-API Asserts */
 
 /**
@@ -128,34 +128,34 @@ int napi_module_init_pending(jerry_value_t* exports);
 /** MARK: - END node_api_module.c */
 
 /** MARK: - node_api_env.c */
-napi_env iotjs_get_current_napi_env(void);
+napi_env veil_get_current_napi_env(void);
 bool napi_try_env_helper(napi_env env);
-void iotjs_napi_set_current_callback(napi_env env,
-                                     iotjs_callback_info_t* callback_info);
-iotjs_callback_info_t* iotjs_napi_get_current_callback(napi_env env);
+void veil_napi_set_current_callback(napi_env env,
+                                    veil_callback_info_t* callback_info);
+veil_callback_info_t* iotjs_napi_get_current_callback(napi_env env);
 
-void iotjs_napi_set_error_info(napi_env env, napi_status error_code,
+void veil_napi_set_error_info(napi_env env, napi_status error_code,
                                const char* error_message,
                                uint32_t engine_error_code,
                                void* engine_reserved);
-void iotjs_napi_clear_error_info(napi_env env);
+void veil_napi_clear_error_info(napi_env env);
 
-bool iotjs_napi_is_exception_pending(napi_env env);
-jerry_value_t iotjs_napi_env_get_and_clear_exception(napi_env env);
-jerry_value_t iotjs_napi_env_get_and_clear_fatal_exception(napi_env env);
+bool veil_napi_is_exception_pending(napi_env env);
+jerry_value_t veil_napi_env_get_and_clear_exception(napi_env env);
+jerry_value_t veil_napi_env_get_and_clear_fatal_exception(napi_env env);
 /** MARK: - END node_api_env.c */
 
 /** MARK: - node_api_lifetime.c */
 napi_status jerryx_status_to_napi_status(jerryx_handle_scope_status status);
-iotjs_object_info_t* iotjs_get_object_native_info(jerry_value_t jval,
+veil_object_info_t* veil_get_object_native_info(jerry_value_t jval,
                                                   size_t native_info_size);
-iotjs_object_info_t* iotjs_try_get_object_native_info(jerry_value_t jval,
+veil_object_info_t* veil_try_get_object_native_info(jerry_value_t jval,
                                                       size_t native_info_size);
-void iotjs_setup_napi(void);
-void iotjs_cleanup_napi(void);
+void veil_setup_napi(void);
+void veil_cleanup_napi(void);
 /** MARK: - END node_api_lifetime.c */
 
 napi_status napi_assign_bool(bool value, bool* result);
 napi_status napi_assign_nvalue(jerry_value_t jvalue, napi_value* nvalue);
 
-#endif // IOTJS_NODE_API_H
+#endif // VEIL_NODE_API_H

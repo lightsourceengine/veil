@@ -20,11 +20,11 @@
 #include "internal/node_api_internal.h"
 #include "node_api.h"
 
-static jerry_value_t iotjs_napi_function_handler(
+static jerry_value_t veil_napi_function_handler(
     const jerry_call_info_t *call_info_p,
     const jerry_value_t args_p[], const jerry_length_t args_cnt) {
-  iotjs_function_info_t* function_info = (iotjs_function_info_t*)
-      iotjs_try_get_object_native_info(call_info_p->function, sizeof(iotjs_function_info_t));
+  veil_function_info_t* function_info = (veil_function_info_t*)
+      veil_try_get_object_native_info(call_info_p->function, sizeof(veil_function_info_t));
   IOTJS_ASSERT(function_info != NULL);
 
   napi_env env = function_info->env;
@@ -32,7 +32,7 @@ static jerry_value_t iotjs_napi_function_handler(
   jerryx_handle_scope scope;
   jerryx_open_handle_scope(&scope);
 
-  iotjs_callback_info_t* callback_info = IOTJS_ALLOC(iotjs_callback_info_t);
+  veil_callback_info_t* callback_info = IOTJS_ALLOC(veil_callback_info_t);
   callback_info->argc = args_cnt;
   callback_info->argv = (jerry_value_t*)args_p;
   callback_info->jval_this = call_info_p->this_value;
@@ -42,19 +42,19 @@ static jerry_value_t iotjs_napi_function_handler(
   callback_info->handle_scope = scope;
   callback_info->function_info = function_info;
 
-  iotjs_napi_set_current_callback(env, callback_info);
+  veil_napi_set_current_callback(env, callback_info);
   napi_value nvalue_ret =
       function_info->cb(env, (napi_callback_info)callback_info);
-  iotjs_napi_set_current_callback(env, NULL);
+  veil_napi_set_current_callback(env, NULL);
   IOTJS_RELEASE(callback_info);
 
   jerry_value_t jval_ret;
-  if (iotjs_napi_is_exception_pending(env)) {
-    jerry_value_t jval_err = iotjs_napi_env_get_and_clear_exception(env);
+  if (veil_napi_is_exception_pending(env)) {
+    jerry_value_t jval_err = veil_napi_env_get_and_clear_exception(env);
     if (jval_err != (uintptr_t)NULL) {
       jval_ret = jval_err;
     } else {
-      jval_err = iotjs_napi_env_get_and_clear_fatal_exception(env);
+      jval_err = veil_napi_env_get_and_clear_fatal_exception(env);
       IOTJS_ASSERT(jval_err != (uintptr_t)NULL);
 
       jval_ret = jval_err;
@@ -83,7 +83,7 @@ cleanup:
    * Clear N-API env extended error info on end of external function
    * execution to prevent error info been passed to next external function.
    */
-  iotjs_napi_clear_error_info(env);
+  veil_napi_clear_error_info(env);
   return jval_ret;
 }
 
@@ -92,11 +92,11 @@ napi_status napi_create_function(napi_env env, const char* utf8name,
                                  napi_value* result) {
   NAPI_TRY_ENV(env);
   jerry_value_t jval_func =
-      jerry_function_external(iotjs_napi_function_handler);
+      jerry_function_external(veil_napi_function_handler);
   jerryx_create_handle(jval_func);
 
-  iotjs_function_info_t* function_info = (iotjs_function_info_t*)
-      iotjs_get_object_native_info(jval_func, sizeof(iotjs_function_info_t));
+  veil_function_info_t* function_info = (veil_function_info_t*)
+      veil_get_object_native_info(jval_func, sizeof(veil_function_info_t));
   function_info->env = env;
   function_info->cb = cb;
   function_info->data = data;
@@ -136,7 +136,7 @@ napi_status napi_get_cb_info(napi_env env, napi_callback_info cbinfo,
                              size_t* argc, napi_value* argv,
                              napi_value* thisArg, void** data) {
   NAPI_TRY_ENV(env);
-  iotjs_callback_info_t* callback_info = (iotjs_callback_info_t*)cbinfo;
+  veil_callback_info_t* callback_info = (veil_callback_info_t*)cbinfo;
 
   size_t _argc = (argc == NULL || argv == NULL) ? 0 : *argc;
   for (size_t i = 0; i < _argc; ++i) {
@@ -161,7 +161,7 @@ napi_status napi_get_cb_info(napi_env env, napi_callback_info cbinfo,
 
 napi_status napi_get_new_target(napi_env env, napi_callback_info cbinfo,
                                 napi_value* result) {
-  iotjs_callback_info_t* callback_info = (iotjs_callback_info_t*)cbinfo;
+  veil_callback_info_t* callback_info = (veil_callback_info_t*)cbinfo;
   jerry_value_t jval_this = callback_info->jval_this;
   jerry_value_t jval_target = callback_info->jval_func;
   jerry_value_t is_instance =

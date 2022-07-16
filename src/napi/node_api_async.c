@@ -17,16 +17,16 @@
 #include "uv.h"
 #include "internal/node_api_internal.h"
 
-static void iotjs_uv_work_cb(uv_work_t* req) {
-  iotjs_async_work_t* async_work = (iotjs_async_work_t*)req->data;
+static void veil_uv_work_cb(uv_work_t* req) {
+  veil_async_work_t* async_work = (veil_async_work_t*)req->data;
   IOTJS_ASSERT(async_work != NULL);
   if (async_work->execute != NULL) {
     async_work->execute(async_work->env, async_work->data);
   }
 }
 
-static void iotjs_uv_work_after_cb(uv_work_t* req, int status) {
-  iotjs_async_work_t* async_work = (iotjs_async_work_t*)req->data;
+static void veil_uv_work_after_cb(uv_work_t* req, int status) {
+  veil_async_work_t* async_work = (veil_async_work_t*)req->data;
   IOTJS_ASSERT(async_work != NULL);
   napi_status cb_status;
   if (status == 0) {
@@ -51,11 +51,11 @@ static void iotjs_uv_work_after_cb(uv_work_t* req, int status) {
     complete(env, cb_status, data);
     jerryx_close_handle_scope(scope);
 
-    if (iotjs_napi_is_exception_pending(env)) {
+    if (veil_napi_is_exception_pending(env)) {
       jerry_value_t jval_err;
-      jval_err = iotjs_napi_env_get_and_clear_exception(env);
+      jval_err = veil_napi_env_get_and_clear_exception(env);
       if (jval_err == (uintptr_t)NULL) {
-        jval_err = iotjs_napi_env_get_and_clear_fatal_exception(env);
+        jval_err = veil_napi_env_get_and_clear_fatal_exception(env);
       }
 
       /** Argument cannot have error flag */
@@ -77,7 +77,7 @@ napi_status napi_create_async_work(napi_env env, napi_value async_resource,
   NAPI_WEAK_ASSERT(napi_invalid_arg, execute != NULL);
   NAPI_WEAK_ASSERT(napi_invalid_arg, complete != NULL);
 
-  iotjs_async_work_t* async_work = IOTJS_ALLOC(iotjs_async_work_t);
+  veil_async_work_t* async_work = IOTJS_ALLOC(veil_async_work_t);
   uv_work_t* work_req = &async_work->work_req;
 
   async_work->env = env;
@@ -96,7 +96,7 @@ napi_status napi_create_async_work(napi_env env, napi_value async_resource,
 napi_status napi_delete_async_work(napi_env env, napi_async_work work) {
   NAPI_TRY_ENV(env);
   uv_work_t* work_req = (uv_work_t*)work;
-  iotjs_async_work_t* async_work = (iotjs_async_work_t*)work_req->data;
+  veil_async_work_t* async_work = (veil_async_work_t*)work_req->data;
   IOTJS_RELEASE(async_work);
   NAPI_RETURN(napi_ok);
 }
@@ -109,7 +109,7 @@ napi_status napi_queue_async_work(napi_env env, napi_async_work work) {
   uv_work_t* work_req = (uv_work_t*)work;
 
   int status =
-      uv_queue_work(loop, work_req, iotjs_uv_work_cb, iotjs_uv_work_after_cb);
+      uv_queue_work(loop, work_req, veil_uv_work_cb, veil_uv_work_after_cb);
   if (status != 0) {
     const char* err_name = uv_err_name(status);
     NAPI_RETURN_WITH_MSG(napi_generic_failure, err_name);
@@ -133,7 +133,7 @@ napi_status napi_async_init(napi_env env, napi_value async_resource,
                             napi_async_context* result) {
   NAPI_TRY_ENV(env);
 
-  iotjs_async_context_t* ctx = IOTJS_ALLOC(iotjs_async_context_t);
+  veil_async_context_t* ctx = IOTJS_ALLOC(veil_async_context_t);
   ctx->env = env;
   ctx->async_resource = async_resource;
   ctx->async_resource_name = async_resource_name;
@@ -145,7 +145,7 @@ napi_status napi_async_init(napi_env env, napi_value async_resource,
 napi_status napi_async_destroy(napi_env env, napi_async_context async_context) {
   NAPI_TRY_ENV(env);
 
-  iotjs_async_context_t* ctx = (iotjs_async_context_t*)async_context;
+  veil_async_context_t* ctx = (veil_async_context_t*)async_context;
   IOTJS_RELEASE(ctx);
 
   return napi_ok;
@@ -157,7 +157,7 @@ napi_status napi_make_callback(napi_env env, napi_async_context async_context,
   NAPI_TRY_ENV(env);
 
   napi_status status = napi_call_function(env, recv, func, argc, argv, result);
-  if (!iotjs_napi_is_exception_pending(env)) {
+  if (!veil_napi_is_exception_pending(env)) {
     iotjs_process_next_tick();
   } else {
     // In this case explicit napi_async_destroy calls won't be executed, so

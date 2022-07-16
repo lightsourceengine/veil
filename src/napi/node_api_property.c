@@ -219,7 +219,7 @@ napi_status napi_delete_element(napi_env env, napi_value object, uint32_t index,
                           result);
 }
 
-napi_status iotjs_napi_prop_desc_to_jdesc(napi_env env,
+napi_status veil_napi_prop_desc_to_jdesc(napi_env env,
                                           const napi_property_descriptor* ndesc,
                                           jerry_property_descriptor_t* jdesc) {
   napi_status status;
@@ -306,7 +306,7 @@ napi_status napi_define_properties(napi_env env, napi_value object,
     }
 
     prop_desc = jerry_property_descriptor();
-    status = iotjs_napi_prop_desc_to_jdesc(env, &prop, &prop_desc);
+    status = veil_napi_prop_desc_to_jdesc(env, &prop, &prop_desc);
     if (status != napi_ok)
       return status;
 
