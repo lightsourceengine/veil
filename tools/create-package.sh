@@ -48,7 +48,7 @@ if [[ "${BUILD_TYPE}" != "release" ]] && [[ "${BUILD_TYPE}" != "debug" ]]; then
   exit 1
 fi
 
-VEIL_PACKAGE_NAME="veil-$(cat config/version)-${PACKAGE_TAG}"
+VEIL_PACKAGE_NAME="veil-v$(cat config/version)-${PACKAGE_TAG}"
 
 cd "${SOURCE_ROOT}"
 mkdir -p build/package
