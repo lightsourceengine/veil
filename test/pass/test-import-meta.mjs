@@ -15,11 +15,18 @@
 import assert from 'node:assert'
 import { fileURLToPath, URL } from 'node:url'
 import { basename } from 'node:path'
+import { url } from 'pkg/lib/import-meta-url.mjs'
 
 test('import.meta.url is an instance of URL', () => {
-  return assert(import.meta.url instanceof URL)
+  assert(import.meta.url instanceof URL)
 })
 
 test('import.meta.url matches this test filename', () => {
-  return assert.equal(basename(fileURLToPath(import.meta.url)), 'test-import-meta.mjs')
+  assert.equal(basename(fileURLToPath(import.meta.url)), 'test-import-meta.mjs')
+})
+
+// bug: import.meta.url returned undefined in nested import
+test('import.meta.url from package', () => {
+  assert(url instanceof URL)
+  assert.equal(basename(url.href), 'import-meta-url.mjs')
 })

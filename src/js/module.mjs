@@ -168,7 +168,11 @@ const preLink = async (specifier, referrer) => {
           throw Error(`loadHook(): expected source as string`)
         }
         const id = resolveResult.url
-        cache.set(id, module = fromSource(id, loadResult.source));
+
+        module = fromSource(id, loadResult.source)
+        module.url = new url.URL(id)
+
+        cache.set(id, module);
         break
       case 'builtin':
         if (typeof loadResult.source === 'string') {
@@ -229,7 +233,7 @@ const loadModule = (module, linkFetchRequest) => {
   let caught
   let { id } = module
 
-  if (url) {
+  if (!module.url && url) {
     module.url = new url.URL(id)
   }
 

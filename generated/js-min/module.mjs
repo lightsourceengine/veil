@@ -1,26 +1,26 @@
 let e,r,t,o,i
-const{native:n}=import.meta,{builtins:a,fromSymbols:s,fromBuiltin:l,fromSource:u,link:f,evaluate:c,evaluateWith:m,getNamespace:d,getRequests:h,getState:p,readFileSync:g,STATE_EVALUATED:w}=n,E=new Set(a.concat(a.map((e=>`node:${e}`)))),y=new Map,v=new Map,b=new Map,$=Object.freeze({format:'builtin',source:void 0}),S=e=>E.has(e),k=async(e,r,t=void 0)=>x(e,r),x=(e,r)=>{if(S(e))return{url:e.startsWith('node:')?e:`node:${e}`,format:'builtin'}
-return t.resolveSync(e,r)},U=async(e,r,t=void 0)=>R(e,r),R=(e,t)=>{const{format:o}=t
+const{native:n}=import.meta,{builtins:a,fromSymbols:s,fromBuiltin:l,fromSource:u,link:f,evaluate:c,evaluateWith:m,getNamespace:d,getRequests:h,getState:p,readFileSync:g,STATE_EVALUATED:w}=n,E=new Set(a.concat(a.map((e=>`node:${e}`)))),y=new Map,v=new Map,b=new Map,$=Object.freeze({format:'builtin',source:void 0}),S=e=>E.has(e),k=async(e,r,t=void 0)=>U(e,r),U=(e,r)=>{if(S(e))return{url:e.startsWith('node:')?e:`node:${e}`,format:'builtin'}
+return t.resolveSync(e,r)},x=async(e,r,t=void 0)=>R(e,r),R=(e,t)=>{const{format:o}=t
 if('builtin'===o)return $
 if('module'!==o)throw Error(`Unsupported format: ${o}`)
-return{format:o,source:g(r.fileURLToPath(e),false)}},L=async(e,r)=>{let n,a,s={conditions:t.conditions,parentURL:null==r?void 0:r.id},l,f,c
-if(n=b.get(e),!n){if(i)n=await i(e,s,k)
-if(!n)n=x(e,s)
-if('module'!==n.format&&'builtin'!==n.format)throw Error(`resolveHook(): invalid format = '${n.format}'`)
-if('string'!==typeof n.url)throw Error(`resolveHook(): expected url as string`)
-b.set(e,n)}if(f=y.get(n.url),!f){if(l={format:n.format},o)a=await o(n.url,l,U)
-if(!a)a=R(n.url,l)
-switch(a.format){case'module':if('string'!==typeof a.source)throw Error(`loadHook(): expected source as string`)
-const e=n.url
-y.set(e,f=u(e,a.source))
+return{format:o,source:g(r.fileURLToPath(e),false)}},L=async(e,n)=>{let a,s,l={conditions:t.conditions,parentURL:null==n?void 0:n.id},f,c,m
+if(a=b.get(e),!a){if(i)a=await i(e,l,k)
+if(!a)a=U(e,l)
+if('module'!==a.format&&'builtin'!==a.format)throw Error(`resolveHook(): invalid format = '${a.format}'`)
+if('string'!==typeof a.url)throw Error(`resolveHook(): expected url as string`)
+b.set(e,a)}if(c=y.get(a.url),!c){if(f={format:a.format},o)s=await o(a.url,f,x)
+if(!s)s=R(a.url,f)
+switch(s.format){case'module':if('string'!==typeof s.source)throw Error(`loadHook(): expected source as string`)
+const e=a.url
+c=u(e,s.source),c.url=new r.URL(e),y.set(e,c)
 break
-case'builtin':if('string'===typeof a.source)throw Error(`loadHook(): unexpected source for builtin format`)
+case'builtin':if('string'===typeof s.source)throw Error(`loadHook(): unexpected source for builtin format`)
 break
-default:throw Error(`loadHook(): unexpected format '${a.format}'`)}}if(c=f?h(f).map((e=>L(e,f))):[],c&&c.length)await Promise.all(c)
-return f},T=async(e,r)=>{if(S(e))return j(e)
+default:throw Error(`loadHook(): unexpected format '${s.format}'`)}}if(m=c?h(c).map((e=>L(e,c))):[],m&&m.length)await Promise.all(m)
+return c},T=async(e,r)=>{if(S(e))return j(e)
 return P(A(await L(e,r),W))},j=e=>P(A(H(e),H)),A=(e,t)=>{if(p(e)===w)return e
 let o,i,{id:n}=e
-if(r)e.url=new r.URL(n)
+if(!e.url&&r)e.url=new r.URL(n)
 try{o=f(e,t)}catch(e){i=e}if(!o)throw Error(`while linking ${n} ${i?i.toString():'link = false'}`)
 try{c(e)}catch(e){throw Error(`while evaluating ${n} ${e.toString()}`)}return e},H=(e,r)=>{if(!S(e))throw Error(`illegal import '${e}' from ${null==r?void 0:r.id}`)
 if(!e.startsWith('node:'))e=`node:${e}`
