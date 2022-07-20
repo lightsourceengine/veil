@@ -1,20 +1,17 @@
-/* Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
+/*
+ * Copyright (c) 2022 Light Source Software, LLC. All rights reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  */
 
-#ifndef IOTJS_ENV_H
-#define IOTJS_ENV_H
+#pragma once
 
 #include "uv.h"
 #include "cvec_str.h"
@@ -94,30 +91,37 @@ typedef struct {
   // length: VEIL_ENV_CLASS_ENUM_COUNT, index by veil_env_class_t enums.
   jerry_value_t* classes;
 
-} iotjs_environment_t;
+} veil_env_t;
 
 
-iotjs_environment_t* iotjs_environment_get(void);
-void iotjs_environment_release(void);
+veil_env_t* veil_env_get(void);
+void veil_env_release(void);
 
-uint32_t iotjs_environment_argc(const iotjs_environment_t* env);
-const char* iotjs_environment_argv(const iotjs_environment_t* env,
+uint32_t veil_env_argc(const veil_env_t* env);
+const char* veil_env_argv(const veil_env_t* env,
                                    uint32_t idx);
 
-uv_loop_t* iotjs_environment_loop(const iotjs_environment_t* env);
-void iotjs_environment_set_loop(iotjs_environment_t* env, uv_loop_t* loop);
+uv_loop_t* veil_env_loop(const veil_env_t* env);
+void veil_env_set_loop(veil_env_t* env, uv_loop_t* loop);
 
-const Config* iotjs_environment_config(const iotjs_environment_t* env);
+const Config* veil_env_config(const veil_env_t* env);
 #ifdef JERRY_DEBUGGER
-const DebuggerConfig* iotjs_environment_dconfig(const iotjs_environment_t* env);
+const DebuggerConfig* veil_env_dconfig(const veil_env_t* env);
 #endif
 
-void iotjs_environment_js_init(iotjs_environment_t* env);
+void veil_env_js_init(veil_env_t* env);
 
-void iotjs_environment_set_state(iotjs_environment_t* env, State s);
-bool iotjs_environment_is_exiting(iotjs_environment_t* env);
+void veil_env_set_state(veil_env_t* env, State s);
+bool veil_env_is_exiting(veil_env_t* env);
 
-void veil_env_set_class(iotjs_environment_t* env, veil_env_class_t type, jerry_value_t js_class);
-jerry_value_t veil_env_get_class(iotjs_environment_t* env, veil_env_class_t type);
+void veil_env_set_class(veil_env_t* env, veil_env_class_t type, jerry_value_t js_class);
+jerry_value_t veil_env_get_class(veil_env_t* env, veil_env_class_t type);
 
-#endif /* IOTJS_ENV_H */
+/*
+ * Contains code from the following projects:
+ *
+ * https://github.com/jerryscript-project/iotjs
+ * Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
+ *
+ * See the veil LICENSE file for more information.
+ */

@@ -55,11 +55,11 @@ void iotjs_uncaught_exception(jerry_value_t jexception) {
       1);
 
   if (jerry_value_is_error(callback_result)) {
-    iotjs_environment_t* env = iotjs_environment_get();
+    veil_env_t* env = veil_env_get();
 
-    if (!iotjs_environment_is_exiting(env)) {
+    if (!veil_env_is_exiting(env)) {
       iotjs_set_process_exitcode(2);
-      iotjs_environment_set_state(env, kExiting);
+      veil_env_set_state(env, kExiting);
     }
   }
 
@@ -84,9 +84,9 @@ void iotjs_process_emit_exit(int code) {
 
 // Calls next tick callbacks registered via `process.nextTick()`.
 bool iotjs_process_next_tick(void) {
-  iotjs_environment_t* env = iotjs_environment_get();
+  veil_env_t* env = veil_env_get();
 
-  if (iotjs_environment_is_exiting(env)) {
+  if (veil_env_is_exiting(env)) {
     return false;
   }
 
@@ -119,7 +119,7 @@ jerry_value_t iotjs_invoke_callback_with_result(jerry_value_t jfunc,
   IOTJS_ASSERT(jerry_value_is_function(jfunc));
 
   // If the environment is already exiting just return an undefined value.
-  if (iotjs_environment_is_exiting(iotjs_environment_get())) {
+  if (veil_env_is_exiting(veil_env_get())) {
     return jerry_undefined();
   }
   // Calls back the function.
@@ -149,7 +149,7 @@ int iotjs_process_exitcode(void) {
     exitcode = (uint8_t)iotjs_jval_as_number(num_val);
   }
 
-  uint8_t native_exitcode = iotjs_environment_get()->exitcode;
+  uint8_t native_exitcode = veil_env_get()->exitcode;
   if (native_exitcode != exitcode && native_exitcode) {
     exitcode = native_exitcode;
   }
@@ -166,7 +166,7 @@ void iotjs_set_process_exitcode(int code) {
   jerry_value_t jcode = jerry_number(code);
   jerry_value_t ret_val = jerry_object_set(process, jstring, jcode);
   if (jerry_value_is_error(ret_val)) {
-    iotjs_environment_get()->exitcode = 1;
+    veil_env_get()->exitcode = 1;
   }
 
   jerry_value_free(ret_val);

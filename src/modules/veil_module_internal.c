@@ -30,7 +30,7 @@ static void close_fd(uv_loop_t* loop, int32_t fd) {
   }
 }
 
-static jerry_value_t get_conditions(iotjs_environment_t* env) {
+static jerry_value_t get_conditions(veil_env_t* env) {
   jerry_length_t count = (jerry_length_t)cvec_str_size(env->esm_conditions);
   jerry_length_t i;
   jerry_value_t conditions = jerry_array(count);
@@ -50,7 +50,7 @@ JS_FUNCTION(js_fast_read_package_json) {
   DJS_CHECK_ARGS(1, string);
   cstr path_arg = JS_GET_ARG(0, string);
   const char* path = cstr_str_safe(&path_arg);
-  uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
+  uv_loop_t* loop = veil_env_loop(veil_env_get());
   uv_fs_t open_req;
   int32_t fd;
 
@@ -150,7 +150,7 @@ EXIT:
 JS_FUNCTION(js_fast_stat) {
   DJS_CHECK_ARGS(1, string);
   cstr path = JS_GET_ARG(0, string);
-  uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
+  uv_loop_t* loop = veil_env_loop(veil_env_get());
   uv_fs_t req;
   int32_t rc = uv_fs_stat(loop, &req, cstr_str_safe(&path), NULL);
 
@@ -169,7 +169,7 @@ JS_FUNCTION(js_get_option_value) {
   DJS_CHECK_ARGS(1, string);
   cstr name = JS_GET_ARG(0, string);
   jerry_value_t result;
-  iotjs_environment_t* env = iotjs_environment_get();
+  veil_env_t* env = veil_env_get();
 
   if (cstr_eq_raw(&name, "--preserve-symlinks")) {
     result = jerry_boolean(env->config.preserve_symlinks);

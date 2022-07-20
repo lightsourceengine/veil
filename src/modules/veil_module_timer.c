@@ -23,7 +23,7 @@ static void timer_finalize(void* native_p, jerry_object_native_info_t* native_in
 }
 
 int32_t iotjs_timer_object_init(jerry_value_t jtimer) {
-  uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
+  uv_loop_t* loop = veil_env_loop(veil_env_get());
   uv_handle_t* handle = veil_uv_create_handle(
       sizeof(uv_timer_t),
       NULL,

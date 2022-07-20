@@ -18,7 +18,7 @@
 JS_FUNCTION(open_native_module) {
   cstr location = JS_GET_ARG(0, string);
 
-  if (!iotjs_environment_get()->config.enable_napi) {
+  if (!veil_env_get()->config.enable_napi) {
     return jerry_throw_sz(JERRY_ERROR_COMMON, "--no-addon flag prevents loading of native addons");
   }
 

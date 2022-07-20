@@ -185,7 +185,7 @@ JS_FUNCTION(get_address_info) {
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags = flags;
 
-  error = uv_getaddrinfo(iotjs_environment_loop(iotjs_environment_get()),
+  error = uv_getaddrinfo(veil_env_loop(veil_env_get()),
                          (uv_getaddrinfo_t*)req_addr, after_get_addr_info,
                          cstr_str(&hostname), NULL, &hints);
 

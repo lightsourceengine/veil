@@ -103,8 +103,7 @@ napi_status napi_delete_async_work(napi_env env, napi_async_work work) {
 
 napi_status napi_queue_async_work(napi_env env, napi_async_work work) {
   NAPI_TRY_ENV(env);
-  iotjs_environment_t* iotjs_env = iotjs_environment_get();
-  uv_loop_t* loop = iotjs_environment_loop(iotjs_env);
+  uv_loop_t* loop = veil_env_loop(veil_env_get());
 
   uv_work_t* work_req = (uv_work_t*)work;
 

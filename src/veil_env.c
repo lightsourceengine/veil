@@ -1,33 +1,31 @@
-/* Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
+/*
+ * Copyright (c) 2022 Light Source Software, LLC. All rights reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
  */
 
 
 #include "iotjs_def.h"
-#include "iotjs_env.h"
+#include "veil_env.h"
 
 #include <stdlib.h>
 
-static iotjs_environment_t current_env;
+static veil_env_t current_env;
 static bool initialized = false;
 
-static void initialize(iotjs_environment_t* env);
+static void initialize(veil_env_t* env);
 
 /**
- * Get the singleton instance of iotjs_environment_t.
+ * Get the singleton instance of veil_env_t.
  */
-iotjs_environment_t* iotjs_environment_get(void) {
+veil_env_t* veil_env_get(void) {
   if (!initialized) {
     initialize(&current_env);
     initialized = true;
@@ -37,13 +35,13 @@ iotjs_environment_t* iotjs_environment_get(void) {
 
 
 /**
- * Release the singleton instance of iotjs_environment_t, and debugger config.
+ * Release the singleton instance of veil_env_t, and debugger config.
  */
-void iotjs_environment_release(void) {
+void veil_env_release(void) {
   if (!initialized)
     return;
 
-  iotjs_environment_t* env = iotjs_environment_get();
+  veil_env_t* env = veil_env_get();
 #ifdef JERRY_DEBUGGER
   IOTJS_RELEASE(env->config.debugger);
 #endif
@@ -62,7 +60,7 @@ void iotjs_environment_release(void) {
   initialized = false;
 }
 
-static void initialize(iotjs_environment_t* env) {
+static void initialize(veil_env_t* env) {
   env->argc = 0;
   env->argv = NULL;
   env->loop = NULL;
@@ -81,7 +79,7 @@ static void initialize(iotjs_environment_t* env) {
   env->esm_specifier_resolution = cstr_from("explicit");
 }
 
-void iotjs_environment_js_init(iotjs_environment_t* env) {
+void veil_env_js_init(veil_env_t* env) {
   IOTJS_ASSERT(env->classes == NULL);
 
   env->classes = malloc(VEIL_ENV_CLASS_ENUM_COUNT * sizeof(jerry_value_t));
@@ -91,33 +89,33 @@ void iotjs_environment_js_init(iotjs_environment_t* env) {
   }
 }
 
-uint32_t iotjs_environment_argc(const iotjs_environment_t* env) {
+uint32_t veil_env_argc(const veil_env_t* env) {
   return env->argc;
 }
 
 
-const char* iotjs_environment_argv(const iotjs_environment_t* env,
+const char* veil_env_argv(const veil_env_t* env,
                                    uint32_t idx) {
   return env->argv[idx];
 }
 
 
-uv_loop_t* iotjs_environment_loop(const iotjs_environment_t* env) {
+uv_loop_t* veil_env_loop(const veil_env_t* env) {
   return env->loop;
 }
 
 
-void iotjs_environment_set_loop(iotjs_environment_t* env, uv_loop_t* loop) {
+void veil_env_set_loop(veil_env_t* env, uv_loop_t* loop) {
   env->loop = loop;
 }
 
 
-const Config* iotjs_environment_config(const iotjs_environment_t* env) {
+const Config* veil_env_config(const veil_env_t* env) {
   return &env->config;
 }
 
 
-void iotjs_environment_set_state(iotjs_environment_t* env, State s) {
+void veil_env_set_state(veil_env_t* env, State s) {
   switch (s) {
     case kInitializing:
       break;
@@ -136,11 +134,11 @@ void iotjs_environment_set_state(iotjs_environment_t* env, State s) {
   env->state = s;
 }
 
-bool iotjs_environment_is_exiting(iotjs_environment_t* env) {
+bool veil_env_is_exiting(veil_env_t* env) {
   return env->state == kExiting;
 }
 
-void veil_env_set_class(iotjs_environment_t* env, veil_env_class_t type, jerry_value_t js_class) {
+void veil_env_set_class(veil_env_t* env, veil_env_class_t type, jerry_value_t js_class) {
   IOTJS_ASSERT(env != NULL);
   IOTJS_ASSERT(env->classes != NULL);
   IOTJS_ASSERT(type >= 0 && type < VEIL_ENV_CLASS_ENUM_COUNT);
@@ -149,7 +147,7 @@ void veil_env_set_class(iotjs_environment_t* env, veil_env_class_t type, jerry_v
   env->classes[type] = jerry_value_copy(js_class);
 }
 
-jerry_value_t veil_env_get_class(iotjs_environment_t* env, veil_env_class_t type) {
+jerry_value_t veil_env_get_class(veil_env_t* env, veil_env_class_t type) {
   IOTJS_ASSERT(env != NULL);
   IOTJS_ASSERT(env->classes != NULL);
   IOTJS_ASSERT(type >= 0 && type < VEIL_ENV_CLASS_ENUM_COUNT);
@@ -160,3 +158,12 @@ jerry_value_t veil_env_get_class(iotjs_environment_t* env, veil_env_class_t type
 
   return jerry_value_copy(js_class);
 }
+
+/*
+ * Contains code from the following projects:
+ *
+ * https://github.com/jerryscript-project/iotjs
+ * Copyright 2015-present Samsung Electronics Co., Ltd. and other contributors
+ *
+ * See the veil LICENSE file for more information.
+ */

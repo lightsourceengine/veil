@@ -35,7 +35,7 @@ static int32_t signal_wrap_init(jerry_value_t self) {
       NULL,
       self,
       &this_module_native_info);
-  uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
+  uv_loop_t* loop = veil_env_loop(veil_env_get());
   int32_t err = uv_signal_init(loop, (uv_signal_t*)handle);
 
   if (err) {

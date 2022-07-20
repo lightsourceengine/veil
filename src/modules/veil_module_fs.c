@@ -169,7 +169,7 @@ static uv_fs_t* create_fs_request_sync(fs_extra_type_t extra_data) {
 #define FS_ASYNC_EXTRA(env, extra_data, syscall, pcallback, ...)              \
   uv_fs_t* fs_req = create_fs_request(pcallback, extra_data);                 \
   *((fs_extra_type_t*)VEIL_UV_REQUEST_EXTRA_DATA(fs_req)) = extra_data;       \
-  int err = uv_fs_##syscall(iotjs_environment_loop(env), fs_req, __VA_ARGS__, \
+  int err = uv_fs_##syscall(veil_env_loop(env), fs_req, __VA_ARGS__, \
                             fs_after_async);                                  \
   if (err < 0) {                                                              \
     fs_req->result = err;                                                     \
@@ -182,7 +182,7 @@ static uv_fs_t* create_fs_request_sync(fs_extra_type_t extra_data) {
 
 #define FS_SYNC_EXTRA(env, extra_data, syscall, ...)                          \
   uv_fs_t* fs_req = create_fs_request_sync(extra_data);                       \
-  int err = uv_fs_##syscall(iotjs_environment_loop(env), fs_req, __VA_ARGS__, \
+  int err = uv_fs_##syscall(veil_env_loop(env), fs_req, __VA_ARGS__, \
                             NULL);                                            \
   ret_value = fs_after_sync(fs_req, err, #syscall);                           \
   uv_fs_req_cleanup(fs_req);                                                  \
@@ -195,7 +195,7 @@ JS_FUNCTION(fs_close) {
   DJS_CHECK_ARGS(1, number);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
+  const veil_env_t* env = veil_env_get();
 
   int fd = JS_GET_ARG(0, number);
   const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
@@ -215,7 +215,7 @@ JS_FUNCTION(fs_open) {
   DJS_CHECK_ARGS(3, string, number, number);
   DJS_CHECK_ARG_IF_EXIST(3, function);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
+  const veil_env_t* env = veil_env_get();
 
   cstr path = JS_GET_ARG(0, string);
   int flags = JS_GET_ARG(1, number);
@@ -244,7 +244,7 @@ jerry_value_t fs_do_read_or_write(const jerry_call_info_t *call_info_p,
   DJS_CHECK_ARGS(5, number, object, number, number, number);
   DJS_CHECK_ARG_IF_EXIST(5, function);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
+  const veil_env_t* env = veil_env_get();
 
   int fd = JS_GET_ARG(0, number);
   const jerry_value_t jbuffer = JS_GET_ARG(1, object);
@@ -317,7 +317,7 @@ static void set_timespec_by_index(jerry_value_t array, uint32_t index, uv_timesp
 }
 
 static jerry_value_t make_stat_object(uv_stat_t* statbuf, bool use_bigint) {
-  iotjs_environment_t* env = iotjs_environment_get();
+  veil_env_t* env = veil_env_get();
   jerry_value_t stats_constructor = veil_env_get_class(
       env, use_bigint ? VEIL_ENV_CLASS_BIG_INT_STATS : VEIL_ENV_CLASS_STATS);
   jerry_value_t stats = jerry_construct(stats_constructor, NULL, 0);
@@ -350,7 +350,7 @@ JS_FUNCTION(fs_stat) {
   DJS_CHECK_ARGS(2, string, boolean);
   DJS_CHECK_ARG_IF_EXIST(2, function);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
+  const veil_env_t* env = veil_env_get();
 
   cstr path = JS_GET_ARG(0, string);
   bool use_bigint = JS_GET_ARG(1, boolean);
@@ -373,7 +373,7 @@ JS_FUNCTION(fs_lstat) {
   DJS_CHECK_ARGS(2, string, boolean);
   DJS_CHECK_ARG_IF_EXIST(2, function);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
+  const veil_env_t* env = veil_env_get();
 
   cstr path = JS_GET_ARG(0, string);
   bool use_bigint = JS_GET_ARG(1, boolean);
@@ -396,7 +396,7 @@ JS_FUNCTION(fs_fstat) {
   DJS_CHECK_ARGS(2, number, boolean);
   DJS_CHECK_ARG_IF_EXIST(2, function);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
+  const veil_env_t* env = veil_env_get();
 
   int32_t fd = JS_GET_ARG(0, number);
   bool use_bigint = JS_GET_ARG(1, boolean);
@@ -417,7 +417,7 @@ JS_FUNCTION(fs_mkdir) {
   DJS_CHECK_ARGS(2, string, number);
   DJS_CHECK_ARG_IF_EXIST(2, function);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
+  const veil_env_t* env = veil_env_get();
 
   cstr path = JS_GET_ARG(0, string);
   int mode = JS_GET_ARG(1, number);
@@ -440,7 +440,7 @@ JS_FUNCTION(fs_rmdir) {
   DJS_CHECK_ARGS(1, string);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
+  const veil_env_t* env = veil_env_get();
 
   cstr path = JS_GET_ARG(0, string);
   const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
@@ -462,7 +462,7 @@ JS_FUNCTION(fs_unlink) {
   DJS_CHECK_ARGS(1, string);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
+  const veil_env_t* env = veil_env_get();
 
   cstr path = JS_GET_ARG(0, string);
   const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
@@ -484,7 +484,7 @@ JS_FUNCTION(fs_rename) {
   DJS_CHECK_ARGS(2, string, string);
   DJS_CHECK_ARG_IF_EXIST(2, function);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
+  const veil_env_t* env = veil_env_get();
 
   cstr old_path = JS_GET_ARG(0, string);
   cstr new_path = JS_GET_ARG(1, string);
@@ -508,7 +508,7 @@ JS_FUNCTION(fs_symlink) {
   DJS_CHECK_ARGS(3, string, string, number);
   DJS_CHECK_ARG_IF_EXIST(3, function);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
+  const veil_env_t* env = veil_env_get();
   cstr target = JS_GET_ARG(0, string);
   cstr path = JS_GET_ARG(1, string);
   int32_t flags = (int32_t)JS_GET_ARG(2, number);
@@ -532,7 +532,7 @@ JS_FUNCTION(fs_readlink) {
   DJS_CHECK_ARGS(1, string);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
+  const veil_env_t* env = veil_env_get();
 
   cstr path = JS_GET_ARG(0, string);
   const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
@@ -553,7 +553,7 @@ JS_FUNCTION(fs_realpath) {
   DJS_CHECK_ARGS(1, string);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
+  const veil_env_t* env = veil_env_get();
 
   cstr path = JS_GET_ARG(0, string);
   const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
@@ -574,7 +574,7 @@ JS_FUNCTION(fs_read_dir) {
   DJS_CHECK_ARGS(1, string);
   DJS_CHECK_ARG_IF_EXIST(1, function);
 
-  const iotjs_environment_t* env = iotjs_environment_get();
+  const veil_env_t* env = veil_env_get();
   cstr path = JS_GET_ARG(0, string);
   const jerry_value_t jcallback = JS_GET_ARG_IF_EXIST(1, function);
 
@@ -591,7 +591,7 @@ JS_FUNCTION(fs_read_dir) {
 JS_FUNCTION(js_fs_set_stats) {
   DJS_CHECK_ARGS(2, function, function);
 
-  iotjs_environment_t* env = iotjs_environment_get();
+  veil_env_t* env = veil_env_get();
 
   veil_env_set_class(env, VEIL_ENV_CLASS_STATS, jargv[0]);
   veil_env_set_class(env, VEIL_ENV_CLASS_BIG_INT_STATS, jargv[1]);

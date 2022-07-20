@@ -345,7 +345,7 @@ JS_FUNCTION(js_spawn) {
   DJS_CHECK_ARGS(1, object);
   JS_DECLARE_PTR(call_info_p->this_value, uv_process_t, process);
   int32_t err;
-  uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
+  uv_loop_t* loop = veil_env_loop(veil_env_get());
   jerry_value_t joptions = jargv[0];
   uv_process_options_t options;
   int32_t ivalue;

@@ -45,18 +45,18 @@ JS_FUNCTION(js_garbage_collector) {
   return jerry_undefined();
 }
 
-static bool jerry_initialize(iotjs_environment_t* env) {
+static bool jerry_initialize(veil_env_t* env) {
   // Set jerry run flags.
   jerry_init_flag_t jerry_flags = JERRY_INIT_EMPTY;
 
-  if (iotjs_environment_config(env)->memstat) {
+  if (veil_env_config(env)->memstat) {
     jerry_flags |= JERRY_INIT_MEM_STATS;
 #if !defined(__NUTTX__) && !defined(__TIZENRT__)
     jerry_log_set_level(JERRY_LOG_LEVEL_DEBUG);
 #endif
   }
 
-  if (iotjs_environment_config(env)->show_opcode) {
+  if (veil_env_config(env)->show_opcode) {
     jerry_flags |= JERRY_INIT_SHOW_OPCODES;
 #if !defined(__NUTTX__) && !defined(__TIZENRT__)
     jerry_log_set_level(JERRY_LOG_LEVEL_DEBUG);
@@ -66,17 +66,17 @@ static bool jerry_initialize(iotjs_environment_t* env) {
   jerry_init(jerry_flags);
 
 #ifdef JERRY_DEBUGGER
-  if (iotjs_environment_config(env)->debugger != NULL) {
+  if (veil_env_config(env)->debugger != NULL) {
     bool protocol_created = false;
-    char* debug_protocol = iotjs_environment_config(env)->debugger->protocol;
-    char* debug_channel = iotjs_environment_config(env)->debugger->channel;
+    char* debug_protocol = veil_env_config(env)->debugger->protocol;
+    char* debug_channel = veil_env_config(env)->debugger->channel;
 
     if (!strcmp(debug_protocol, "tcp")) {
-      uint16_t port = iotjs_environment_config(env)->debugger->port;
+      uint16_t port = veil_env_config(env)->debugger->port;
       protocol_created = jerryx_debugger_tcp_create(port);
     } else {
       IOTJS_ASSERT(!strcmp(debug_protocol, "serial"));
-      char* config = iotjs_environment_config(env)->debugger->serial_config;
+      char* config = veil_env_config(env)->debugger->serial_config;
       protocol_created = jerryx_debugger_serial_create(config);
     }
 
@@ -127,21 +127,21 @@ static bool jerry_initialize(iotjs_environment_t* env) {
 }
 
 
-bool iotjs_initialize(iotjs_environment_t* env) {
+bool iotjs_initialize(veil_env_t* env) {
   // Initialize JerryScript
   if (!jerry_initialize(env)) {
     DLOG("iotjs_jerry_init failed");
     return false;
   }
 
-  iotjs_environment_js_init(env);
+  veil_env_js_init(env);
 
   // Set event loop.
   if (!uv_default_loop()) {
     DLOG("iotjs uvloop init failed");
     return false;
   }
-  iotjs_environment_set_loop(env, uv_default_loop());
+  veil_env_set_loop(env, uv_default_loop());
 
   // Bind environment to global object.
   const jerry_value_t global = jerry_current_realm();
@@ -154,7 +154,7 @@ bool iotjs_initialize(iotjs_environment_t* env) {
 }
 
 #ifdef JERRY_DEBUGGER
-void iotjs_restart(iotjs_environment_t* env, jerry_value_t jmain) {
+void iotjs_restart(veil_env_t* env, jerry_value_t jmain) {
   jerry_value_t abort_value = jerry_exception_value(jmain, false);
   if (jerry_value_is_string(abort_value)) {
     /* TODO: When there is an api function to check for reset,
@@ -167,7 +167,7 @@ void iotjs_restart(iotjs_environment_t* env, jerry_value_t jmain) {
       jerry_char_t str_buf[5];
       jerry_string_to_char_buffer(abort_value, str_buf, str_size);
       if (memcmp(restart_str, (char*)(str_buf), str_size) == 0) {
-        iotjs_environment_config(env)->debugger->context_reset = true;
+        veil_env_config(env)->debugger->context_reset = true;
       }
     }
   }
@@ -178,7 +178,7 @@ void iotjs_restart(iotjs_environment_t* env, jerry_value_t jmain) {
 static bool iotjs_boot() {
   jerry_value_t realm = jerry_current_realm();
 
-  if (iotjs_environment_get()->config.expose_gc) {
+  if (veil_env_get()->config.expose_gc) {
     iotjs_jval_set_method(realm, IOTJS_MAGIC_STRING_GC, js_garbage_collector);
   }
 
@@ -198,8 +198,8 @@ static bool iotjs_boot() {
   return success;
 }
 
-static int iotjs_start(iotjs_environment_t* env) {
-  iotjs_environment_set_state(env, kRunningMain);
+static int iotjs_start(veil_env_t* env) {
+  veil_env_set_state(env, kRunningMain);
 
 #if ENABLE_MODULE_NAPI
   veil_setup_napi();
@@ -211,13 +211,13 @@ static int iotjs_start(iotjs_environment_t* env) {
   }
 
   int exit_code = 0;
-  if (!iotjs_environment_is_exiting(env)) {
+  if (!veil_env_is_exiting(env)) {
     // Run event loop.
-    iotjs_environment_set_state(env, kRunningLoop);
+    veil_env_set_state(env, kRunningLoop);
 
     bool more;
     do {
-      more = uv_run(iotjs_environment_loop(env), UV_RUN_ONCE);
+      more = uv_run(veil_env_loop(env), UV_RUN_ONCE);
       more |= iotjs_process_next_tick();
 
       jerry_value_t ret_val = jerry_run_jobs();
@@ -228,15 +228,15 @@ static int iotjs_start(iotjs_environment_t* env) {
       }
 
       if (more == false) {
-        more = uv_loop_alive(iotjs_environment_loop(env));
+        more = uv_loop_alive(veil_env_loop(env));
       }
-    } while (more && !iotjs_environment_is_exiting(env));
+    } while (more && !veil_env_is_exiting(env));
 
     exit_code = iotjs_process_exitcode();
 
-    if (!iotjs_environment_is_exiting(env)) {
+    if (!veil_env_is_exiting(env)) {
       iotjs_process_emit_exit(exit_code);
-      iotjs_environment_set_state(env, kExiting);
+      veil_env_set_state(env, kExiting);
     }
   }
 
@@ -266,8 +266,8 @@ static void uv_handle_walker(uv_handle_t* handle, void* arg) {
   }
 }
 
-void iotjs_end(iotjs_environment_t* env) {
-  uv_loop_t* loop = iotjs_environment_loop(env);
+void iotjs_end(veil_env_t* env) {
+  uv_loop_t* loop = veil_env_loop(env);
 
   // Close uv loop.
   uv_walk(loop, &uv_handle_walker, NULL);
@@ -278,7 +278,7 @@ void iotjs_end(iotjs_environment_t* env) {
 }
 
 
-void iotjs_terminate(iotjs_environment_t* env) {
+void iotjs_terminate(veil_env_t* env) {
   // Release builtin modules.
   iotjs_module_list_cleanup();
 
@@ -303,7 +303,7 @@ int veil_entry(int argc, char** argv) {
   iotjs_debuglog_init();
   srand((unsigned)jerry_port_current_time());
 
-  iotjs_environment_t* env = iotjs_environment_get();
+  veil_env_t* env = veil_env_get();
   if (!veil_cli_parse(env, argc, argv)) {
     ret_code = 1;
     goto exit;
@@ -327,16 +327,16 @@ terminate:
 
 exit:
 #ifdef JERRY_DEBUGGER
-  if (iotjs_environment_config(env)->debugger &&
-      iotjs_environment_config(env)->debugger->context_reset) {
-    iotjs_environment_release();
+  if (veil_env_config(env)->debugger &&
+      veil_env_config(env)->debugger->context_reset) {
+    veil_env_release();
     iotjs_debuglog_release();
 
     return iotjs_entry(argc, argv);
   }
 #endif
 
-  iotjs_environment_release();
+  veil_env_release();
   iotjs_debuglog_release();
   return ret_code;
 }

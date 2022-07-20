@@ -28,7 +28,7 @@ static int32_t pipe_wrap_init(jerry_value_t self, int32_t raw_type) {
       self,
       &this_module_native_info);
   int32_t err = uv_pipe_init(
-      iotjs_environment_loop(iotjs_environment_get()),
+      veil_env_loop(veil_env_get()),
       (uv_pipe_t*) handle,
       (raw_type == VEIL_PIPE_SOCKET_TYPE_IPC));
 

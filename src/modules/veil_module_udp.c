@@ -26,7 +26,7 @@ static void udp_finalize(void* native_p, jerry_object_native_info_t* native_info
 }
 
 int32_t veil_udp_object_init(jerry_value_t judp) {
-  uv_loop_t* loop = iotjs_environment_loop(iotjs_environment_get());
+  uv_loop_t* loop = veil_env_loop(veil_env_get());
   uv_handle_t* handle = veil_uv_create_handle(sizeof(uv_udp_t), NULL, judp, &this_module_native_info);
   int32_t err = uv_udp_init(loop, (uv_udp_t*)handle);
 

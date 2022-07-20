@@ -61,7 +61,7 @@ JS_FUNCTION(debugger_get_source) {
     }
 
     if (receive_status == JERRY_DEBUGGER_CONTEXT_RESET_RECEIVED) {
-      iotjs_environment_config(iotjs_environment_get())
+      veil_env_config(veil_env_get())
           ->debugger->context_reset = true;
       break;
     }
@@ -134,14 +134,14 @@ JS_FUNCTION(proc_chdir) {
 }
 
 JS_FUNCTION(proc_do_exit) {
-  iotjs_environment_t* env = iotjs_environment_get();
+  veil_env_t* env = veil_env_get();
 
-  if (!iotjs_environment_is_exiting(env)) {
+  if (!veil_env_is_exiting(env)) {
     DJS_CHECK_ARGS(1, number);
     int exit_code = JS_GET_ARG(0, number);
 
     iotjs_set_process_exitcode(exit_code);
-    iotjs_environment_set_state(env, kExiting);
+    veil_env_set_state(env, kExiting);
   }
   return jerry_undefined();
 }
@@ -167,13 +167,13 @@ static void set_process_env(jerry_value_t process) {
 }
 
 static void set_process_argv(jerry_value_t process) {
-  const iotjs_environment_t* env = iotjs_environment_get();
-  uint32_t argc = iotjs_environment_argc(env);
+  const veil_env_t* env = veil_env_get();
+  uint32_t argc = veil_env_argc(env);
 
   jerry_value_t argv = jerry_array(argc);
 
   for (uint32_t i = 0; i < argc; ++i) {
-    const char* argvi = iotjs_environment_argv(env, i);
+    const char* argvi = veil_env_argv(env, i);
     jerry_value_t arg = jerry_string_sz(argvi);
     iotjs_jval_set_property_by_index(argv, i, arg);
     jerry_value_free(arg);
@@ -262,7 +262,7 @@ jerry_value_t veil_init_process(void) {
   // process.arch
   iotjs_jval_set_property_string_raw(process, IOTJS_MAGIC_STRING_ARCH, TARGET_ARCH);
   // process.argv0
-  iotjs_jval_set_property_string_raw(process, IOTJS_MAGIC_STRING_ARGV0, iotjs_environment_get()->argv0);
+  iotjs_jval_set_property_string_raw(process, IOTJS_MAGIC_STRING_ARGV0, veil_env_get()->argv0);
   // process.version
   iotjs_jval_set_property_string_raw(process, IOTJS_MAGIC_STRING_VERSION, VEIL_VERSION_STRING);
   // process.version
@@ -278,8 +278,8 @@ jerry_value_t veil_init_process(void) {
 
 #ifdef JERRY_DEBUGGER
   bool wait_source = false;
-  if (iotjs_environment_config(iotjs_environment_get())->debugger != NULL) {
-    wait_source = iotjs_environment_config(iotjs_environment_get())
+  if (veil_env_config(veil_env_get())->debugger != NULL) {
+    wait_source = veil_env_config(veil_env_get())
                       ->debugger->wait_source;
   }
 #endif
