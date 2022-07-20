@@ -12,7 +12,7 @@
  */
 
 #include "iotjs_def.h"
-#include "iotjs_compatibility.h"
+#include "veil_compatibility.h"
 #include "iotjs_module.h"
 #include <signal.h>
 

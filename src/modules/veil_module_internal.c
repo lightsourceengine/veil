@@ -13,7 +13,7 @@
 
 #include "iotjs_def.h"
 
-#include "iotjs_compatibility.h"
+#include "veil_compatibility.h"
 #include "iotjs_js.h"
 #include "veil_module.h"
 #define i_key char
