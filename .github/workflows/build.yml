@@ -84,4 +84,4 @@ jobs:
           path: |
             build/package/veil-*.tgz
             build/package/veil-*.zip
-            LICENSE
+            build/package/LICENSE

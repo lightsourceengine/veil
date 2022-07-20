@@ -52,6 +52,8 @@ VEIL_PACKAGE_NAME="veil-v$(cat config/version)-${PACKAGE_TAG}"
 
 cd "${SOURCE_ROOT}"
 mkdir -p build/package
+# Copy license to package directory for convenience. The package directory will be the contents of the CI artifact.
+cp -f LICENSE "build/package"
 
 echo "creating ${VEIL_PACKAGE_NAME}..."
 
