@@ -31,7 +31,7 @@
     },
     "veil_napi_modules": {
       "import": [
-        "napi"
+        "internal__napi"
       ]
     },
     "veil_network_modules": {
@@ -92,27 +92,6 @@
       "js_file": "$JS_GEN/events.mjs",
       "import": ["util"]
     },
-    "internal": {
-      "native_files": ["modules/veil_module_internal.c"],
-      "init": "veil_init_internal",
-      "js_file": "$JS_GEN/internal.mjs",
-      "import": ["util"]
-    },
-    "internal__errors": {
-      "js_file": "$JS_GEN/internal/errors.mjs"
-    },
-    "internal__esm": {
-      "js_file": "$JS_GEN/internal/esm.mjs",
-      "import": ["url","path"]
-    },
-    "internal__event_target": {
-      "js_file": "$JS_GEN/internal/event_target.mjs",
-      "import": ["events"]
-    },
-    "internal__validators": {
-      "js_file": "$JS_GEN/internal/validators.mjs",
-      "import": ["internal__errors"]
-    },
     "fs": {
       "native_files": ["modules/veil_module_fs.c"],
       "init": "veil_init_fs",
@@ -160,12 +139,25 @@
       "js_file": "$JS_GEN/https.mjs",
       "import": ["http_client", "http_parser", "http_server", "net", "tls"]
     },
-    "module": {
-      "js_file": "$JS_GEN/module.mjs",
-      "import": ["internal__esm"]
+    "internal": {
+      "native_files": ["modules/veil_module_internal.c"],
+      "init": "veil_init_internal",
+      "js_file": "$JS_GEN/internal.mjs",
+      "import": ["util"]
     },
-    "napi": {
-      "js_file": "$JS_GEN/napi.mjs",
+    "internal__errors": {
+      "js_file": "$JS_GEN/internal/errors.mjs"
+    },
+    "internal__esm": {
+      "js_file": "$JS_GEN/internal/esm.mjs",
+      "import": ["url","path"]
+    },
+    "internal__event_target": {
+      "js_file": "$JS_GEN/internal/event_target.mjs",
+      "import": ["events"]
+    },
+    "internal__napi": {
+      "js_file": "$JS_GEN/internal/napi.mjs",
       "native_files": [
         "modules/veil_module_dynamicloader.c",
         "napi/node_api.c",
@@ -179,6 +171,14 @@
         "napi/node_api_value.c"
       ],
       "init": "veil_init_dynamicloader"
+    },
+    "internal__validators": {
+      "js_file": "$JS_GEN/internal/validators.mjs",
+      "import": ["internal__errors"]
+    },
+    "module": {
+      "js_file": "$JS_GEN/module.mjs",
+      "import": ["internal__esm"]
     },
     "net": {
       "js_file": "$JS_GEN/net.mjs",

@@ -373,7 +373,7 @@ const createRequire = (pathOrUrl) => {
 }
 
 const addNodeModulePackage = () => {
-  const privateBuiltins = new Set(['napi', 'lexer', 'internal'])
+  const privateBuiltins = new Set(['lexer', 'internal'])
   const builtinModules = Object.freeze(builtins.filter(b => !privateBuiltins.has(b) && !b.startsWith('internal/')))
   const namedExports = {
     builtinModules,
@@ -402,7 +402,7 @@ const exports = (key) => {
 }
 
 const loadAddon = (filename) => {
-  const napi = importBuiltin('napi').default
+  const napi = importBuiltin('internal/napi').default
 
   // TODO: --no-addon
 

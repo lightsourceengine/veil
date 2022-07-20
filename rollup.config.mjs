@@ -131,6 +131,7 @@ ops.push(min(`src/js/util/types.mjs`, join(minifiedOutputPath, 'util/types.mjs')
 ops.push(min(`src/js/internal/event_target.mjs`, join(minifiedOutputPath, 'internal/event_target.mjs')))
 ops.push(min(`src/js/internal/esm.mjs`, join(minifiedOutputPath, 'internal/esm.mjs')))
 ops.push(min(`src/js/internal/errors.mjs`, join(minifiedOutputPath, 'internal/errors.mjs')))
+ops.push(min(`src/js/internal/napi.mjs`, join(minifiedOutputPath, 'internal/napi.mjs')))
 ops.push(min(`src/js/internal/validators.mjs`, join(minifiedOutputPath, 'internal/validators.mjs')))
 
 ops.push(lexer())
