@@ -542,7 +542,7 @@ else()
   # FIXME: module specific condition should not be in the main cmake
   if(${ENABLE_MODULE_NAPI})
     # Force symbols to be entered in the output file as undefined symbols.
-    file(READ "${IOTJS_SOURCE_DIR}/napi/node_symbols.txt" NODE_SYMBOLS)
+    file(READ "${ROOT_DIR}/deps/node-api-headers/symbols/v3.txt" NODE_SYMBOLS)
     string(REGEX REPLACE "[\r|\n]" ";" NODE_SYMBOLS "${NODE_SYMBOLS}")
 
     if(USING_MSVC)
